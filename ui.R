@@ -24,7 +24,6 @@ fluidPage(
   tags$head(tags$style(HTML( "#Select1 ~ .selectize-control.single .selectize-input {border: 1px solid #fff;}"))),
   tabsetPanel(
     tabPanel('ROI Tool',
-             
              headerPanel("PhenoCam ROI Tool"),
              sidebarPanel(width = 4,
                           fluidRow(
@@ -123,8 +122,15 @@ fluidPage(
                  column(1, actionButton("pause", "", icon = icon('stop'), width = '100%',  style="border-color: #fff")),
                  column(1, actionButton("play", "", icon = icon('forward'), width = '100%', style="border-color: #fff; align:center")),
                  column(1, actionButton("forw", "", icon = icon('plus'), width = '100%',  style="border-color: #fff")),
-                 column(5, selectInput('shiftsList', label = NULL, choices = 'List of shifts in FOV', width = '100%')),
-                 column(1, strong())
+                 
+                 column(2, selectInput('shiftsList1', label = NULL, choices = '', width = '100%')),
+                 column(1, actionButton('goShift1', label = NULL, icon = icon('refresh'), width = '100%', 
+                                        style="border-color: #fff; align:center; font-size: 200%;font-weight: bold;")),
+                 
+                 column(2, selectInput('shiftsList2', label = NULL, choices = '', width = '100%')),
+                 column(1, actionButton('goShift2', label = NULL, icon = icon('refresh'), width = '100%', 
+                                        style="border-color: #fff; align:center; font-size: 200%;font-weight: bold;"))
+                 # column(1, strong())
                  
                ),
                fluidRow(

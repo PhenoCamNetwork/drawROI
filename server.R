@@ -172,7 +172,46 @@ shinyServer(function(input, output, session) {
     rv$MASKs <- list()
     updateSelectInput(session, inputId = 'maskName', choices = 'New mask')
     rv$centers <- matrix(numeric(), 0, 2)
+    
+    updateSelectInput(session, inputId = 'shiftsList1', choices = shiftsList1())
+    updateSelectInput(session, inputId = 'shiftsList2', choices = shiftsList2())
   })
+  
+  
+  shiftsList1 <- reactive({
+    printLog(paste('shiftsList1 reactive experssion was called.\t'))
+    clt <- clTable()[!Foggy&T,]
+    clt[, dHz := diff(Horizon)]
+    shiftsList1 <- as.Date(clt[dHz>20, Date])
+    
+  })
+  
+  observeEvent(input$goShift1,{
+    printLog(paste('input$goShift1 was changed to:', '\t',input$goShift1))
+    dummy <- 1
+    tmpDT <- dayYearIDTable()
+    tmpDT[, dif:=abs(Date- as.Date(input$shiftsList1))]
+    id <- tmpDT[dif==min(dif), ID]
+    updateSliderInput(session, inputId = 'contID', value = id)
+  })
+  
+  
+  shiftsList2 <- reactive({
+    printLog(paste('shiftsList2 reactive experssion was called.\t'))
+    clt <- clTable()
+    shiftsList2 <- as.Date(clt[!Foggy&R5.b<.1, Date])
+    
+  })
+  
+  observeEvent(input$goShift2,{
+    printLog(paste('input$goShift2 was changed to:', '\t',input$goShift2))
+    dummy <- 1
+    tmpDT <- dayYearIDTable()
+    tmpDT[, dif:=abs(Date- as.Date(input$shiftsList2))]
+    id <- tmpDT[dif==min(dif), ID]
+    updateSliderInput(session, inputId = 'contID', value = id)
+  })
+  
   
   siteInfo <- reactive({
     printLog(paste('siteInfo reactive experssion was called.\t'))
@@ -180,6 +219,8 @@ shinyServer(function(input, output, session) {
     dummy <- 0
     rv$phenoSites[[input$siteName]]
   })
+  
+  
   
   observeEvent(input$nextSite, {
     printLog(paste('input$nextSite was changed to:', '\t',input$nextSite))
@@ -549,6 +590,8 @@ shinyServer(function(input, output, session) {
     printLog(paste('clTable reactive experssion was called.\t'))
     
     tbl <- read.csv(paste0(clImagePath, input$siteName, '.txt'))
+    tbl <- as.data.table(tbl)
+    
     tbl
   }  )
   
