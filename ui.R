@@ -96,10 +96,12 @@ fluidPage(
              
              
              mainPanel(
+               plotOutput("cliPlot", click = "clPoint", height = 'auto'),
+               br(),
                fluidRow( 
                  column(3, 
                         fluidRow( 
-                          column(8, strong(dateInput('gotoDate', label = ''), style='font-size:40%;font-weight: bold;')),
+                          column(8, strong(dateInput('gotoDate', label = ''), style='font-size:20%;font-weight: bold;')),
                           column(4, actionButton('gotoDateButton', label = NULL, icon = icon('refresh'), width = '100%', style="border-color: #fff; align:center; font-size: 200%;font-weight: bold;"))
                         )
                  ),

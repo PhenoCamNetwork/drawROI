@@ -19,7 +19,7 @@ plotJPEG <- function(path, add=FALSE)
   # jpgNonNative <-  readJPEG(path, native=F) # read the file
   jpgNonNative <- NULL
   jpgNative <-  readJPEG(path, native=T) # read the file
-  res <-  dim(jpgNative)[1:2] # get the resolution
+  res <-  dim(jpgNative)[2:1] # get the resolution
   if (!add) # initialize an empty plot area if add==FALSE
     plot(NA,xlim=c(1,res[1]),ylim=c(1,res[2]), type='n',
          xaxs='i',yaxs='i',xaxt='n',yaxt='n',xlab='',ylab='',bty='o')

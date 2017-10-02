@@ -63,6 +63,7 @@ shinyServer(function(input, output, session) {
                        ROIs = vector(),
                        sitesList = vector(),
                        parsedROIList = NULL,
+                       cl = NULL,
                        phenoSites = fromJSON(file = 'https://phenocam.sr.unh.edu/webcam/network/siteinfo/')
   )
   
@@ -536,6 +537,34 @@ shinyServer(function(input, output, session) {
   
   
   # ----------------------------------------------------------------------
+  # CL Image
+  # ----------------------------------------------------------------------
+  clImage <- reactive({
+    printLog(paste('clImage reactive experssion was called.\t'))
+    
+    paste0(clImagePath, input$siteName, '.jpg')
+  }  )
+  
+  clTable <- reactive({
+    printLog(paste('clTable reactive experssion was called.\t'))
+    
+    tbl <- read.csv(paste0(clImagePath, input$siteName, '.txt'))
+    tbl
+  }  )
+  
+  
+  observeEvent(input$clPoint, {
+    dummy <- 0
+    printLog(paste('input$clPoint was updated with:', '\t',input$clPoint$x, input$clPoint$y))
+    tbl <- clTable()
+    clDate <- as.Date(tbl$Date[ceiling(input$clPoint$x)])
+    tmpDT <- dayYearIDTable()
+    tmpDT[, dif:=abs(Date - clDate)]
+    id <- tmpDT[dif==min(dif), ID]
+    updateSliderInput(session, inputId = 'contID', value = id)
+  })
+  
+  # ----------------------------------------------------------------------
   # Sample Image
   # ----------------------------------------------------------------------
   sampleImage <- reactive({
@@ -629,6 +658,19 @@ shinyServer(function(input, output, session) {
     tmpDate <- dayYearIDTable()[ID==input$contID, Date]
     updateDateInput(session, 'gotoDate', value = tmpDate)
   })
+  # ----------------------------------------------------------------------
+  # CL Image
+  # ----------------------------------------------------------------------
+  output$cliPlot <- renderPlot(
+    res=36,
+    height = function(){floor(session$clientData$output_imagePlot_width/2)},
+    {
+      par(mar=c(0,0,0,0))
+      rv$cl <- plotJPEG(clImage())
+      
+      }
+    )
+  
   # ----------------------------------------------------------------------
   # Plot image
   # ----------------------------------------------------------------------
