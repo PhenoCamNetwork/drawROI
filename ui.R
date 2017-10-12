@@ -3,7 +3,7 @@ library(shinyTime)
 library(shinyjs)
 library(shinyBS)
 library(shinydashboard)
-library(colourpicker)
+# library(colourpicker)
 library(rjson)
 library(stringr)
 library(sendmailR)
@@ -94,9 +94,36 @@ fluidPage(
              
              
              
-             mainPanel(
-               plotOutput("cliPlot", click = "clPoint", height = 'auto'),
+             mainPanel(              
                br(),
+               fluidRow(
+                 column(3, selectInput('shiftsList1', label = 'Horizon Shifts', choices = c(Choose=''), width = '100%')),
+                 # column(1, actionButton('goShift1', label = NULL, icon = icon('refresh'), width = '100%', 
+                 #                        style="border-color: #fff; align:center; font-size: 200%;font-weight: bold;")),
+                 # column(2, selectInput('shiftsList1.Threshold', label = 'Threshold (px)', choices = c(1:10, 15:30), selectize = T, selected = 10)),
+                 column(2, sliderInput('shiftsList1.Threshold', label = 'Threshold (px)', min = 1, max = 50, value = 10, step = 1)),
+                 column(2, strong()),
+                 
+                 column(3, selectInput('shiftsList2', label = 'Correlation Shifts', choices = c(Choose=''), width = '100%')),
+                 # column(1, actionButton('goShift2', label = NULL, icon = icon('refresh'), width = '100%', 
+                 #                        style="border-color: #fff; align:center; font-size: 200%;font-weight: bold;"))
+                 # column(2, selectInput('shiftsList2.Threshold', label = 'Threshold', selectize = T, choices = c(.01, 0.02, .05, .1, .15, .2, .3, .4, .5, .6, .75), selected = .05))
+                 column(2, sliderInput('shiftsList2.Threshold', label = 'Threshold (R)', min = 0, max = 1, value = .5, step = .05))
+               ),
+               tags$head(tags$style(HTML('.irs-from, .irs-to, .irs-min, .irs-max {
+            visibility: hidden !important;
+    }'))),
+               sliderInput(inputId = "clRange",
+                           label =  NULL,
+                           min = 1, max = 2,
+                           ticks = F,
+                           animate=F,
+                           value = c(1, 2),
+                           step = 1,
+                           width = '100%'),
+               plotOutput("clPlot", click = "clPoint", height = 'auto'),
+               br(),
+               
                fluidRow( 
                  column(3, 
                         fluidRow( 
@@ -122,42 +149,73 @@ fluidPage(
                  column(1, actionButton("pause", "", icon = icon('stop'), width = '100%',  style="border-color: #fff")),
                  column(1, actionButton("play", "", icon = icon('forward'), width = '100%', style="border-color: #fff; align:center")),
                  column(1, actionButton("forw", "", icon = icon('plus'), width = '100%',  style="border-color: #fff")),
-                 
-                 column(2, selectInput('shiftsList1', label = NULL, choices = '', width = '100%')),
-                 column(1, actionButton('goShift1', label = NULL, icon = icon('refresh'), width = '100%', 
-                                        style="border-color: #fff; align:center; font-size: 200%;font-weight: bold;")),
-                 
-                 column(2, selectInput('shiftsList2', label = NULL, choices = '', width = '100%')),
-                 column(1, actionButton('goShift2', label = NULL, icon = icon('refresh'), width = '100%', 
-                                        style="border-color: #fff; align:center; font-size: 200%;font-weight: bold;"))
-                 # column(1, strong())
+                 column(1, strong()),
+                 column(2, actionButton("linkedImage", "", icon = icon('copy'), width = "110px", style='font-weight: bold;border-color: #fff')),
+                 column(2, checkboxInput("lastNextDayShow", label = 'Before/After', value = F)),
+                 column(1, strong())
                  
                ),
                fluidRow(
                  column(1, actionButton('previousSite', label = NULL, icon = icon('arrow-circle-left'), width = '100%',  style="border-color: #fff; font-size: 175%")),
                  column(5, plotOutput("imagePlot", click = "newPoint", dblclick = 'gapPoint', height = 'auto')),
-                 column(5, plotOutput("maskPlot", height = 'auto')),
+                 column(5, plotOutput("imagePlot2", height = 'auto')),
                  column(1, actionButton('nextSite', label = NULL, icon = icon('arrow-circle-right'), width = '100%',  style="border-color: #fff; font-size: 175%"))
                ),
-               br(),
+               
+               conditionalPanel(
+                 condition = "input.lastNextDayShow",
+                 br(),
+                 fluidRow(
+                   column(1, strong()),
+                   column(5, plotOutput("lastDay", height = 'auto')),
+                   column(5, plotOutput("nextDay", height = 'auto')),
+                   column(1, strong())
+                 ),
+                 br()
+               ) ,
+               
                fluidRow(
                  column(1, strong()),
-                 column(5, 
-                        fluidRow(
-                          column(4, actionButton("clearCanvas", "Erase", icon = icon('eraser'), class="btn-primary", width = "100%", style='font-weight: bold;')),
-                          column(4, actionButton("undoCanvas", "Undo", icon = icon('undo'), class="btn-primary", width = "100%", style='font-weight: bold;')),
-                          column(4, actionButton("acceptCanvas", "Accept", icon = icon('thumbs-up'), class="btn-primary", width = "100%", style='font-weight: bold;'))
-                        )),
-                 column(5,
-                        fluidRow(
-                          column( 5, colourpicker::colourInput(inputId = 'roiColors', allowTransparent=T, 
-                                                               # transparentText = 'clear', 
-                                                               label = NULL,value = '#ab5222', showColour = 'background')),
-                          column( 7, p())
-                        )
+                 column(5, plotOutput("maskPlot", height = 'auto')),
+                 column(1, strong()),
+                 
+                 column(1, 
+                        br(),
+                        
+                        br(),br(),
+                        actionButton("clearCanvas", "Erase", icon = icon('eraser'), class="btn-primary", width = "110px", style='font-weight: bold;'),
+                        br(),br(),
+                        actionButton("undoCanvas", "Undo", icon = icon('undo'), class="btn-primary", width = "110px", style='font-weight: bold;'),
+                        br(),br(),
+                        actionButton("acceptCanvas", "Accept", icon = icon('thumbs-up'), class="btn-primary", width = "110px", style='font-weight: bold;'),
+                        br(),br(),
+                        shinyjs::colourInput(inputId = 'roiColors', allowTransparent=T, 
+                                             transparentText = 'clear',
+                                             label = NULL,value = '#ab5222', showColour = 'background')
                  ),
-                 column(1, strong())
+                 column(4, strong())
                ),
+               br(),
+               
+               # fluidRow(
+               #   column(1, strong()),
+               #   column(5, 
+               #          fluidRow(
+               #            column(4, actionButton("clearCanvas", "Erase", icon = icon('eraser'), class="btn-primary", width = "100%", style='font-weight: bold;')),
+               #            column(4, actionButton("undoCanvas", "Undo", icon = icon('undo'), class="btn-primary", width = "100%", style='font-weight: bold;')),
+               #            column(4, actionButton("acceptCanvas", "Accept", icon = icon('thumbs-up'), class="btn-primary", width = "100%", style='font-weight: bold;'))
+               #          )),
+               #   column(5,
+               #          fluidRow(
+               #            column( 5, shinyjs::colourInput(inputId = 'roiColors', allowTransparent=T, 
+               #                                                 transparentText = 'clear',
+               #                                                 label = NULL,value = '#ab5222', showColour = 'background'))
+               #            # column( 7, p())
+               #          )
+               #   ),
+               #   column(1, strong())
+               # ),
+               
                
                hr(),
                
@@ -169,7 +227,7 @@ fluidPage(
                         
                         actionButton("startExtractCC", "Extract", icon = icon('line-chart'), onclick="Shiny.onInputChange('stopThis',false)", width = "110px", style="background-color:#666; color:#fff;font-weight: bold;"),
                         hr(),
-                        checkboxGroupInput('ccBand', label = NULL, choices = c(Red='R',Green='G',Blue='B'), selected = c('R','G','B'), width = '100%', inline = F),
+                        checkboxGroupInput('ccBand', label = NULL, choices = c(Red='R', Green='G', Blue='B', Haze= 'H'), selected = c('R','G','B'), width = '100%', inline = F),
                         hr(),
                         downloadButton("downloadTSData", "Download\t")
                  ),

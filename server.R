@@ -64,6 +64,9 @@ shinyServer(function(input, output, session) {
                        sitesList = vector(),
                        parsedROIList = NULL,
                        cl = NULL,
+                       LinkedID = 1,
+                       shiftsList1 = NULL,
+                       shiftsList2 = NULL,
                        phenoSites = fromJSON(file = 'https://phenocam.sr.unh.edu/webcam/network/siteinfo/')
   )
   
@@ -127,7 +130,7 @@ shinyServer(function(input, output, session) {
   
   observeEvent(input$siteName, {
     printLog(paste('input$siteName was changed to:', '\t',input$siteName))
-    
+    rv$LinkedID <- 1
     dummy = 0
     updateSelectInput(session, inputId = 'errorSite', selected = input$siteName)
     rv$slideShow <- 0
@@ -137,6 +140,12 @@ shinyServer(function(input, output, session) {
                       value = 1,
                       min= min(dayYearIDTable()$ID),
                       max= max(dayYearIDTable()$ID)  )
+    clt <- clTable()
+    updateSliderInput(session,
+                      inputId = 'clRange',
+                      value = c(1, nrow(clt)),
+                      min= 1,
+                      max= nrow(clt) )
     
     tmp <- unlist(strsplit(sampleImageName(), '_'))
     startDate <- as.Date(paste(tmp[2:4], collapse = '-'))
@@ -172,22 +181,30 @@ shinyServer(function(input, output, session) {
     rv$MASKs <- list()
     updateSelectInput(session, inputId = 'maskName', choices = 'New mask')
     rv$centers <- matrix(numeric(), 0, 2)
-    
-    updateSelectInput(session, inputId = 'shiftsList1', choices = shiftsList1())
-    updateSelectInput(session, inputId = 'shiftsList2', choices = shiftsList2())
+    # 
+    # updateSelectInput(session, inputId = 'shiftsList1', choices = shiftsList1())
+    # updateSelectInput(session, inputId = 'shiftsList2', choices = shiftsList2())
   })
   
   
-  shiftsList1 <- reactive({
+  observe({
     printLog(paste('shiftsList1 reactive experssion was called.\t'))
-    clt <- clTable()[!Foggy&T,]
-    clt[, dHz := diff(Horizon)]
-    shiftsList1 <- as.Date(clt[dHz>20, Date])
+    clt <- as.data.table(clTable())
+    clt[,Group:=rep(1:.N, each=3, length.out=.N)]
+    clt[,HzMed:=median(as.double(na.omit(Horizon))),Group]
+    clt[, dHz := diff(HzMed)]
+    shiftsList1 <- as.Date(clt[abs(dHz)>as.numeric(input$shiftsList1.Threshold), Date])
+    # shiftsList1 <- as.Date(clt[abs(dHz)>as.numeric(input$shiftsList1.Threshold)&!Foggy, Date])
+    # shiftsList1 <- as.Date(clt[abs(HorizonD5)>as.numeric(input$shiftsList1.Threshold)&!Foggy, Date])
+    # shiftsList1 <- c(min(dayYearIDTable()$Date), shiftsList1)
+    rv$shiftsList1 <- shiftsList1
     
+    updateSelectInput(session, 'shiftsList1', choices = c(Choose='', as.list(shiftsList1)))
   })
   
-  observeEvent(input$goShift1,{
-    printLog(paste('input$goShift1 was changed to:', '\t',input$goShift1))
+  observeEvent(input$shiftsList1,{
+    printLog(paste('input$shiftsList1 was changed to:', '\t',input$shiftsList1))
+    if(input$shiftsList1=='') return()
     dummy <- 1
     tmpDT <- dayYearIDTable()
     tmpDT[, dif:=abs(Date- as.Date(input$shiftsList1))]
@@ -195,16 +212,31 @@ shinyServer(function(input, output, session) {
     updateSliderInput(session, inputId = 'contID', value = id)
   })
   
+  # observeEvent(input$goShift1,{
+  #   printLog(paste('input$goShift1 was changed to:', '\t',input$goShift1))
+  #   dummy <- 1
+  #   tmpDT <- dayYearIDTable()
+  #   tmpDT[, dif:=abs(Date- as.Date(input$shiftsList1))]
+  #   id <- tmpDT[dif==min(dif), ID]
+  #   updateSliderInput(session, inputId = 'contID', value = id)
+  # })
+  # 
   
-  shiftsList2 <- reactive({
+  observe({
     printLog(paste('shiftsList2 reactive experssion was called.\t'))
-    clt <- clTable()
-    shiftsList2 <- as.Date(clt[!Foggy&R5.b<.1, Date])
+    clt <- as.data.table(clTable())
+    shiftsList2 <- as.Date(clt[!Foggy&R5.b<as.numeric(input$shiftsList2.Threshold), Date])
+    # shiftsList2 <- c(min(dayYearIDTable()$Date), shiftsList2)
+    rv$shiftsList2 <- shiftsList2
+    
+    updateSelectInput(session, 'shiftsList2', choices = c(Choose='', as.list(shiftsList2)))
     
   })
   
-  observeEvent(input$goShift2,{
-    printLog(paste('input$goShift2 was changed to:', '\t',input$goShift2))
+  observeEvent(input$shiftsList2,{
+    printLog(paste('input$shiftsList2 was changed to:', '\t',input$shiftsList2))
+    if(input$shiftsList2=='') return()
+    
     dummy <- 1
     tmpDT <- dayYearIDTable()
     tmpDT[, dif:=abs(Date- as.Date(input$shiftsList2))]
@@ -212,6 +244,15 @@ shinyServer(function(input, output, session) {
     updateSliderInput(session, inputId = 'contID', value = id)
   })
   
+  # observeEvent(input$goShift2,{
+  #   printLog(paste('input$goShift2 was changed to:', '\t',input$goShift2))
+  #   dummy <- 1
+  #   tmpDT <- dayYearIDTable()
+  #   tmpDT[, dif:=abs(Date- as.Date(input$shiftsList2))]
+  #   id <- tmpDT[dif==min(dif), ID]
+  #   updateSliderInput(session, inputId = 'contID', value = id)
+  # })
+  # 
   
   siteInfo <- reactive({
     printLog(paste('siteInfo reactive experssion was called.\t'))
@@ -306,7 +347,7 @@ shinyServer(function(input, output, session) {
       printLog(paste('dir roi.csv observed experssion was called.\t'))
       
       rv$ROIs <- tmp.rv.ROIs
-
+      
       printLog(paste('rv$ROIs observed experssion was called.\t'))
       roiNameSel <- 'New ROI'
       # if(length(rv$ROIs)>1) roiNameSel <- rv$ROIs[length(rv$ROIs)-1]
@@ -315,7 +356,7 @@ shinyServer(function(input, output, session) {
       updateSelectInput(session, 'roiName', choices = rv$ROIs)
       updateSelectInput(session, 'roiName', selected = roiNameSel)
       
-      }
+    }
   }
   )
   
@@ -374,7 +415,7 @@ shinyServer(function(input, output, session) {
     dummy=0
     dummy=0
     tmp <- parseROI(roifilename=input$roiName,
-                                 roipath = roipath())
+                    roipath = roipath())
     if(is.null(tmp)) return()
     rv$parsedROIList <- tmp
     updateSelectInput(session, inputId = 'vegType', selected =  rv$parsedROIList$vegType)
@@ -419,10 +460,10 @@ shinyServer(function(input, output, session) {
   output$noROI <- renderText({
     autoInvalidate()
     length(dir(roipath(), pattern = 'roi.csv$'))
-    })
+  })
   observeEvent(input$refreshROI, {
-      roiName.now <- input$roiName
-      updateSelectInput(session, 'roiName', selected = roiName.now)
+    roiName.now <- input$roiName
+    updateSelectInput(session, 'roiName', selected = roiName.now)
   })
   
   roiID <- reactive({
@@ -589,17 +630,24 @@ shinyServer(function(input, output, session) {
   clTable <- reactive({
     printLog(paste('clTable reactive experssion was called.\t'))
     
-    tbl <- read.csv(paste0(clImagePath, input$siteName, '.txt'))
-    tbl <- as.data.table(tbl)
-    
-    tbl
+    clt <- read.csv(paste0(clImagePath, input$siteName, '.txt'))
+    clt <- as.data.table(clt)
+    clt[,CLID:=1:.N]
+    clt[,Date:= as.Date(Date)]
+    for(i in 2:nrow(clt))
+      if(is.na(clt$Horizon[i])) clt$Horizon[i] <- clt$Horizon[i-1]
+    clt$HorizonD5 <- c(clt$Horizon[-(1:5)], rep(NA, 5)) - clt$Horizon 
+    # clt[,Group5:=rep(1:.N, each=5, length.out=.N)]
+    # clt[,Haze5:=mean(Haze, na.rm=T), Group5]
+    # clt[,Date5:=mean(Date, na.rm=T), Group5]
+    as.data.frame(clt)
   }  )
   
   
   observeEvent(input$clPoint, {
     dummy <- 0
     printLog(paste('input$clPoint was updated with:', '\t',input$clPoint$x, input$clPoint$y))
-    tbl <- clTable()
+    tbl <- as.data.table(clTable())
     clDate <- as.Date(tbl$Date[ceiling(input$clPoint$x)])
     tmpDT <- dayYearIDTable()
     tmpDT[, dif:=abs(Date - clDate)]
@@ -619,7 +667,7 @@ shinyServer(function(input, output, session) {
   sampleImageSize <- reactive({
     printLog(paste('sampleImageSize reactive experssion was called.\t'))
     
-    dim(readJPEG(sampleImage()))[1:2]
+    dim(readJPEG(sampleImage()))[2:1]
   })
   
   sampleImageName <- reactive({
@@ -704,15 +752,38 @@ shinyServer(function(input, output, session) {
   # ----------------------------------------------------------------------
   # CL Image
   # ----------------------------------------------------------------------
-  output$cliPlot <- renderPlot(
+  observeEvent(input$clRange,{
+    c <- input$clRange
+    if(c[1]!=c[2]) return()
+    
+    if(c[1]==1) 
+      updateSliderInput(session, inputId = 'clRange', value = c(c[1], c[1]+1))
+    else
+      updateSliderInput(session, inputId = 'clRange', value = c(c[2]-1, c[2]))
+  }  )
+  
+  output$clPlot <- renderPlot(
     res=36,
     height = function(){floor(session$clientData$output_imagePlot_width/2)},
     {
-      par(mar=c(0,0,0,0))
-      rv$cl <- plotJPEG(clImage())
+      par(mar=c(3,0,0,0))
+      rv$cl <- plotJPEG(clImage(), xlim = input$clRange)
+      dt <- as.Date(dayYearIDTable()[ID==input$contID, Date])
+      clt <- as.data.table(clTable()[input$clRange[1]:input$clRange[2],])
       
-      }
-    )
+      abline(v= clt[Date==dt,CLID], col= 'red', lwd=5)
+      
+      if(!is.null(rv$shiftsList1))abline(v= clt[Date%in%as.Date(rv$shiftsList1),CLID], col= 'white', lwd=3, lty=2)
+      if(!is.null(rv$shiftsList2))abline(v= clt[Date%in%as.Date(rv$shiftsList2),CLID], col= 'green', lwd=3, lty=2)
+      # lines(clt$Horizon, clt$CLID, col='yellow')
+      # lines(clt$CLID, clt$Horizon, col='yellow')
+      lines(clt[,.(CLID, Horizon)], col='yellow', lwd=3)
+      
+      par(new=T, cex.axis = 2)
+      clt[,plot(Date, Haze*0, xaxs='i',yaxs='i', yaxt='n', type='n', ylab = '', ylim = c(0, 1))]
+      
+    }
+  )
   
   # ----------------------------------------------------------------------
   # Plot image
@@ -727,8 +798,11 @@ shinyServer(function(input, output, session) {
         text(mean(par()$usr[1:2]), mean(par()$usr[3:4]), 'No image for this date was found!', font=2, adj=.5)
       }else{
         par(mar=c(0,0,0,0))
-        plotJPEG(sampleImage())
+        jp <- plotJPEG(sampleImage())
+        clt <- as.data.table(clTable())
+        wHaze <- max(min(clt[Date==dayYearIDTable()[ID==input$contID, Date], Haze], 1), 0)
         roiColors <- if (input$roiColors=='transparent') '#ffffff00' else paste0(input$roiColors, '60')
+        mtext(side = 1, text = paste0('Haze: ', wHaze), line = -2, adj = .95, col = 'yellow', font = 2, cex = 2)
         dummy <- 0
         if(is.null(rv$centers)) 
           absPoints <- matrix(numeric(), 0, 2)
@@ -740,9 +814,49 @@ shinyServer(function(input, output, session) {
           absPoints <- t(apply(rv$centers, 1, '*', sampleImageSize()))
         dummy <- 0
         polygon(absPoints, col = roiColors, pch = 9, lwd=2)
+        usr <- par()$usr
+        abline(v=seq(usr[1], usr[2], length.out = 10), lty=2, col='yellow', lwd = 2)
+        abline(h=seq(usr[3], usr[4], length.out = 10), lty=2, col='yellow', lwd = 2)
+        
       }
     })
   
+  output$imagePlot2 <- renderPlot(
+    res=36,
+    height = function(){floor(session$clientData$output_imagePlot_width/1.35)},
+    {
+      par(mar=c(0,0,0,0))
+      plotJPEG(imgDT()[,path][rv$LinkedID])
+      usr <- par()$usr
+      abline(v=seq(usr[1], usr[2], length.out = 10), lty=2, col='yellow', lwd = 2)
+      abline(h=seq(usr[3], usr[4], length.out = 10), lty=2, col='yellow', lwd = 2)
+    })
+  
+  output$lastDay <- renderPlot(
+    res=36,
+    height = function(){floor(session$clientData$output_imagePlot_width/1.35)},
+    {
+      par(mar=c(0,0,0,0))
+      plotJPEG(imgDT()[,path][rv$LinkedID])
+      usr <- par()$usr
+      abline(v=seq(usr[1], usr[2], length.out = 10), lty=2, col='yellow', lwd = 2)
+      abline(h=seq(usr[3], usr[4], length.out = 10), lty=2, col='yellow', lwd = 2)
+    })
+  
+  output$nextDay <- renderPlot(
+    res=36,
+    height = function(){floor(session$clientData$output_imagePlot_width/1.35)},
+    {
+      par(mar=c(0,0,0,0))
+      plotJPEG(imgDT()[,path][rv$LinkedID])
+      usr <- par()$usr
+      abline(v=seq(usr[1], usr[2], length.out = 10), lty=2, col='yellow', lwd = 2)
+      abline(h=seq(usr[3], usr[4], length.out = 10), lty=2, col='yellow', lwd = 2)
+    })
+  
+  observeEvent(input$linkedImage, {
+    rv$LinkedID <- input$contID
+  })
   observeEvent(input$maskName, {
     printLog(paste('input$maskName was changed to:', '\t',input$maskName))
     rv$slideShow <- 0 
@@ -765,9 +879,16 @@ shinyServer(function(input, output, session) {
     updateTextInput(session, inputId = 'maskStartTime', value = tmpmask$starttime)
     updateTextInput(session, inputId = 'maskEndTime', value = tmpmask$endtime)
     
+    rv$ID <- imageID()
+  })
+  
+  imageID <- reactive({
+    printLog(paste('imageID reactive experssion was called.\t'))
+    
     tmpID <- dayYearIDTable()[Year==as.numeric(yearID())&DOY==as.numeric(doyID()), ID]
     if(length(tmpID)==0) tmpID <- 1
-    rv$ID <- tmpID[1]
+    
+    tmpID
   })
   
   observeEvent(rv$centers, {
@@ -783,8 +904,9 @@ shinyServer(function(input, output, session) {
     dummy <- 0
     printLog(paste('input$newPoint was updated with:', '\t',input$newPoint$x, input$newPoint$y))
     rv$slideShow <- 0 
-    newPoint <- matrix(c(input$newPoint[['x']], input$newPoint[['y']]),1, 2)
-    rv$centers <- rbind(rv$centers, newPoint/sampleImageSize())
+    newPoint <- matrix(c(input$newPoint$x/input$newPoint$domain$right, 
+                         input$newPoint$y/input$newPoint$domain$top),1, 2)
+    rv$centers <- rbind(rv$centers, newPoint)
   })
   
   observeEvent(input$gapPoint, {
@@ -868,7 +990,7 @@ shinyServer(function(input, output, session) {
     updateSelectInput(session, inputId = 'roiName', selected = roifilename)
     # printLog(paste('input$roiName was changed to:', '\t', roifilename,' or ', input$roiName))
     
-
+    
   })
   
   
@@ -1134,16 +1256,21 @@ shinyServer(function(input, output, session) {
       
       shinyjs::enable("downloadTSData")
       dummy=0
+      clt <- as.data.table(clTable())[,.(Date,Haze)]
+      haze <- clt[Date%in%tvals, Haze]
       
-      cc <- melt(data.frame(red= cvals$rcc, green = cvals$gcc, blue= cvals$bcc), 
+      cc <- melt(data.frame(red= cvals$rcc, green = cvals$gcc, blue= cvals$bcc, haze=haze), 
                  variable.name='band', value.name='cc', id.vars=NULL)
-      d <- data.table(time=tvals, cc)
-      ccSel <- as.vector(sapply(input$ccBand, switch, R='red', B='blue', G="green"))
+      d <- data.table(time=tvals, cc, foggy = (haze>.45)*1)
+      d <- d[,pch:=foggy*15+1]
+      ccSel <- as.vector(sapply(input$ccBand, switch, R='red', B='blue', G="green", H='haze'))
       d <- d[band%in%ccSel]
-      
+      mrkrs <- (haze>.45)*1
       p <- plot_ly(data = d, x=~time, y= ~cc,
                    color = ~band, 
-                   colors = c('#FF4615','#007D00','#2364B7'),
+                   symbol = ~foggy,
+                   symbols = c('circle','circle-open'),
+                   colors = c('#FF4615','#007D00','#2364B7', '#80808080'),
                    type = 'scatter', mode = 'lines+markers') %>%
         layout(xaxis = xAxis, yaxis = yAxis)
       hide_legend(p)
@@ -1271,12 +1398,12 @@ shinyServer(function(input, output, session) {
           return()
         }
         mask <- curMask()
-        res <- dim(mask)
+        res <- dim(mask)[2:1]
         
         wd <- getwd()
         setwd(tmpDir())
         
-        plot(NA,xlim=c(1,res[2]),ylim=c(1,res[1]), type='n',
+        plot(NA,xlim=c(1,res[1]),ylim=c(1,res[2]), type='n',
              xaxs='i',yaxs='i',xaxt='n',yaxt='n',xlab='',ylab='',bty='o')
         dummy=0
         writeTIFF(mask*1, '.tmpraster.tif')
@@ -1412,18 +1539,18 @@ shinyServer(function(input, output, session) {
   
   removeModal()
   
-  showModal(strong(
-    modalDialog(HTML('This is the beta version of PhenoCam ROI app. Thanks for helping us to improve it. <br>
-                Please do not share with others.'),
-                easyClose = T,
-                fade = T,
-                size = 'm',
-                style='background-color:#3b3a35; color:#fce319; ',
-                footer = NULL
-    )))
+  # showModal(strong(
+  #   modalDialog(HTML('This is the beta version of PhenoCam ROI app. Thanks for helping us to improve it. <br>
+  #               Please do not share with others.'),
+  #               easyClose = T,
+  #               fade = T,
+  #               size = 'm',
+  #               style='background-color:#3b3a35; color:#fce319; ',
+  #               footer = NULL
+  #   )))
   observe(message(paste('\n--------------------------------------------------------------------\n',
-                as.character(Sys.time()),'Initial setup was completed!',
-                '\n--------------------------------------------------------------------\n')))
-
+                        as.character(Sys.time()),'Initial setup was completed!',
+                        '\n--------------------------------------------------------------------\n')))
+  
 })
 
