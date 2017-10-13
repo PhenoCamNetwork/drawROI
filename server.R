@@ -225,7 +225,7 @@ shinyServer(function(input, output, session) {
   observe({
     printLog(paste('shiftsList2 reactive experssion was called.\t'))
     clt <- as.data.table(clTable())
-    shiftsList2 <- as.Date(clt[!Foggy&R5.b<as.numeric(input$shiftsList2.Threshold), Date])
+    shiftsList2 <- as.Date(clt[!Foggy&R5.b < (1 - as.numeric(input$shiftsList2.Threshold)), Date])
     # shiftsList2 <- c(min(dayYearIDTable()$Date), shiftsList2)
     rv$shiftsList2 <- shiftsList2
     
@@ -801,7 +801,7 @@ shinyServer(function(input, output, session) {
         jp <- plotJPEG(sampleImage())
         clt <- as.data.table(clTable())
         wHaze <- max(min(clt[Date==dayYearIDTable()[ID==input$contID, Date], Haze], 1), 0)
-        roiColors <- if (input$roiColors=='transparent') '#ffffff00' else paste0(input$roiColors, '60')
+        # roiColors <- if (input$roiColors=='transparent') '#ffffff00' else paste0(input$roiColors, '60')
         mtext(side = 1, text = paste0('Haze: ', wHaze), line = -2, adj = .95, col = 'yellow', font = 2, cex = 2)
         dummy <- 0
         if(is.null(rv$centers)) 
@@ -813,7 +813,7 @@ shinyServer(function(input, output, session) {
         else 
           absPoints <- t(apply(rv$centers, 1, '*', sampleImageSize()))
         dummy <- 0
-        polygon(absPoints, col = roiColors, pch = 9, lwd=2)
+        polygon(absPoints, col = input$roiColors, pch = 9, lwd=2)
         usr <- par()$usr
         abline(v=seq(usr[1], usr[2], length.out = 10), lty=2, col='yellow', lwd = 2)
         abline(h=seq(usr[3], usr[4], length.out = 10), lty=2, col='yellow', lwd = 2)
@@ -832,15 +832,19 @@ shinyServer(function(input, output, session) {
       abline(h=seq(usr[3], usr[4], length.out = 10), lty=2, col='yellow', lwd = 2)
     })
   
-  output$lastDay <- renderPlot(
+  output$previousDay <- renderPlot(
     res=36,
     height = function(){floor(session$clientData$output_imagePlot_width/1.35)},
     {
       par(mar=c(0,0,0,0))
-      plotJPEG(imgDT()[,path][rv$LinkedID])
+      plotJPEG(imgDT()[,path][rv$PreviousDayID])
+      mtext(imgDT()[,Date][rv$PreviousDayID], line = -3, adj = .05, col = 'yellow', font = 2, cex = 2, side = 1)
+      
       usr <- par()$usr
       abline(v=seq(usr[1], usr[2], length.out = 10), lty=2, col='yellow', lwd = 2)
       abline(h=seq(usr[3], usr[4], length.out = 10), lty=2, col='yellow', lwd = 2)
+      mtext(side = 3, text = 'Previous clear day', line = -3, adj = .05, col = 'black', font = 2, cex = 3)
+      
     })
   
   output$nextDay <- renderPlot(
@@ -848,11 +852,33 @@ shinyServer(function(input, output, session) {
     height = function(){floor(session$clientData$output_imagePlot_width/1.35)},
     {
       par(mar=c(0,0,0,0))
-      plotJPEG(imgDT()[,path][rv$LinkedID])
+      plotJPEG(imgDT()[,path][rv$NextDayID])
+      mtext(imgDT()[,Date][rv$NextDayID], line = -3, adj = .05, col = 'yellow', font = 2, cex = 2, side = 1)
       usr <- par()$usr
       abline(v=seq(usr[1], usr[2], length.out = 10), lty=2, col='yellow', lwd = 2)
       abline(h=seq(usr[3], usr[4], length.out = 10), lty=2, col='yellow', lwd = 2)
+      mtext(side = 3, text = 'Next clear day', line = -3, adj = .05, col = 'black', font = 2, cex = 3)
+      
     })
+  mergedTable <- reactive({
+    clt <- as.data.table(clTable())[,.(Date, Horizon, Haze, Foggy, CLID)]
+    dyt <- as.data.table(dayYearIDTable())[, .(Date, ID)]
+    ipt <- imgDT()[,.(Date, path)]
+    mrgt <- merge(clt, dyt, by='Date')
+    mrgt <- merge(mrgt, ipt, by='Date')
+    mrgt
+    
+  })
+  observe( {
+    mrgt <- mergedTable()
+    dummy <- 0
+    prv <- mrgt[!Foggy&ID<=input$contID, ID]
+    nxt <- mrgt[!Foggy&ID>input$contID, ID]
+    prv <- if(length(prv)==0) input$contID else prv[length(prv)]
+    nxt <- if(length(nxt)==0) input$contID else nxt[1]
+    rv$PreviousDayID <- prv
+    rv$NextDayID <- nxt
+  })
   
   observeEvent(input$linkedImage, {
     rv$LinkedID <- input$contID
