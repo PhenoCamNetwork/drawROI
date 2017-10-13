@@ -766,11 +766,15 @@ shinyServer(function(input, output, session) {
     res=36,
     height = function(){floor(session$clientData$output_imagePlot_width/2)},
     {
-      par(mar=c(3,0,0,0))
-      rv$cl <- plotJPEG(clImage(), xlim = input$clRange)
       dt <- as.Date(dayYearIDTable()[ID==input$contID, Date])
       clt <- as.data.table(clTable()[input$clRange[1]:input$clRange[2],])
       
+      par(mar=c(3,0,0,0))
+      par(cex.axis = 2)
+      clt[,plot(Date, Haze*0, xaxs='i',yaxs='i', yaxt='n', type='n', ylab = '', ylim = c(0, 1))]
+      par(new=T)
+      
+      rv$cl <- plotJPEG(clImage(), xlim = input$clRange)
       abline(v= clt[Date==dt,CLID], col= 'red', lwd=5)
       
       if(!is.null(rv$shiftsList1))abline(v= clt[Date%in%as.Date(rv$shiftsList1),CLID], col= 'white', lwd=3, lty=2)
@@ -778,10 +782,6 @@ shinyServer(function(input, output, session) {
       # lines(clt$Horizon, clt$CLID, col='yellow')
       # lines(clt$CLID, clt$Horizon, col='yellow')
       lines(clt[,.(CLID, Horizon)], col='yellow', lwd=3)
-      
-      par(new=T, cex.axis = 2)
-      clt[,plot(Date, Haze*0, xaxs='i',yaxs='i', yaxt='n', type='n', ylab = '', ylim = c(0, 1))]
-      
     }
   )
   
@@ -799,6 +799,8 @@ shinyServer(function(input, output, session) {
       }else{
         par(mar=c(0,0,0,0))
         jp <- plotJPEG(sampleImage())
+        mtext(imgDT()[,Date][input$contID], line = -3, adj = .05, col = 'yellow', font = 2, cex = 2, side = 1)
+        
         clt <- as.data.table(clTable())
         wHaze <- max(min(clt[Date==dayYearIDTable()[ID==input$contID, Date], Haze], 1), 0)
         # roiColors <- if (input$roiColors=='transparent') '#ffffff00' else paste0(input$roiColors, '60')
