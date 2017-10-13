@@ -173,11 +173,12 @@ fluidPage(
                    column(5, plotOutput("previousDay", height = 'auto')),
                    column(5, plotOutput("nextDay", height = 'auto')),
                    column(1, strong())
-                 ),
-                 br()
+                 )
                ) ,
                
                fluidRow(
+                 br(),
+                 
                  column(1, strong()),
                  column(5, plotOutput("maskPlot", height = 'auto')),
                  # column(1, strong()),

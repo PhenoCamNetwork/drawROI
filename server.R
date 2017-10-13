@@ -874,8 +874,8 @@ shinyServer(function(input, output, session) {
   observe( {
     mrgt <- mergedTable()
     dummy <- 0
-    prv <- mrgt[!Foggy&ID<=input$contID, ID]
-    nxt <- mrgt[!Foggy&ID>input$contID, ID]
+    prv <- mrgt[Haze<.3&ID<=input$contID, ID]
+    nxt <- mrgt[Haze<.3&ID>input$contID, ID]
     prv <- if(length(prv)==0) input$contID else prv[length(prv)]
     nxt <- if(length(nxt)==0) input$contID else nxt[1]
     rv$PreviousDayID <- prv
