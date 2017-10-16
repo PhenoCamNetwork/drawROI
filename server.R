@@ -1608,7 +1608,7 @@ shinyServer(function(input, output, session) {
   #   )))
   
   
-  printLog(finit = T)
+  observe(printLog(finit = T))
   
 })
 

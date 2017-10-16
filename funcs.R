@@ -151,7 +151,7 @@ extractCCCTimeSeries <- function(rmsk, paths, PLUS=F, session=shiny::getDefaultR
 
 
 # writing ROIList file on the given list, path and filename
-writeROIListFile <- function(ROIList, path=, roifilename){
+writeROIListFile <- function(ROIList, path, roifilename){
   
   updateTime <- Sys.time()
   hdrText <- paste0('#\n# ROI List for ', ROIList$siteName,

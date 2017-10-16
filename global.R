@@ -8,5 +8,5 @@ mountPath <- ''
 if(TEST_MODE) mountPath <- '/mnt/klima'
 
 midddayListPath <- paste0(mountPath, '/home/shiny/middayList/')
-clImagePath <- paste0(mountPath, '/home/shiny/clImages/')
+clImagePath <- paste0(mountPath, '/home/shiny/climages/')
 
