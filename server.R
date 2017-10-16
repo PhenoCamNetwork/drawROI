@@ -65,6 +65,8 @@ shinyServer(function(input, output, session) {
                        parsedROIList = NULL,
                        cl = NULL,
                        LinkedID = 1,
+                       PreviousDayID = 1,
+                       NextDayID = 2,
                        shiftsList1 = NULL,
                        shiftsList2 = NULL,
                        phenoSites = fromJSON(file = 'https://phenocam.sr.unh.edu/webcam/network/siteinfo/')
@@ -640,6 +642,8 @@ shinyServer(function(input, output, session) {
     # clt[,Group5:=rep(1:.N, each=5, length.out=.N)]
     # clt[,Haze5:=mean(Haze, na.rm=T), Group5]
     # clt[,Date5:=mean(Date, na.rm=T), Group5]
+    clt[Haze>1,Haze:=1]
+    clt[Haze<0,Haze:=0]
     as.data.frame(clt)
   }  )
   
@@ -802,9 +806,8 @@ shinyServer(function(input, output, session) {
         mtext(imgDT()[,Date][input$contID], line = -3, adj = .05, col = 'yellow', font = 2, cex = 2, side = 1)
         
         clt <- as.data.table(clTable())
-        wHaze <- max(min(clt[Date==dayYearIDTable()[ID==input$contID, Date], Haze], 1), 0)
-        # roiColors <- if (input$roiColors=='transparent') '#ffffff00' else paste0(input$roiColors, '60')
-        mtext(side = 1, text = paste0('Haze: ', wHaze), line = -2, adj = .95, col = 'yellow', font = 2, cex = 2)
+        Haze <- clt[Date==dayYearIDTable()[ID==input$contID, Date], Haze]
+        mtext(side = 1, text = paste0('Haze: ', Haze), line = -2, adj = .95, col = 'yellow', font = 2, cex = 2)
         dummy <- 0
         if(is.null(rv$centers)) 
           absPoints <- matrix(numeric(), 0, 2)
@@ -829,6 +832,11 @@ shinyServer(function(input, output, session) {
     {
       par(mar=c(0,0,0,0))
       plotJPEG(imgDT()[,path][rv$LinkedID])
+      
+      clt <- as.data.table(clTable())
+      Haze <- clt[Date==dayYearIDTable()[ID==rv$LinkedID, Date], Haze]
+      mtext(side = 1, text = paste0('Haze: ', Haze), line = -2, adj = .95, col = 'yellow', font = 2, cex = 2)
+      
       usr <- par()$usr
       abline(v=seq(usr[1], usr[2], length.out = 10), lty=2, col='yellow', lwd = 2)
       abline(h=seq(usr[3], usr[4], length.out = 10), lty=2, col='yellow', lwd = 2)
@@ -841,6 +849,10 @@ shinyServer(function(input, output, session) {
       par(mar=c(0,0,0,0))
       plotJPEG(imgDT()[,path][rv$PreviousDayID])
       mtext(imgDT()[,Date][rv$PreviousDayID], line = -3, adj = .05, col = 'yellow', font = 2, cex = 2, side = 1)
+      
+      clt <- as.data.table(clTable())
+      Haze <- clt[Date==dayYearIDTable()[ID==rv$PreviousDayID, Date], Haze]
+      mtext(side = 1, text = paste0('Haze: ', Haze), line = -2, adj = .95, col = 'yellow', font = 2, cex = 2)
       
       usr <- par()$usr
       abline(v=seq(usr[1], usr[2], length.out = 10), lty=2, col='yellow', lwd = 2)
@@ -856,6 +868,11 @@ shinyServer(function(input, output, session) {
       par(mar=c(0,0,0,0))
       plotJPEG(imgDT()[,path][rv$NextDayID])
       mtext(imgDT()[,Date][rv$NextDayID], line = -3, adj = .05, col = 'yellow', font = 2, cex = 2, side = 1)
+      
+      clt <- as.data.table(clTable())
+      Haze <- clt[Date==dayYearIDTable()[ID==rv$NextDayID, Date], Haze]
+      mtext(side = 1, text = paste0('Haze: ', Haze), line = -2, adj = .95, col = 'yellow', font = 2, cex = 2)
+      
       usr <- par()$usr
       abline(v=seq(usr[1], usr[2], length.out = 10), lty=2, col='yellow', lwd = 2)
       abline(h=seq(usr[3], usr[4], length.out = 10), lty=2, col='yellow', lwd = 2)
@@ -874,8 +891,8 @@ shinyServer(function(input, output, session) {
   observe( {
     mrgt <- mergedTable()
     dummy <- 0
-    prv <- mrgt[Haze<.3&ID<=input$contID, ID]
-    nxt <- mrgt[Haze<.3&ID>input$contID, ID]
+    prv <- mrgt[Haze<as.numeric(input$hazeThreshold)&ID<=input$contID, ID]
+    nxt <- mrgt[Haze<as.numeric(input$hazeThreshold)&ID>input$contID, ID]
     prv <- if(length(prv)==0) input$contID else prv[length(prv)]
     nxt <- if(length(nxt)==0) input$contID else nxt[1]
     rv$PreviousDayID <- prv
