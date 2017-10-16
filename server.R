@@ -4,18 +4,15 @@ library(shinyTime)
 library(shinyjs)
 library(shinyBS)
 library(shinydashboard)
-
 library(colourpicker)
 library(rjson)
 library(stringr)
 library(sendmailR)
 library(shinyAce)
-
 library(sp)
 library(raster)
 library(jpeg)
 library(tiff)
-
 library(data.table)
 library(lubridate)
 library(plotly)
@@ -24,11 +21,9 @@ source('funcs.R')
 
 
 
-
 shinyServer(function(input, output, session) {
-  message(paste('\n--------------------------------------------------------------------\n', 
-                as.character(Sys.time()),'New session just started!',
-                '\n--------------------------------------------------------------------\n'))
+  printLog(init=T)
+  
   
   showModal(strong(
     modalDialog("Please wait for initial configurations ...",
@@ -38,6 +33,8 @@ shinyServer(function(input, output, session) {
                 style='background-color:#3b3a35; color:#fce319; ',
                 footer = NULL
     )))
+  
+  
   
   observe({
     printLog(paste('openEnd observed experssion was called.\t'))
@@ -189,6 +186,7 @@ shinyServer(function(input, output, session) {
   })
   
   
+  
   observe({
     printLog(paste('shiftsList1 reactive experssion was called.\t'))
     clt <- as.data.table(clTable())
@@ -204,6 +202,8 @@ shinyServer(function(input, output, session) {
     updateSelectInput(session, 'shiftsList1', choices = c(Choose='', as.list(shiftsList1)))
   })
   
+  
+  
   observeEvent(input$shiftsList1,{
     printLog(paste('input$shiftsList1 was changed to:', '\t',input$shiftsList1))
     if(input$shiftsList1=='') return()
@@ -213,6 +213,7 @@ shinyServer(function(input, output, session) {
     id <- tmpDT[dif==min(dif), ID]
     updateSliderInput(session, inputId = 'contID', value = id)
   })
+  
   
   # observeEvent(input$goShift1,{
   #   printLog(paste('input$goShift1 was changed to:', '\t',input$goShift1))
@@ -302,6 +303,8 @@ shinyServer(function(input, output, session) {
                                     bordered = F,
                                     spacing = 's',
                                     options = list( lengthChange = FALSE),{
+                                      printLog(paste('output$tblSiteInfo  renderTable experssion was called.\t'))
+                                      
                                       dummy <- 1
                                       inf <- siteInfo()
                                       wNULL <- which(sapply(inf, is.null))
@@ -463,6 +466,8 @@ shinyServer(function(input, output, session) {
     autoInvalidate()
     length(dir(roipath(), pattern = 'roi.csv$'))
   })
+  
+  
   observeEvent(input$refreshROI, {
     roiName.now <- input$roiName
     updateSelectInput(session, 'roiName', selected = roiName.now)
@@ -537,6 +542,7 @@ shinyServer(function(input, output, session) {
                  if(input$maskName!='New mask') rv$MASKs[[input$maskName]]$starttime <- asTextNew
                })
   
+  
   observeEvent(input$maskEndTime, 
                {
                  printLog(paste('input$maskEndTime was changed to:', '\t',input$maskEndTime))
@@ -546,15 +552,18 @@ shinyServer(function(input, output, session) {
                  if(input$maskName!='New mask') rv$MASKs[[input$maskName]]$endtime <- asTextNew
                })
   
+  
   observeEvent(input$maskStartDate,{
     printLog(paste('input$maskStartDate was changed to:', '\t',input$maskStartDate))
     if(input$maskName!='New mask') rv$MASKs[[input$maskName]]$startdate <- input$maskStartDate
   })
   
+  
   observeEvent(input$maskEndDate,{
     printLog(paste('input$maskEndDate was changed to:', '\t',input$maskEndDate))
     if(input$maskName!='New mask') rv$MASKs[[input$maskName]]$enddate <- input$maskEndDate
   })
+  
   
   dayYearIDTable <- reactive({
     printLog(paste('dayYearIDTable reactive experssion was called.\t'))
@@ -562,6 +571,7 @@ shinyServer(function(input, output, session) {
     dummy <- 0
     imgDT()[Site==input$siteName,.(ID=1:.N,Year, DOY, Date)]
   }    )
+  
   
   
   # ----------------------------------------------------------------------
@@ -582,10 +592,12 @@ shinyServer(function(input, output, session) {
                       value = nextID)
   })
   
+  
   observeEvent(input$pause, {
     printLog(paste('input$pause was changed to:', '\t',input$pause))
     rv$slideShow <- 0
   })
+  
   
   observeEvent(input$play, {
     printLog(paste('input$play was changed to:', '\t',input$play))
@@ -599,6 +611,7 @@ shinyServer(function(input, output, session) {
     if(rv$slideShow==1) rv$slideShow <- 0
   })
   
+  
   observeEvent(input$back, {
     printLog(paste('input$back was changed to:', '\t',input$back))
     rv$slideShow <- 0 
@@ -608,6 +621,7 @@ shinyServer(function(input, output, session) {
     
     updateSliderInput(session, "contID", value = nextID)
   })
+  
   
   observeEvent(input$forw, {
     printLog(paste('input$forw was changed to:', '\t',input$forw))
@@ -628,6 +642,7 @@ shinyServer(function(input, output, session) {
     
     paste0(clImagePath, input$siteName, '.jpg')
   }  )
+  
   
   clTable <- reactive({
     printLog(paste('clTable reactive experssion was called.\t'))
@@ -659,6 +674,7 @@ shinyServer(function(input, output, session) {
     updateSliderInput(session, inputId = 'contID', value = id)
   })
   
+  
   # ----------------------------------------------------------------------
   # Sample Image
   # ----------------------------------------------------------------------
@@ -668,11 +684,13 @@ shinyServer(function(input, output, session) {
     imgDT()[Site==input$siteName&Year==yearID()&DOY==doyID(), path][1]
   }  )
   
+  
   sampleImageSize <- reactive({
     printLog(paste('sampleImageSize reactive experssion was called.\t'))
     
     dim(readJPEG(sampleImage()))[2:1]
   })
+  
   
   sampleImageName <- reactive({
     printLog(paste('sampleImageName reactive experssion was called.\t'))
@@ -681,9 +699,11 @@ shinyServer(function(input, output, session) {
     tmp[length(tmp)]
   })
   
+  
   output$sampleImagePath <- renderText(
     sampleImageName()
   )
+  
   
   observeEvent(input$matchStart, {
     printLog(paste('input$matchStart was changed to:', '\t',input$matchStart))
@@ -697,6 +717,7 @@ shinyServer(function(input, output, session) {
     
     updateTextInput(session, inputId = 'maskStartTime', value = startTime)
   })
+  
   
   observeEvent(input$matchEnd, {
     printLog(paste('input$matchEnd was changed to:', '\t',input$matchEnd))
@@ -723,6 +744,7 @@ shinyServer(function(input, output, session) {
   }
   )
   
+  
   yearID <- reactive({
     printLog(paste('yearID reactive experssion was called.\t'))
     
@@ -731,13 +753,16 @@ shinyServer(function(input, output, session) {
     tmp
   }  )
   
+  
   output$yearOut <- renderText({
     paste0('    Year:  ', yearID())
   })
   
+  
   output$doyOut <- renderText({
     paste0('    DOY:  ', doyID())
   })
+  
   
   observeEvent(input$gotoDateButton,{
     printLog(paste('input$gotoDateButton was changed to:', '\t',input$gotoDateButton))
@@ -748,15 +773,20 @@ shinyServer(function(input, output, session) {
     updateSliderInput(session, inputId = 'contID', value = id)
   })
   
+  
   observeEvent(input$contID,{
     printLog(paste('input$contID was changed to:', '\t',input$contID))
     tmpDate <- dayYearIDTable()[ID==input$contID, Date]
     updateDateInput(session, 'gotoDate', value = tmpDate)
   })
+  
+  
   # ----------------------------------------------------------------------
   # CL Image
   # ----------------------------------------------------------------------
   observeEvent(input$clRange,{
+    printLog(paste('input$clRange was changed to:', '\t',input$clRange))
+    
     c <- input$clRange
     if(c[1]!=c[2]) return()
     
@@ -765,6 +795,7 @@ shinyServer(function(input, output, session) {
     else
       updateSliderInput(session, inputId = 'clRange', value = c(c[2]-1, c[2]))
   }  )
+  
   
   output$clPlot <- renderPlot(
     res=36,
@@ -788,6 +819,7 @@ shinyServer(function(input, output, session) {
       lines(clt[,.(CLID, Horizon)], col='yellow', lwd=3)
     }
   )
+  
   
   # ----------------------------------------------------------------------
   # Plot image
@@ -826,6 +858,7 @@ shinyServer(function(input, output, session) {
       }
     })
   
+  
   output$imagePlot2 <- renderPlot(
     res=36,
     height = function(){floor(session$clientData$output_imagePlot_width/1.35)},
@@ -841,6 +874,7 @@ shinyServer(function(input, output, session) {
       abline(v=seq(usr[1], usr[2], length.out = 10), lty=2, col='yellow', lwd = 2)
       abline(h=seq(usr[3], usr[4], length.out = 10), lty=2, col='yellow', lwd = 2)
     })
+  
   
   output$previousDay <- renderPlot(
     res=36,
@@ -861,6 +895,7 @@ shinyServer(function(input, output, session) {
       
     })
   
+  
   output$nextDay <- renderPlot(
     res=36,
     height = function(){floor(session$clientData$output_imagePlot_width/1.35)},
@@ -879,7 +914,11 @@ shinyServer(function(input, output, session) {
       mtext(side = 3, text = 'Next clear day', line = -3, adj = .05, col = 'black', font = 2, cex = 3)
       
     })
+  
+  
   mergedTable <- reactive({
+    printLog(paste('mergedTable reactive experssion was called.\t'))
+    
     clt <- as.data.table(clTable())[,.(Date, Horizon, Haze, Foggy, CLID)]
     dyt <- as.data.table(dayYearIDTable())[, .(Date, ID)]
     ipt <- imgDT()[,.(Date, path)]
@@ -888,7 +927,11 @@ shinyServer(function(input, output, session) {
     mrgt
     
   })
+  
+  
   observe( {
+    printLog(paste('PreviousDayID and NextDayID observe experssion was called.\t'))
+    
     mrgt <- mergedTable()
     dummy <- 0
     prv <- mrgt[Haze<as.numeric(input$hazeThreshold)&ID<=input$contID, ID]
@@ -899,9 +942,14 @@ shinyServer(function(input, output, session) {
     rv$NextDayID <- nxt
   })
   
+  
   observeEvent(input$linkedImage, {
+    printLog(paste('input$linkedImage was changed to:', '\t',input$linkedImage))
+    
     rv$LinkedID <- input$contID
   })
+  
+  
   observeEvent(input$maskName, {
     printLog(paste('input$maskName was changed to:', '\t',input$maskName))
     rv$slideShow <- 0 
@@ -927,6 +975,7 @@ shinyServer(function(input, output, session) {
     rv$ID <- imageID()
   })
   
+  
   imageID <- reactive({
     printLog(paste('imageID reactive experssion was called.\t'))
     
@@ -935,6 +984,7 @@ shinyServer(function(input, output, session) {
     
     tmpID
   })
+  
   
   observeEvent(rv$centers, {
     n <- nrow(rv$centers)
@@ -945,6 +995,7 @@ shinyServer(function(input, output, session) {
     
   })
   
+  
   observeEvent(input$newPoint, {
     dummy <- 0
     printLog(paste('input$newPoint was updated with:', '\t',input$newPoint$x, input$newPoint$y))
@@ -953,6 +1004,7 @@ shinyServer(function(input, output, session) {
                          input$newPoint$y/input$newPoint$domain$top),1, 2)
     rv$centers <- rbind(rv$centers, newPoint)
   })
+  
   
   observeEvent(input$gapPoint, {
     n <- nrow(rv$centers)
@@ -971,11 +1023,13 @@ shinyServer(function(input, output, session) {
   })
   
   
+  
   observeEvent(input$clearCanvas, {
     printLog(paste('input$clearCanvas was changed to:', '\t',input$clearCanvas))
     rv$slideShow <- 0 
     rv$centers <- matrix(numeric(), 0, 2)
   })
+  
   
   observeEvent(input$undoCanvas, {
     printLog(paste('input$undoCanvas was changed to:', '\t',input$undoCanvas))
@@ -987,6 +1041,7 @@ shinyServer(function(input, output, session) {
     else if (nrow(rv$centers) == 1)
       rv$centers <- matrix(numeric(), 0, 2)
   })
+  
   
   # ----------------------------------------------------------------------
   # Save ROI List
@@ -1048,6 +1103,7 @@ shinyServer(function(input, output, session) {
       make.names(paste0(input$roiOwner, '_',roiLabel(),'_roi.zip'))
     },
     content = function(fname){
+      printLog(paste('downloadROI downloadHandler experssion was called.\t'))
       
       wd <- getwd()
       
@@ -1156,6 +1212,8 @@ shinyServer(function(input, output, session) {
   # ----------------------------------------------------------------------
   
   observe({
+    printLog(paste('xxx observe experssion was called.\t'))
+    
     dummy <- 0
     n <- length(tsYearDayRange())
     
@@ -1194,11 +1252,13 @@ shinyServer(function(input, output, session) {
       return(imgDT()[Site==input$siteName&Date%in%(min(Date) + seq(0, 10000, frq)),YearDOY])
   })
   
+  
   paths <- reactive({
     printLog(paste('paths reactive experssion was called.\t'))
     
     imgDT()[Site==input$siteName&YearDOY%in%tsYearDayRange(), .(paths=path[1]),.(conT, Year, DOY, Date)]
   })
+  
   
   ccVals <- eventReactive(input$startExtractCC,{
     printLog(paste('ccVals-startExtractCC eventReactive experssion was called.\t'))
@@ -1225,6 +1285,7 @@ shinyServer(function(input, output, session) {
     cc
   })
   
+  
   ccTime <- eventReactive(input$startExtractCC,{
     printLog(paste('ccTime-startExtractCC eventReactive experssion was called.\t'))
     
@@ -1241,6 +1302,8 @@ shinyServer(function(input, output, session) {
   # ----------------------------------------------------------------------
   output$timeSeriesPlotly <- 
     renderPlotly({
+      printLog(paste('timeSeriesPlotly experssion was called.\t'))
+      
       fontList <- list(
         family = "Courier New, monospace",
         size = 16,
@@ -1429,6 +1492,8 @@ shinyServer(function(input, output, session) {
       res=96,
       height = function(){floor(session$clientData$output_maskPlot_width/1.35)},
       {
+        printLog(paste('maskPlot experssion was called.\t'))
+        
         par(mar=c(0,0,0,0))
         plot(1,
              type='n',
@@ -1469,6 +1534,8 @@ shinyServer(function(input, output, session) {
       paste('timeseries-', input$maskName, '-', format(Sys.time(), format = '%Y-%m-%d-%H%M%S'), ".csv", sep="")
     },
     content = function(file) {
+      printLog(paste('downloadTSData downloadHandler experssion was called.\t'))
+      
       cvals <- ccVals()
       tvals <- paths()[,.(Year, DOY)]
       cc <- data.frame(red= cvals$rcc, green = cvals$gcc, blue= cvals$bcc)
@@ -1476,6 +1543,7 @@ shinyServer(function(input, output, session) {
       write.table(d, file, sep = ',', row.names = F)
     }
   )
+  
   
   observeEvent(input$password,{
     printLog(paste('input$password was changed to:', '\t', gsub(pattern = '.', replacement = '*', input$password)))
@@ -1486,6 +1554,7 @@ shinyServer(function(input, output, session) {
       shinyjs::disable("saveROI")
     }
   })
+  
   
   passwordCorrect <- reactive(label = 'passReactiveLabel', {
     printLog(paste('passwordCorrect reactive experssion was called.\t'))
@@ -1543,6 +1612,7 @@ shinyServer(function(input, output, session) {
     
   })
   
+  
   observeEvent(input$errorTime, 
                {
                  printLog(paste('input$errorTime was changed to:', '\t',input$errorTime))
@@ -1593,9 +1663,9 @@ shinyServer(function(input, output, session) {
   #               style='background-color:#3b3a35; color:#fce319; ',
   #               footer = NULL
   #   )))
-  observe(message(paste('\n--------------------------------------------------------------------\n',
-                        as.character(Sys.time()),'Initial setup was completed!',
-                        '\n--------------------------------------------------------------------\n')))
+  
+  
+  printLog(finit = T)
   
 })
 
