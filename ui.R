@@ -97,12 +97,13 @@ fluidPage(
              mainPanel(              
                br(),
                fluidRow(
+                 column(2, sliderInput('hazeThreshold', label = 'Haze threshold', min = 0, max = 1, value = .45, step = .01)),
+                 
                  column(3, selectInput('shiftsList1', label = 'Horizon Shifts', choices = c(Choose=''), width = '100%')),
                  # column(1, actionButton('goShift1', label = NULL, icon = icon('refresh'), width = '100%', 
                  #                        style="border-color: #fff; align:center; font-size: 200%;font-weight: bold;")),
                  # column(2, selectInput('shiftsList1.Threshold', label = 'Threshold (px)', choices = c(1:10, 15:30), selectize = T, selected = 10)),
                  column(2, sliderInput('shiftsList1.Threshold', label = 'Threshold (px)', min = 1, max = 50, value = 10, step = 1)),
-                 column(2, strong()),
                  
                  column(3, selectInput('shiftsList2', label = 'Correlation Shifts', choices = c(Choose=''), width = '100%')),
                  # column(1, actionButton('goShift2', label = NULL, icon = icon('refresh'), width = '100%', 
@@ -269,13 +270,13 @@ fluidPage(
                  textAreaInput('errorMessage', label = 'Explain the error please.', cols = 200, rows = 20) 
                )               
              )
-    ),
-    
-    tabPanel('Simple Tutorial', 
-             fluidPage(
-               # HTML('<img src="phenoCamROI.guide.png"  alt="This is alternate text" , width="100%">')
-               includeMarkdown('drawROI.Guide.md')
-             )
+    # ),
+    # 
+    # tabPanel('Simple Tutorial', 
+    #          fluidPage(
+    #            # HTML('<img src="phenoCamROI.guide.png"  alt="This is alternate text" , width="100%">')
+    #            includeMarkdown('drawROI.Guide.md')
+    #          )
     )
     
   )
