@@ -2,18 +2,15 @@ library(shiny)
 library(shinyTime)
 library(shinyjs)
 library(colourpicker)
-
 library(sp)
 library(raster)
 library(jpeg)
 library(tiff)
-
 library(data.table)
 library(lubridate)
 library(plotly)
 
-
-
+# plot jpeg image using as raster given image path.
 plotJPEG <- function(path, add=FALSE, xlim = NULL, ylim = NULL)
 {
   # jpgNonNative <-  readJPEG(path, native=F) # read the file
@@ -31,7 +28,7 @@ plotJPEG <- function(path, add=FALSE, xlim = NULL, ylim = NULL)
 }
 
 
-
+# interactive drawing of polygons by user clicks on the plot
 draw.polygon <-
   function (col = "#80303080", lty = 1, ...) 
   {
@@ -73,17 +70,17 @@ draw.polygon <-
 # }
 # 
 
-
-extractCCC <- function(path, mmm){
+# extract chromatic colors of RGB channels for given jpeg file and mask matrix
+extractCCC <- function(path, m){
   
   jp <- readJPEG(path)
   dm <- dim(jp)
   rgb <- jp
   dim(rgb) <- c(dm[1]*dm[2],3)
   
-  if(!identical(dim(rgb), dim(mmm))) return(NULL)
+  if(!identical(dim(rgb), dim(m))) return(NULL)
   
-  mrgb <- rgb*mmm
+  mrgb <- rgb*m
   RGB <- colMeans(mrgb, na.rm = T)
   
   RGBTOT <- sum(RGB)
@@ -104,7 +101,7 @@ extractCCC <- function(path, mmm){
 }
 
 
-
+# shapefile to mask raster given coordinates of the polygon 
 createRasteredROI <- function(pnts, imgSize){
   
   pnts <- t(apply(pnts, 1, '*', imgSize))
@@ -143,7 +140,7 @@ createRasteredROI <- function(pnts, imgSize){
 }
 
 
-
+#extract time series of chromatic colors for a vector of jpeg files.
 extractCCCTimeSeries <- function(rmsk, paths, PLUS=F, session=shiny::getDefaultReactiveDomain()){
   
   continue = TRUE
@@ -157,10 +154,7 @@ extractCCCTimeSeries <- function(rmsk, paths, PLUS=F, session=shiny::getDefaultR
   n <- length(paths)
   CCCT <- matrix(NA, nrow=n, ncol=3)
   
-  
-  # extractCCCFunc <- extractCCC
-  # if(PLUS) extractCCCFunc <- extractCCC.Plus
-  
+
   # if(exists('session'))
   withProgress(value = 0, message = 'Extracting CCs',
                for(i in 1:n){
@@ -179,8 +173,8 @@ extractCCCTimeSeries <- function(rmsk, paths, PLUS=F, session=shiny::getDefaultR
 }
 
 
-
-writeROIListFile <- function(ROIList, path='ROI/', roifilename){
+# writing ROIList file on the given list, path and filename
+writeROIListFile <- function(ROIList, path=, roifilename){
   
   updateTime <- Sys.time()
   hdrText <- paste0('#\n# ROI List for ', ROIList$siteName,
@@ -240,7 +234,7 @@ writeROIListFile <- function(ROIList, path='ROI/', roifilename){
 
 
 
-
+# parsing klima filenames to data tabels of site, date and time given vector of filenames
 filePathParse <- function(filenames)
 {
   imgDT <- data.table(filenames = filenames)
@@ -265,6 +259,7 @@ filePathParse <- function(filenames)
 }
 
 
+# constraining string input to fixed time format
 fixFormatTime <- function(asText){
   asSplit <- unlist(strsplit(asText, ':'))
   for(i in 1:length(asSplit))
@@ -288,7 +283,7 @@ fixFormatTime <- function(asText){
 
 
 
-
+#parsing ROIList file into a list in R
 parseROI <- function(roifilename, roipath){
   # fls <- dir(roipath, gsub(pattern = 'roi.csv', '', roifilename))
   fname <- paste0(roipath, roifilename)
@@ -366,7 +361,7 @@ parseROI <- function(roifilename, roipath){
 
 
 
-
+# an effort to convert rasterized mask to vectorized shape
 maskRaster2Vector <- function(r){
   r[r==0] <- 1
   r[r==255] <- NA
@@ -376,7 +371,7 @@ maskRaster2Vector <- function(r){
   c
 }
 
-
+#parse image data table to site, date and time, probably redundant function
 parseIMG.DT <- function(imgDT){
   
   imgDT[,c('Site', 'Year', 'Month','Day','HHMMSS'):=as.data.table(matrix(unlist(strsplit(gsub(filenames, pattern = '.jpg', replacement = ''), split = '_')), ncol=5, byrow = T))]
@@ -399,7 +394,7 @@ parseIMG.DT <- function(imgDT){
 }
 
 
-
+# gettng image data table given site and midday list path 
 getIMG.DT <- function(sites, midddayListPath){
   imgDT <- data.table()
   
@@ -428,7 +423,13 @@ getIMG.DT <- function(sites, midddayListPath){
 }
 
 
-
-printLog <- function(msg){
+# print a message into konsole given the message string for logging purposes
+printLog <- function(msg=NULL, init=F){
+  if(init){
+    message(paste('\n--------------------------------------------------------------------\n', 
+                  as.character(Sys.time()),'New session just started!',
+                  '\n--------------------------------------------------------------------\n'))
+    return()
+  }
   message(paste(as.character(Sys.time()), msg, '\t'))
 }
