@@ -159,13 +159,7 @@ shinyServer(function(input, output, session) {
     dmin <- imgDT()[Site==input$siteName, min(Date)]
     dmax <- imgDT()[Site==input$siteName, max(Date)]
     updateDateInput(session, 'gotoDate', value = dmin, min = dmin, max = dmax)
-    
-    # updateDateRangeInput(session ,
-    #                      inputId = 'roiDateRange',
-    #                      start = dmin,
-    #                      end = dmax)  
-    # updateDateInput(session, 'maskStartDate', value = dmin)
-    # updateDateInput(session, 'maskEndDate', value = dmax)
+  
     
     x <- imgDT()[Site==input$siteName, unique(Year)]
     if (is.null(x)) x <- character(0)
@@ -180,9 +174,6 @@ shinyServer(function(input, output, session) {
     rv$MASKs <- list()
     updateSelectInput(session, inputId = 'maskName', choices = 'New mask')
     rv$centers <- matrix(numeric(), 0, 2)
-    # 
-    # updateSelectInput(session, inputId = 'shiftsList1', choices = shiftsList1())
-    # updateSelectInput(session, inputId = 'shiftsList2', choices = shiftsList2())
   })
   
   
@@ -194,9 +185,6 @@ shinyServer(function(input, output, session) {
     clt[,HzMed:=median(as.double(na.omit(Horizon))),Group]
     clt[, dHz := diff(HzMed)]
     shiftsList1 <- as.Date(clt[abs(dHz)>as.numeric(input$shiftsList1.Threshold), Date])
-    # shiftsList1 <- as.Date(clt[abs(dHz)>as.numeric(input$shiftsList1.Threshold)&!Foggy, Date])
-    # shiftsList1 <- as.Date(clt[abs(HorizonD5)>as.numeric(input$shiftsList1.Threshold)&!Foggy, Date])
-    # shiftsList1 <- c(min(dayYearIDTable()$Date), shiftsList1)
     rv$shiftsList1 <- shiftsList1
     
     updateSelectInput(session, 'shiftsList1', choices = c(Choose='', as.list(shiftsList1)))
@@ -215,21 +203,10 @@ shinyServer(function(input, output, session) {
   })
   
   
-  # observeEvent(input$goShift1,{
-  #   printLog(paste('input$goShift1 was changed to:', '\t',input$goShift1))
-  #   dummy <- 1
-  #   tmpDT <- dayYearIDTable()
-  #   tmpDT[, dif:=abs(Date- as.Date(input$shiftsList1))]
-  #   id <- tmpDT[dif==min(dif), ID]
-  #   updateSliderInput(session, inputId = 'contID', value = id)
-  # })
-  # 
-  
   observe({
     printLog(paste('shiftsList2 reactive experssion was called.\t'))
     clt <- as.data.table(clTable())
     shiftsList2 <- as.Date(clt[!Foggy&R5.b < (1 - as.numeric(input$shiftsList2.Threshold)), Date])
-    # shiftsList2 <- c(min(dayYearIDTable()$Date), shiftsList2)
     rv$shiftsList2 <- shiftsList2
     
     updateSelectInput(session, 'shiftsList2', choices = c(Choose='', as.list(shiftsList2)))
@@ -247,17 +224,8 @@ shinyServer(function(input, output, session) {
     updateSliderInput(session, inputId = 'contID', value = id)
   })
   
-  # observeEvent(input$goShift2,{
-  #   printLog(paste('input$goShift2 was changed to:', '\t',input$goShift2))
-  #   dummy <- 1
-  #   tmpDT <- dayYearIDTable()
-  #   tmpDT[, dif:=abs(Date- as.Date(input$shiftsList2))]
-  #   id <- tmpDT[dif==min(dif), ID]
-  #   updateSliderInput(session, inputId = 'contID', value = id)
-  # })
-  # 
-  
-  siteInfo <- reactive({
+
+    siteInfo <- reactive({
     printLog(paste('siteInfo reactive experssion was called.\t'))
     
     dummy <- 0
@@ -293,6 +261,8 @@ shinyServer(function(input, output, session) {
     updateSelectInput(session, 'roiName', selected = 'New ROI')
     
   })
+  
+  
   # ----------------------------------------------------------------------
   # Site info
   # ----------------------------------------------------------------------
@@ -334,6 +304,7 @@ shinyServer(function(input, output, session) {
                                       tx
                                     })
   
+  
   # ----------------------------------------------------------------------
   # ROIs
   # ----------------------------------------------------------------------
@@ -364,14 +335,7 @@ shinyServer(function(input, output, session) {
     }
   }
   )
-  
-  # observe({
-  #   printLog(paste('rv$ROIs observed experssion was called.\t'))
-  #   if(length(rv$ROIs)==1)roiNameSel <- 'New ROI'
-  #   if(length(rv$ROIs)>1) roiNameSel <- rv$ROIs[length(rv$ROIs)-1]
-  #   updateSelectInput(session, 'roiName', choices = rv$ROIs, selected = roiNameSel)
-  # })
-  
+
   
   # ----------------------------------------------------------------------
   # ROI label
@@ -585,7 +549,6 @@ shinyServer(function(input, output, session) {
     if(nextID > max(dayYearIDTable()$ID)) nextID <- 1
     if(nextID < 1) nextID <- max(dayYearIDTable()$ID)
     
-    # print(paste(input$contID, '+', rv$slideShow, 'changed to', nextID))
     dummy <- 0
     updateSliderInput(session,
                       inputId = 'contID',
@@ -654,9 +617,6 @@ shinyServer(function(input, output, session) {
     for(i in 2:nrow(clt))
       if(is.na(clt$Horizon[i])) clt$Horizon[i] <- clt$Horizon[i-1]
     clt$HorizonD5 <- c(clt$Horizon[-(1:5)], rep(NA, 5)) - clt$Horizon 
-    # clt[,Group5:=rep(1:.N, each=5, length.out=.N)]
-    # clt[,Haze5:=mean(Haze, na.rm=T), Group5]
-    # clt[,Date5:=mean(Date, na.rm=T), Group5]
     clt[Haze>1,Haze:=1]
     clt[Haze<0,Haze:=0]
     as.data.frame(clt)
@@ -726,7 +686,6 @@ shinyServer(function(input, output, session) {
     HHMMSS <- gsub(tmp[5], pattern = '.jpg',replacement = '')
     endTime <- paste(substring(HHMMSS, c(1,3,5), c(2,4,6)), collapse = ':')
     
-    # updateDateRangeInput(session, inputId = 'roiDateRange', end = endDate)
     updateDateInput(session, 'maskEndDate', value = endDate)
     
     updateTextInput(session, inputId = 'maskEndTime', value = endTime)
@@ -814,8 +773,6 @@ shinyServer(function(input, output, session) {
       
       if(!is.null(rv$shiftsList1))abline(v= clt[Date%in%as.Date(rv$shiftsList1),CLID], col= 'white', lwd=3, lty=2)
       if(!is.null(rv$shiftsList2))abline(v= clt[Date%in%as.Date(rv$shiftsList2),CLID], col= 'green', lwd=3, lty=2)
-      # lines(clt$Horizon, clt$CLID, col='yellow')
-      # lines(clt$CLID, clt$Horizon, col='yellow')
       lines(clt[,.(CLID, Horizon)], col='yellow', lwd=3)
     }
   )
@@ -954,8 +911,6 @@ shinyServer(function(input, output, session) {
     printLog(paste('input$maskName was changed to:', '\t',input$maskName))
     rv$slideShow <- 0 
     if(input$maskName=='New mask') {
-      # rv$MASKs <- list()
-      # rv$centers <- matrix(numeric(), 0, 2)
       
       updateCheckboxInput(session, 'openEnd', value = T)
       return()
@@ -964,8 +919,6 @@ shinyServer(function(input, output, session) {
     tmpmask <- rv$MASKs[[input$maskName]]
     
     rv$centers <- tmpmask$maskpoints
-    # updateDateRangeInput(session, inputId = 'roiDateRange', start=tmpmask$startdate)
-    # updateDateRangeInput(session, inputId = 'roiDateRange', end=tmpmask$enddate)
     updateDateInput(session, 'maskStartDate', value = tmpmask$startdate)
     updateDateInput(session, 'maskEndDate', value = tmpmask$enddate)
     
@@ -1081,16 +1034,12 @@ shinyServer(function(input, output, session) {
     printLog(paste('roipath is', '\t',roipath() ))
     printLog(paste('roifilename is', '\t',roifilename ))
     
-    # writeROIListFile(ROIList, path = '/tmp/ROI/',  roifilename)
     tmp.rv.ROIs <- c(dir(roipath(), pattern = 'roi.csv$'), "New ROI")
     if(!identical(rv$ROIs, tmp.rv.ROIs)) rv$ROIs <- tmp.rv.ROIs
     printLog(paste('rv$ROIs was changed to:', '\t',rv$ROIs ))
     dummy <- 0
     updateSelectInput(session, inputId = 'roiName', choices = rv$ROIs)
     updateSelectInput(session, inputId = 'roiName', selected = roifilename)
-    # printLog(paste('input$roiName was changed to:', '\t', roifilename,' or ', input$roiName))
-    
-    
   })
   
   
@@ -1234,7 +1183,6 @@ shinyServer(function(input, output, session) {
                   style='background-color:#3b3a35; color:#fce319; ',
                   footer = NULL
       )))
-    # updateRadioButtons(session, inputId = 'ccRange', selected = 'Week')
     
   })
   
@@ -1279,7 +1227,6 @@ shinyServer(function(input, output, session) {
                                                        style='background-color:#3b3a35; color:#fce319; ',
                                                        onclick="Shiny.onInputChange('stopThis',true)")
     )))
-    # for(i in 1:length(paths()$path))printLog(paths()$path[i])
     cc <- extractCCCTimeSeries(isolate(curMask()), paths()$path)
     removeModal()
     cc
@@ -1292,7 +1239,6 @@ shinyServer(function(input, output, session) {
     if(is.null(curMask())) {
       return(NA)
     }
-    # paths()[, conT]
     paths()[, Date]
   })
   
@@ -1310,7 +1256,6 @@ shinyServer(function(input, output, session) {
         color = "#7f7f7f"
       )
       xAxis <- list(
-        # title = "Day of year",
         title = "Time",
         titlefont = fontList
       )
@@ -1359,8 +1304,6 @@ shinyServer(function(input, output, session) {
       
       wZeros <- (rowSums(cvals)==0)
       cvals[wZeros,] <- c(NA, NA, NA)
-      # cvals <- cvals[!wZeros,]
-      # tvals <- tvals[!wZeros]
       
       shinyjs::enable("downloadTSData")
       dummy=0
@@ -1486,7 +1429,6 @@ shinyServer(function(input, output, session) {
   # ----------------------------------------------------------------------
   # Plot mask
   # ----------------------------------------------------------------------
-  
   output$maskPlot <- 
     renderPlot(
       res=96,
@@ -1525,10 +1467,10 @@ shinyServer(function(input, output, session) {
         setwd(wd)
       })
   
+  
   # ----------------------------------------------------------------------
   # Download timeseries
   # ----------------------------------------------------------------------
-  
   output$downloadTSData <- downloadHandler(
     filename = function() {
       paste('timeseries-', input$maskName, '-', format(Sys.time(), format = '%Y-%m-%d-%H%M%S'), ".csv", sep="")
@@ -1575,10 +1517,11 @@ shinyServer(function(input, output, session) {
     
     return(F)
   })
+  
+  
   # ----------------------------------------------------------------------
   # Email error
   # ----------------------------------------------------------------------
-  
   observeEvent(input$errorSend,{
     printLog(paste('input$errorSend was changed to:', '\t',input$errorSend))
     msg <- paste0(
