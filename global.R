@@ -1,4 +1,5 @@
 TEST_MODE <- TRUE
+
 if(getwd()=='/home/bijan/Projects/drawROI') TEST_MODE <- TRUE
 if(getwd()=='/home/shiny/apps/drawROI') TEST_MODE <- TRUE
 

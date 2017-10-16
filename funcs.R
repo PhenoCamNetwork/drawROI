@@ -24,7 +24,6 @@ plotJPEG <- function(path, add=FALSE, xlim = NULL, ylim = NULL)
          xaxs='i',yaxs='i',xaxt='n',yaxt='n',xlab='',ylab='',bty='o')
   rasterImage(jpgNative,1,1,res[1],res[2])
   invisible(list(res=res, jpgNonNative=jpgNonNative, jpgNative=jpgNative))
-  # invisible(res)
 }
 
 
@@ -32,7 +31,6 @@ plotJPEG <- function(path, add=FALSE, xlim = NULL, ylim = NULL)
 draw.polygon <-
   function (col = "#80303080", lty = 1, ...) 
   {
-    
     xy <- locator(2)
     lines(xy$x, xy$y, lty = lty)
     
@@ -48,27 +46,6 @@ draw.polygon <-
     invisible(xy)
   }
 
-
-
-
-# extractCCC.Plus <- function(path, mmsk){
-#   jp <- readJPEG(path)
-#   
-#   jp.m <- apply(jp, 3, '*', mmsk)
-#   
-#   DT <- data.table(r = jp.m[,1],
-#                    g = jp.m[,2],
-#                    b = jp.m[,3])
-#   
-#   DT[,c('rcc', 'gcc', 'bcc'):= .(r/(r+g+b), 
-#                                  g/(r+g+b), 
-#                                  b/(r+g+b))]
-#   
-#   list(rcc = DT[,mean(rcc, na.rm=T)],
-#        gcc = DT[,mean(gcc, na.rm=T)],
-#        bcc = DT[,mean(bcc, na.rm=T)])
-# }
-# 
 
 # extract chromatic colors of RGB channels for given jpeg file and mask matrix
 extractCCC <- function(path, m){
@@ -194,16 +171,8 @@ writeROIListFile <- function(ROIList, path=, roifilename){
   bdyText <- 'start_date,start_time,end_date,end_time,maskfile,sample_image\n'
   
   for(i in 1:length(ROIList$masks)){
-    # m <- as.matrix(ROIList$masks[[i]]$rasteredMask)
     m <- ROIList$masks[[i]]$rasteredMask
-    # m[m==1] <- 0
-    # m[is.na(m)] <- 1
-    # rName <- paste0(ROIList$siteName, '_',
-    #                 ROIList$vegType, '_',
-    #                 sprintf('%04d', ROIList$ID), '_',
-    #                 sprintf('%02d', i)
-    # )
-    
+
     rName <- names(ROIList$masks)[i]
     
     writeTIFF(m*1 , where = paste0(path, rName,'.tif'))
@@ -212,8 +181,6 @@ writeROIListFile <- function(ROIList, path=, roifilename){
     maskpoints <- rbind(dim(m), maskpoints)
     if(nrow(maskpoints)>3)
       write.table(maskpoints, file = paste0(path, rName,'_vector.csv'), col.names = F, row.names = F, sep = ',')
-    # }
-    # for(i in 1:length(ROIList$masks)){
     
     bdyLine <- paste( ROIList$masks[[i]]$startdate,
                       ROIList$masks[[i]]$starttime,
@@ -227,9 +194,6 @@ writeROIListFile <- function(ROIList, path=, roifilename){
   }
   allText <- paste0(hdrText, bdyText)
   writeLines(allText, paste0(path, roifilename))
-  # fcon <- file(paste0(path, roifilename))
-  # writeLines(paste0(hdrText, bdyText), con = fcon)
-  # close(fcon)
 }
 
 
@@ -254,7 +218,6 @@ filePathParse <- function(filenames)
   imgDT[,DateTime:=ISOdatetime(Year, Month, Day, Hour, Minute, Second)]
   imgDT[,conT:=Year+DOY/(365+(2001%%4==0))]
   imgDT[,YearDOY:=Year+DOY/1000]
-  # imgDT <- imgDT[Hour==12&Minute<30,]
   imgDT
 }
 
@@ -314,10 +277,7 @@ parseROI <- function(roifilename, roipath){
   
   
   parsedMasks <- read.table(textConnection(roilines[which(wNotSkip)]), sep = ',', header = T)
-  # parsedMasks <- read.csv(paste0(roipath, roifilename), skip = nskips)
   
-  # tifls <- fls[grepl('.tif', fls)]
-  # vecls <- fls[grepl('vector.csv', fls)]
   masksList <- list()
   for(i in 1:nrow(parsedMasks)){
     maskpath <- paste0(roipath, parsedMasks$maskfile[i])
@@ -327,11 +287,8 @@ parseROI <- function(roifilename, roipath){
       maskpoints <- as.matrix(read.csv(maskpointspath, header = F, skip = 1))
     }else{
       maskpoints <- NULL
-      # r <- raster(maskpath)
-      # maskpoints <- maskRaster2Vector(r)
-      # maskpointsTmp <- rbind(dim(r), maskpoints)
-      # write.table(maskpointsTmp, file =maskpointspath, col.names = F, row.names = F, sep = ',')
     }
+    
     dummy=0
     tmpMask <- list(maskpoints = maskpoints, 
                     startdate = as.character(parsedMasks$start_date[i]), 
@@ -371,6 +328,7 @@ maskRaster2Vector <- function(r){
   c
 }
 
+
 #parse image data table to site, date and time, probably redundant function
 parseIMG.DT <- function(imgDT){
   
@@ -389,7 +347,6 @@ parseIMG.DT <- function(imgDT){
   imgDT[,DateTime:=ISOdatetime(Year, Month, Day, Hour, Minute, Second)]
   imgDT[,conT:=Year+DOY/(365+(2001%%4==0))]
   imgDT[,YearDOY:=Year+DOY/1000]
-  # imgDT <- imgDT[Hour==12&Minute<30,]
   imgDT
 }
 
@@ -414,7 +371,6 @@ getIMG.DT <- function(sites, midddayListPath){
   imgDT$filenames <- splt$filenames
   imgDT$newpath <- splt$newpath
   
-  #imgDT[grepl(pattern = 'NEON', filenames), path:=newpath]
   imgDT$newpath <- NULL
   
   imgDT <- imgDT[str_count(filenames, pattern = '_')==4, ]
