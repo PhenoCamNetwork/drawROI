@@ -19,8 +19,6 @@ library(plotly)
 
 source('funcs.R')
 
-
-
 shinyServer(function(input, output, session) {
   printLog(init=T)
   
@@ -62,11 +60,12 @@ shinyServer(function(input, output, session) {
                        parsedROIList = NULL,
                        cl = NULL,
                        LinkedID = 1,
-                       PreviousDayID = 1,
-                       NextDayID = 2,
+                       PreviousDayID = NULL,
+                       NextDayID = NULL,
+                       updateBeforeAfter = 0,
                        shiftsList1 = NULL,
                        shiftsList2 = NULL,
-                       phenoSites = fromJSON(file = 'https://phenocam.sr.unh.edu/webcam/network/siteinfo/')
+                       phenoSites = fromJSON(file = sitesInfoURL)
   )
   
   autoInvalidate <- reactiveTimer(1000)
@@ -100,9 +99,18 @@ shinyServer(function(input, output, session) {
   imgDT <- reactive({
     printLog(paste('imgDT reactive experssion was called.\t'))
     
+    showModal(strong(
+      modalDialog(HTML('Loading Middday List ...'),
+                  easyClose = F,
+                  size = 's',
+                  style='background-color:#3b3a35; color:#fce319; ',
+                  footer = NULL
+      )))
     dummy <- 0
-    getIMG.DT(input$siteName, midddayListPath)
-    
+    imgDT  <- getIMG.DT(input$siteName, midddayListPath)
+    # getIMG.DT(input$siteName)
+    removeModal()
+    imgDT
   })
   
   
@@ -130,6 +138,10 @@ shinyServer(function(input, output, session) {
   observeEvent(input$siteName, {
     printLog(paste('input$siteName was changed to:', '\t',input$siteName))
     rv$LinkedID <- 1
+    rv$updateBeforeAfter <- 0
+    rv$PreviousDayID <- NULL
+    rv$NextDayID <- NULL
+    
     dummy = 0
     updateSelectInput(session, inputId = 'errorSite', selected = input$siteName)
     rv$slideShow <- 0
@@ -200,6 +212,7 @@ shinyServer(function(input, output, session) {
     tmpDT[, dif:=abs(Date- as.Date(input$shiftsList1))]
     id <- tmpDT[dif==min(dif), ID]
     updateSliderInput(session, inputId = 'contID', value = id)
+    rv$updateBeforeAfter <- rv$updateBeforeAfter + 1
   })
   
   
@@ -222,6 +235,7 @@ shinyServer(function(input, output, session) {
     tmpDT[, dif:=abs(Date- as.Date(input$shiftsList2))]
     id <- tmpDT[dif==min(dif), ID]
     updateSliderInput(session, inputId = 'contID', value = id)
+    rv$updateBeforeAfter <- rv$updateBeforeAfter + 1
   })
   
 
@@ -609,6 +623,13 @@ shinyServer(function(input, output, session) {
   
   clTable <- reactive({
     printLog(paste('clTable reactive experssion was called.\t'))
+    showModal(strong(
+      modalDialog(HTML('Loading CenterLine Table ...'),
+                  easyClose = F,
+                  size = 's',
+                  style='background-color:#3b3a35; color:#fce319; ',
+                  footer = NULL
+      )))
     
     clt <- read.csv(paste0(clImagePath, input$siteName, '.txt'))
     clt <- as.data.table(clt)
@@ -619,6 +640,8 @@ shinyServer(function(input, output, session) {
     clt$HorizonD5 <- c(clt$Horizon[-(1:5)], rep(NA, 5)) - clt$Horizon 
     clt[Haze>1,Haze:=1]
     clt[Haze<0,Haze:=0]
+    removeModal()
+    
     as.data.frame(clt)
   }  )
   
@@ -744,7 +767,7 @@ shinyServer(function(input, output, session) {
   # CL Image
   # ----------------------------------------------------------------------
   observeEvent(input$clRange,{
-    printLog(paste('input$clRange was changed to:', '\t',input$clRange))
+    printLog(paste('input$clRange was changed to:', '\t', paste(input$clRange, collapse = ' and ')))
     
     c <- input$clRange
     if(c[1]!=c[2]) return()
@@ -785,12 +808,11 @@ shinyServer(function(input, output, session) {
     res=36,
     height = function(){floor(session$clientData$output_imagePlot_width/1.35)},
     {
+      par(mar=c(0,0,0,0))
       if(is.na(sampleImage())){
-        par(mar=c(0,0,0,0))
         plot(NA, xlim=c(0,1), ylim=c(0,1), xaxs='i',yaxs='i', xaxt='n', yaxt='n', bty='o', xlab='',ylab='')
         text(mean(par()$usr[1:2]), mean(par()$usr[3:4]), 'No image for this date was found!', font=2, adj=.5)
       }else{
-        par(mar=c(0,0,0,0))
         jp <- plotJPEG(sampleImage())
         mtext(imgDT()[,Date][input$contID], line = -3, adj = .05, col = 'yellow', font = 2, cex = 2, side = 1)
         
@@ -838,6 +860,11 @@ shinyServer(function(input, output, session) {
     height = function(){floor(session$clientData$output_imagePlot_width/1.35)},
     {
       par(mar=c(0,0,0,0))
+      if(is.null(rv$PreviousDayID)){
+        plot(NA, xlim=c(0,1), ylim=c(0,1), xaxs='i',yaxs='i', xaxt='n', yaxt='n', bty='o', xlab='',ylab='')
+        text(mean(par()$usr[1:2]), mean(par()$usr[3:4]), 'No shift day has been selected yet!', font=2, adj=.5)
+        return()
+      }
       plotJPEG(imgDT()[,path][rv$PreviousDayID])
       mtext(imgDT()[,Date][rv$PreviousDayID], line = -3, adj = .05, col = 'yellow', font = 2, cex = 2, side = 1)
       
@@ -858,6 +885,13 @@ shinyServer(function(input, output, session) {
     height = function(){floor(session$clientData$output_imagePlot_width/1.35)},
     {
       par(mar=c(0,0,0,0))
+      
+      if(is.null(rv$NextDayID)){
+        plot(NA, xlim=c(0,1), ylim=c(0,1), xaxs='i',yaxs='i', xaxt='n', yaxt='n', bty='o', xlab='',ylab='')
+        text(mean(par()$usr[1:2]), mean(par()$usr[3:4]), 'No shift day has been selected yet!', font=2, adj=.5)
+        return()
+      }
+        
       plotJPEG(imgDT()[,path][rv$NextDayID])
       mtext(imgDT()[,Date][rv$NextDayID], line = -3, adj = .05, col = 'yellow', font = 2, cex = 2, side = 1)
       
@@ -886,15 +920,18 @@ shinyServer(function(input, output, session) {
   })
   
   
-  observe( {
-    printLog(paste('PreviousDayID and NextDayID observe experssion was called.\t'))
+  observeEvent(rv$updateBeforeAfter, {
     
+    printLog(paste('PreviousDayID and NextDayID observe experssion was called.\t'))
+    if(rv$updateBeforeAfter==0) return()
     mrgt <- mergedTable()
-    dummy <- 0
+
     prv <- mrgt[Haze<as.numeric(input$hazeThreshold)&ID<=input$contID, ID]
     nxt <- mrgt[Haze<as.numeric(input$hazeThreshold)&ID>input$contID, ID]
+    
     prv <- if(length(prv)==0) input$contID else prv[length(prv)]
     nxt <- if(length(nxt)==0) input$contID else nxt[1]
+    
     rv$PreviousDayID <- prv
     rv$NextDayID <- nxt
   })
