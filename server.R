@@ -637,6 +637,10 @@ shinyServer(function(input, output, session) {
     clt[,Date:= as.Date(Date)]
     for(i in 2:nrow(clt))
       if(is.na(clt$Horizon[i])) clt$Horizon[i] <- clt$Horizon[i-1]
+    
+    for(i in 2:nrow(clt))
+      if(is.na(clt$R5.b[i])) clt$R5.b[i] <- clt$R5.b[i-1]
+    
     clt$HorizonD5 <- c(clt$Horizon[-(1:5)], rep(NA, 5)) - clt$Horizon 
     clt[Haze>1,Haze:=1]
     clt[Haze<0,Haze:=0]
@@ -797,6 +801,12 @@ shinyServer(function(input, output, session) {
       if(!is.null(rv$shiftsList1))abline(v= clt[Date%in%as.Date(rv$shiftsList1),CLID], col= 'white', lwd=3, lty=2)
       if(!is.null(rv$shiftsList2))abline(v= clt[Date%in%as.Date(rv$shiftsList2),CLID], col= 'green', lwd=3, lty=2)
       lines(clt[,.(CLID, Horizon)], col='yellow', lwd=3)
+      lines(clt[,.(CLID, R5.b*par()$usr[4])], col='orange', lwd=3)
+      legend('right',
+             bty = 'n', cex = 2, text.font = 2, lwd = 4,
+             legend = c('Horizone', 'Correlation'), 
+             col = c('yellow', 'orange'), 
+             text.col = c('yellow', 'orange'))
     }
   )
   
@@ -862,7 +872,7 @@ shinyServer(function(input, output, session) {
       par(mar=c(0,0,0,0))
       if(is.null(rv$PreviousDayID)){
         plot(NA, xlim=c(0,1), ylim=c(0,1), xaxs='i',yaxs='i', xaxt='n', yaxt='n', bty='o', xlab='',ylab='')
-        text(mean(par()$usr[1:2]), mean(par()$usr[3:4]), 'No shift day has been selected yet!', font=2, adj=.5)
+        text(mean(par()$usr[1:2]), mean(par()$usr[3:4]), 'No shift day has been selected yet!', font=2, adj=.5, cex=2)
         return()
       }
       plotJPEG(imgDT()[,path][rv$PreviousDayID])
@@ -888,7 +898,7 @@ shinyServer(function(input, output, session) {
       
       if(is.null(rv$NextDayID)){
         plot(NA, xlim=c(0,1), ylim=c(0,1), xaxs='i',yaxs='i', xaxt='n', yaxt='n', bty='o', xlab='',ylab='')
-        text(mean(par()$usr[1:2]), mean(par()$usr[3:4]), 'No shift day has been selected yet!', font=2, adj=.5)
+        text(mean(par()$usr[1:2]), mean(par()$usr[3:4]), 'No shift day has been selected yet!', font=2, adj=.5, cex=2)
         return()
       }
         
