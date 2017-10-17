@@ -352,11 +352,18 @@ parseIMG.DT <- function(imgDT){
 
 
 # gettng image data table given site and midday list path 
-getIMG.DT <- function(sites, midddayListPath){
+getIMG.DT <- function(sites, midddayListPath = NULL){
   imgDT <- data.table()
   
   for(site in sites){
-    tbl <- read.table(paste0(midddayListPath, site), header = F, colClasses = 'character', col.names = 'path')
+    if(is.null(midddayListPath)){
+      mdiJSON = fromJSON(file = paste0(middayimglistURL, site,'/'))
+      tbl <- data.table( DateJSON = as.Date(sapply(mdiJSON$images, function(x){x$date })),
+                         path = as.character(sapply(mdiJSON$images, function(x){x$midimg})))
+    }else{
+      tbl <- read.table(paste0(midddayListPath, site), header = F, colClasses = 'character', col.names = 'path')
+    }
+    
     imgDT.tmp <- as.data.table(tbl)
     imgDT.tmp$path <- paste0(mountPath, imgDT.tmp$path)
     imgDT <- rbind(imgDT, imgDT.tmp)
