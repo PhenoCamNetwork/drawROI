@@ -814,7 +814,7 @@ shinyServer(function(input, output, session) {
         text(mean(par()$usr[1:2]), mean(par()$usr[3:4]), 'No image for this date was found!', font=2, adj=.5)
       }else{
         jp <- plotJPEG(sampleImage())
-        mtext(imgDT()[,Date][input$contID], line = -3, adj = .05, col = 'yellow', font = 2, cex = 2, side = 1)
+        mtext(imgDT()[,Date][input$contID], line = -2, adj = .05, col = 'yellow', font = 2, cex = 2, side = 1)
         
         clt <- as.data.table(clTable())
         Haze <- clt[Date==dayYearIDTable()[ID==input$contID, Date], Haze]
@@ -866,7 +866,7 @@ shinyServer(function(input, output, session) {
         return()
       }
       plotJPEG(imgDT()[,path][rv$PreviousDayID])
-      mtext(imgDT()[,Date][rv$PreviousDayID], line = -3, adj = .05, col = 'yellow', font = 2, cex = 2, side = 1)
+      mtext(imgDT()[,Date][rv$PreviousDayID], line = -2, adj = .05, col = 'yellow', font = 2, cex = 2, side = 1)
       
       clt <- as.data.table(clTable())
       Haze <- clt[Date==dayYearIDTable()[ID==rv$PreviousDayID, Date], Haze]
@@ -893,7 +893,7 @@ shinyServer(function(input, output, session) {
       }
         
       plotJPEG(imgDT()[,path][rv$NextDayID])
-      mtext(imgDT()[,Date][rv$NextDayID], line = -3, adj = .05, col = 'yellow', font = 2, cex = 2, side = 1)
+      mtext(imgDT()[,Date][rv$NextDayID], line = -2, adj = .05, col = 'yellow', font = 2, cex = 2, side = 1)
       
       clt <- as.data.table(clTable())
       Haze <- clt[Date==dayYearIDTable()[ID==rv$NextDayID, Date], Haze]
