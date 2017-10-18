@@ -9,7 +9,7 @@ library(tiff)
 library(data.table)
 library(lubridate)
 library(plotly)
-
+library(RCurl)
 
 #' Check If String is a URL
 is.url <-function(x) {
@@ -24,7 +24,7 @@ plotJPEG <- function(path, add=FALSE, xlim = NULL, ylim = NULL)
   
   if(is.url(path)){
     tmppath <- paste0(tempdir(), '/tmp.jpg')
-  download.file(path, destfile = tmppath, method = 'curl')
+    download.file(path, destfile = tmppath, method = 'curl')
   }else{
     tmppath = path
   }
@@ -144,7 +144,7 @@ extractCCCTimeSeries <- function(rmsk, paths, PLUS=F, session=shiny::getDefaultR
   n <- length(paths)
   CCCT <- matrix(NA, nrow=n, ncol=3)
   
-
+  
   # if(exists('session'))
   withProgress(value = 0, message = 'Extracting CCs',
                for(i in 1:n){
@@ -185,7 +185,7 @@ writeROIListFile <- function(ROIList, path, roifilename){
   
   for(i in 1:length(ROIList$masks)){
     m <- ROIList$masks[[i]]$rasteredMask
-
+    
     rName <- names(ROIList$masks)[i]
     
     writeTIFF(m*1 , where = paste0(path, rName,'.tif'))
@@ -262,7 +262,7 @@ fixFormatTime <- function(asText){
 #parsing ROIList file into a list in R
 parseROI <- function(roifilename, roipath){
   fname <- paste0(roipath, roifilename)
-  if(!file.exists(fname)) return(NULL)
+  #if(!file.exists(fname)) return(NULL)
   
   roilines <- readLines(fname)
   
@@ -294,7 +294,7 @@ parseROI <- function(roifilename, roipath){
   for(i in 1:nrow(parsedMasks)){
     maskpath <- paste0(roipath, parsedMasks$maskfile[i])
     maskpointspath <- gsub(maskpath, pattern = '.tif', replacement = '_vector.csv')
-    if(file.exists(maskpointspath)) {
+    if(file.exists(maskpointspath)|url.exists(maskpointspath)) {
       dummy=0
       maskpoints <- as.matrix(read.csv(maskpointspath, header = F, skip = 1))
     }else{
@@ -302,6 +302,13 @@ parseROI <- function(roifilename, roipath){
     }
     
     dummy=0
+    
+    if(is.url(maskpath)){
+      tmpath <- tempfile()
+      download.file(maskpath, destfile = tmpath)
+      maskpath <- tmpath
+    }
+      
     tmpMask <- list(maskpoints = maskpoints, 
                     startdate = as.character(parsedMasks$start_date[i]), 
                     enddate = as.character(parsedMasks$end_date[i]), 
@@ -311,6 +318,7 @@ parseROI <- function(roifilename, roipath){
                     sampleday = NULL,
                     sampleImage = as.character(parsedMasks$sample_image[i]),
                     rasteredMask = as.matrix(raster(maskpath)))
+    
     tmpMask$rasteredMask[(!is.na(tmpMask$rasteredMask))&tmpMask$rasteredMask!=0] <- 1
     
     
@@ -414,4 +422,15 @@ printLog <- function(msg=NULL, init=F, finit=F){
   }
   
   message(paste(as.character(Sys.time()), msg, '\t'))
+}
+
+
+dirHTML <- function(url, sitename, pattern = 'roi.csv$'){
+  tmpath <- tempfile()
+  download.file(url, destfile = tmpath, quiet = T)
+  txt <- readLines(tmpath)
+  n <- grep(paste0('<a href=\"', sitename), x = txt)
+  DT <- data.table(file = as.character(sapply(txt[n], function(x){s=strsplit(x, split='<|>'); s[[1]][3]})))
+  roi <- grep(DT$file, pattern = pattern)
+  DT$file[roi]
 }
