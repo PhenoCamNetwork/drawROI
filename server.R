@@ -1580,13 +1580,15 @@ shinyServer(function(input, output, session) {
       tmppass <- readLines(fcon)
       close(fcon)
       if(input$password==tmppass) return(T)
-    }else
+    }else{
+      if(HTTP_LOAD) return()
       showModal(strong(modalDialog("Connection to the passfile was failed!",
                                    style='background-color:#3b3a35; color:#fce319; ',
                                    easyClose = T,
                                    size = 's',
                                    footer = NULL
       )))
+    }
     
     return(F)
   })
