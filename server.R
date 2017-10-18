@@ -63,6 +63,7 @@ shinyServer(function(input, output, session) {
                        PreviousDayID = NULL,
                        NextDayID = NULL,
                        updateBeforeAfter = 0,
+                       newContID = NULL,
                        shiftsList1 = NULL,
                        shiftsList2 = NULL,
                        phenoSites = fromJSON(file = sitesInfoURL)
@@ -107,8 +108,8 @@ shinyServer(function(input, output, session) {
                   footer = NULL
       )))
     dummy <- 0
-    imgDT  <- getIMG.DT(input$siteName, midddayListPath)
-    # getIMG.DT(input$siteName)
+    imgDT  <- getIMG.DT(input$siteName)
+
     removeModal()
     imgDT
   })
@@ -124,7 +125,6 @@ shinyServer(function(input, output, session) {
     phenoSitesList <- sapply(rv$phenoSites, function(x){x$site})
     names(rv$phenoSites) <- phenoSitesList
     phenoSitesList <- phenoSitesList[-which(phenoSitesList=='HF_Vivotek')]
-    # if(TEST_MODE) phenoSitesList <- c('dukehw','harvard')
     
     rv$sitesList <- phenoSitesList
     
@@ -171,7 +171,7 @@ shinyServer(function(input, output, session) {
     dmin <- imgDT()[Site==input$siteName, min(Date)]
     dmax <- imgDT()[Site==input$siteName, max(Date)]
     updateDateInput(session, 'gotoDate', value = dmin, min = dmin, max = dmax)
-  
+    
     
     x <- imgDT()[Site==input$siteName, unique(Year)]
     if (is.null(x)) x <- character(0)
@@ -211,15 +211,20 @@ shinyServer(function(input, output, session) {
     tmpDT <- dayYearIDTable()
     tmpDT[, dif:=abs(Date- as.Date(input$shiftsList1))]
     id <- tmpDT[dif==min(dif), ID]
-    updateSliderInput(session, inputId = 'contID', value = id)
+    rv$newContID <- id
     rv$updateBeforeAfter <- rv$updateBeforeAfter + 1
   })
   
+  observeEvent(rv$newContID,{
+    updateSliderInput(session, inputId = 'contID', value = rv$newContID)
+    
+  })
   
   observe({
     printLog(paste('shiftsList2 reactive experssion was called.\t'))
     clt <- as.data.table(clTable())
-    shiftsList2 <- as.Date(clt[!Foggy&R5.b < (1 - as.numeric(input$shiftsList2.Threshold)), Date])
+    # shiftsList2 <- as.Date(clt[!Foggy&R5.b < (1 - as.numeric(input$shiftsList2.Threshold)), Date])
+    shiftsList2 <- as.Date(clt[!Foggy&R5.b < ( as.numeric(input$shiftsList2.Threshold)), Date])
     rv$shiftsList2 <- shiftsList2
     
     updateSelectInput(session, 'shiftsList2', choices = c(Choose='', as.list(shiftsList2)))
@@ -238,8 +243,8 @@ shinyServer(function(input, output, session) {
     rv$updateBeforeAfter <- rv$updateBeforeAfter + 1
   })
   
-
-    siteInfo <- reactive({
+  
+  siteInfo <- reactive({
     printLog(paste('siteInfo reactive experssion was called.\t'))
     
     dummy <- 0
@@ -324,7 +329,7 @@ shinyServer(function(input, output, session) {
   # ----------------------------------------------------------------------
   roipath <- reactive({
     printLog(paste('roipath reactive experssion was called.\t'))
-    tmp <- (paste0(mountPath, '/data/archive/', input$siteName,'/ROI/'))
+    tmp <- (paste0(mainDataPath, '/data/archive/', input$siteName,'/ROI/'))
     
     return(tmp)
   }  )
@@ -349,7 +354,7 @@ shinyServer(function(input, output, session) {
     }
   }
   )
-
+  
   
   # ----------------------------------------------------------------------
   # ROI label
@@ -617,8 +622,9 @@ shinyServer(function(input, output, session) {
   clImage <- reactive({
     printLog(paste('clImage reactive experssion was called.\t'))
     
-    paste0(clImagePath, input$siteName, '.jpg')
-  }  )
+    paste0(mainDataPath, '/data/archive/', input$siteName, '/ROI/', input$siteName, '-cli.jpg')
+  }  
+  )
   
   
   clTable <- reactive({
@@ -631,7 +637,12 @@ shinyServer(function(input, output, session) {
                   footer = NULL
       )))
     
-    clt <- read.csv(paste0(clImagePath, input$siteName, '.txt'))
+    cltpath <- paste0(mainDataPath, '/data/archive/', input$siteName, '/ROI/', input$siteName, '-cli.txt')
+    tmpath <- paste0(tempdir(), 'tempclt.txt')
+    download.file(url = cltpath, destfile = tmpath)
+    
+    clt <- read.csv(tmpath)
+    
     clt <- as.data.table(clt)
     clt[,CLID:=1:.N]
     clt[,Date:= as.Date(Date)]
@@ -823,6 +834,7 @@ shinyServer(function(input, output, session) {
         plot(NA, xlim=c(0,1), ylim=c(0,1), xaxs='i',yaxs='i', xaxt='n', yaxt='n', bty='o', xlab='',ylab='')
         text(mean(par()$usr[1:2]), mean(par()$usr[3:4]), 'No image for this date was found!', font=2, adj=.5)
       }else{
+        dummy <- 0
         jp <- plotJPEG(sampleImage())
         mtext(imgDT()[,Date][input$contID], line = -2, adj = .05, col = 'yellow', font = 2, cex = 2, side = 1)
         
@@ -901,7 +913,7 @@ shinyServer(function(input, output, session) {
         text(mean(par()$usr[1:2]), mean(par()$usr[3:4]), 'No shift day has been selected yet!', font=2, adj=.5, cex=2)
         return()
       }
-        
+      
       plotJPEG(imgDT()[,path][rv$NextDayID])
       mtext(imgDT()[,Date][rv$NextDayID], line = -2, adj = .05, col = 'yellow', font = 2, cex = 2, side = 1)
       
@@ -935,9 +947,9 @@ shinyServer(function(input, output, session) {
     printLog(paste('PreviousDayID and NextDayID observe experssion was called.\t'))
     if(rv$updateBeforeAfter==0) return()
     mrgt <- mergedTable()
-
-    prv <- mrgt[Haze<as.numeric(input$hazeThreshold)&ID<=input$contID, ID]
-    nxt <- mrgt[Haze<as.numeric(input$hazeThreshold)&ID>input$contID, ID]
+    
+    prv <- mrgt[Haze<as.numeric(input$hazeThreshold)&ID<=rv$newContID, ID]
+    nxt <- mrgt[Haze<as.numeric(input$hazeThreshold)&ID>rv$newContID, ID]
     
     prv <- if(length(prv)==0) input$contID else prv[length(prv)]
     nxt <- if(length(nxt)==0) input$contID else nxt[1]
