@@ -1,7 +1,7 @@
 # TEST_MODE <- FALSE
 # if(system('hostname', intern=T)%in%c('phenocam')) TEST_MODE <- TRUE
 
-HTTP_LOAD <- TRUE
+HTTP_LOAD <- F
 
 sitesInfoURL <- 'https://phenocam.sr.unh.edu/webcam/network/siteinfo/'
 
