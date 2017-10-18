@@ -1581,7 +1581,7 @@ shinyServer(function(input, output, session) {
       close(fcon)
       if(input$password==tmppass) return(T)
     }else{
-      if(HTTP_LOAD) return()
+      if(HTTP_LOAD) return(F)
       showModal(strong(modalDialog("Connection to the passfile was failed!",
                                    style='background-color:#3b3a35; color:#fce319; ',
                                    easyClose = T,
