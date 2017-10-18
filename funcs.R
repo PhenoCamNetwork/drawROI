@@ -10,12 +10,25 @@ library(data.table)
 library(lubridate)
 library(plotly)
 
+
+#' Check If String is a URL
+is.url <-function(x) {
+  grepl("www.|http:|https:", x)
+}
+
 # plot jpeg image using as raster given image path.
 plotJPEG <- function(path, add=FALSE, xlim = NULL, ylim = NULL)
 {
   # jpgNonNative <-  readJPEG(path, native=F) # read the file
   jpgNonNative <- NULL
-  jpgNative <-  readJPEG(path, native=T) # read the file
+  
+  if(is.url(path)){
+    tmppath <- paste0(tempdir(), '/tmp.jpg')
+  download.file(path, destfile = tmppath, method = 'curl')
+  }else{
+    tmppath = path
+  }
+  jpgNative <-  readJPEG(tmppath, native=T) # read the file
   res <-  dim(jpgNative)[2:1] # get the resolution
   if(is.null(xlim)) xlim <- c(1,res[1])
   if(is.null(ylim)) ylim <- c(1,res[2])
@@ -248,7 +261,6 @@ fixFormatTime <- function(asText){
 
 #parsing ROIList file into a list in R
 parseROI <- function(roifilename, roipath){
-  # fls <- dir(roipath, gsub(pattern = 'roi.csv', '', roifilename))
   fname <- paste0(roipath, roifilename)
   if(!file.exists(fname)) return(NULL)
   
@@ -352,12 +364,12 @@ parseIMG.DT <- function(imgDT){
 
 
 # gettng image data table given site and midday list path 
-getIMG.DT <- function(sites, midddayListPath = NULL){
+getIMG.DT <- function(sites){
   imgDT <- data.table()
   
   for(site in sites){
-    if(is.null(midddayListPath)){
-      mdiJSON = fromJSON(file = paste0(middayimglistURL, site,'/'))
+    if(is.url(midddayListPath)){
+      mdiJSON = fromJSON(file = paste0(midddayListPath, site,'/'))
       tbl <- data.table( DateJSON = as.Date(sapply(mdiJSON$images, function(x){x$date })),
                          path = as.character(sapply(mdiJSON$images, function(x){x$midimg})))
     }else{
@@ -365,13 +377,11 @@ getIMG.DT <- function(sites, midddayListPath = NULL){
     }
     
     imgDT.tmp <- as.data.table(tbl)
-    imgDT.tmp$path <- paste0(mountPath, imgDT.tmp$path)
+    imgDT.tmp$path <- paste0(mainDataPath, imgDT.tmp$path)
     imgDT <- rbind(imgDT, imgDT.tmp)
   }
-  
-  
-  splt <- imgDT[, tstrsplit(path, split = '/')]
-  if(TEST_MODE) splt <- splt[,-c(2:3)]
+  pathsub <- imgDT[, .(gsub(path, pattern = mainDataPath, replacement = ''))]
+  splt <- pathsub[, tstrsplit(V1, split = '/')]
   colnames(splt) <- c('empty','data','archive','site','year','month','filenames') 
   splt[, newpath:=paste(empty, data, archive, site, 'originals', year, month, filenames, sep='/')]
   
