@@ -1,16 +1,18 @@
-TEST_MODE <- TRUE
+# TEST_MODE <- FALSE
+# if(system('hostname', intern=T)%in%c('phenocam')) TEST_MODE <- TRUE
 
-if(getwd()=='/home/bijan/Projects/drawROI') TEST_MODE <- TRUE
-if(getwd()=='/home/shiny/apps/drawROI') TEST_MODE <- TRUE
+HTTP_LOAD <- TRUE
 
-middayimglistURL <- 'https://canopy.sr.unh.edu/webcam/network/middayimglist/'
 sitesInfoURL <- 'https://phenocam.sr.unh.edu/webcam/network/siteinfo/'
 
-mountPath <- ''
+if(HTTP_LOAD){
+  midddayListPath <- 'https://canopy.sr.unh.edu/webcam/network/middayimglist/'
+  mainDataPath <- 'https://phenocam.sr.unh.edu'
+  
+}else{
+  midddayListPath <- '/mnt/klima/home/shiny/middayList/'
+  mainDataPath <- '/mnt/klima'
+  
+}
 
-if(TEST_MODE) mountPath <- '/mnt/klima'
-
-midddayListPath <- paste0(mountPath, '/home/shiny/middayList/')
-# midddayListPath <- NULL
-clImagePath <- paste0(mountPath, '/home/shiny/climages/')
 
