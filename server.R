@@ -1,21 +1,4 @@
-library(rgdal)
-library(shiny)
-library(shinyTime)
-library(shinyjs)
-library(shinyBS)
-library(shinydashboard)
-library(colourpicker)
-library(rjson)
-library(stringr)
-library(sendmailR)
-library(shinyAce)
-library(sp)
-library(raster)
-library(jpeg)
-library(tiff)
-library(data.table)
-library(lubridate)
-library(plotly)
+
 
 source('funcs.R')
 

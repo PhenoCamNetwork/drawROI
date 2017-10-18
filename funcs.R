@@ -1,15 +1,4 @@
-library(shiny)
-library(shinyTime)
-library(shinyjs)
-library(colourpicker)
-library(sp)
-library(raster)
-library(jpeg)
-library(tiff)
-library(data.table)
-library(lubridate)
-library(plotly)
-library(RCurl)
+
 
 #' Check If String is a URL
 is.url <-function(x) {
