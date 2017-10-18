@@ -334,10 +334,27 @@ shinyServer(function(input, output, session) {
     return(tmp)
   }  )
   
+  
+  
+  dirroipath <- reactive({
+    printLog(paste('dirroipath observed experssion was called.\t'))
+    
+    # ROIsJSON <- jsonlite::fromJSON(txt = paste0('https://phenocam.sr.unh.edu/webcam/roi/roilistinfo/', input$siteName))
+    
+    if(is.url(roipath())){
+      dirHTML(url = roipath(), sitename = input$siteName, pattern = 'roi.csv$')
+    }
+    else{
+      dir(roipath(), pattern = 'roi.csv$')
+    }
+  })
+  
   observe({
     
     autoInvalidate()
-    tmp.rv.ROIs <- c(dir(roipath(), pattern = 'roi.csv$'), "New ROI")
+    tmp.rv.ROIs <- c(dirroipath(), "New ROI")
+
+    
     if(!identical(rv$ROIs, tmp.rv.ROIs))    {
       printLog(paste('dir roi.csv observed experssion was called.\t'))
       
@@ -399,6 +416,15 @@ shinyServer(function(input, output, session) {
       
       return()
     }
+    
+    showModal(strong(
+      modalDialog(HTML('Loading ROI files ...'),
+                  easyClose = F,
+                  size = 's',
+                  style='background-color:#3b3a35; color:#fce319; ',
+                  footer = NULL
+      )))
+    
     shinyjs::disable('vegType')
     dummy=0
     dummy=0
@@ -418,6 +444,7 @@ shinyServer(function(input, output, session) {
     updateSelectInput(session, inputId = 'year', selected = rv$parsedROIList$masks[[1]]$sampleyear)
     updateSelectInput(session, inputId = 'viewDay', selected = rv$parsedROIList$masks[[1]]$sampleday)
     dummy =0
+    removeModal()
   })
   
   observe({
@@ -447,7 +474,7 @@ shinyServer(function(input, output, session) {
   
   output$noROI <- renderText({
     autoInvalidate()
-    length(dir(roipath(), pattern = 'roi.csv$'))
+    length(dirroipath())
   })
   
   
@@ -638,8 +665,12 @@ shinyServer(function(input, output, session) {
       )))
     
     cltpath <- paste0(mainDataPath, '/data/archive/', input$siteName, '/ROI/', input$siteName, '-cli.txt')
-    tmpath <- paste0(tempdir(), 'tempclt.txt')
-    download.file(url = cltpath, destfile = tmpath)
+    if(is.url(cltpath)){
+      tmpath <- paste0(tempdir(), 'tempclt.txt')
+      download.file(url = cltpath, destfile = tmpath)
+    }else{
+      tmpath <- cltpath
+    }
     
     clt <- read.csv(tmpath)
     
@@ -1093,7 +1124,7 @@ shinyServer(function(input, output, session) {
     printLog(paste('roipath is', '\t',roipath() ))
     printLog(paste('roifilename is', '\t',roifilename ))
     
-    tmp.rv.ROIs <- c(dir(roipath(), pattern = 'roi.csv$'), "New ROI")
+    tmp.rv.ROIs <- c(dirroipath(), "New ROI")
     if(!identical(rv$ROIs, tmp.rv.ROIs)) rv$ROIs <- tmp.rv.ROIs
     printLog(paste('rv$ROIs was changed to:', '\t',rv$ROIs ))
     dummy <- 0
