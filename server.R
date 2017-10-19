@@ -207,7 +207,7 @@ shinyServer(function(input, output, session) {
     printLog(paste('shiftsList2 reactive experssion was called.\t'))
     clt <- as.data.table(clTable())
     # shiftsList2 <- as.Date(clt[!Foggy&R5.b < (1 - as.numeric(input$shiftsList2.Threshold)), Date])
-    shiftsList2 <- as.Date(clt[!Foggy&R5.b < ( as.numeric(input$shiftsList2.Threshold)), Date])
+    shiftsList2 <- as.Date(clt[!Foggy&R2.r < ( as.numeric(input$shiftsList2.Threshold)), Date])
     rv$shiftsList2 <- shiftsList2
     
     updateSelectInput(session, 'shiftsList2', choices = c(Choose='', as.list(shiftsList2)))
@@ -880,6 +880,7 @@ shinyServer(function(input, output, session) {
     {
       par(mar=c(0,0,0,0))
       plotJPEG(imgDT()[,path][rv$LinkedID])
+      mtext(imgDT()[,Date][input$contID], line = -2, adj = .05, col = 'yellow', font = 2, cex = 2, side = 1)
       
       clt <- as.data.table(clTable())
       Haze <- clt[Date==dayYearIDTable()[ID==rv$LinkedID, Date], Haze]
