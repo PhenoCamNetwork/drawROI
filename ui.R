@@ -91,7 +91,7 @@ fluidPage(
                  # column(1, actionButton('goShift2', label = NULL, icon = icon('refresh'), width = '100%', 
                  #                        style="border-color: #fff; align:center; font-size: 200%;font-weight: bold;"))
                  # column(2, selectInput('shiftsList2.Threshold', label = 'Threshold', selectize = T, choices = c(.01, 0.02, .05, .1, .15, .2, .3, .4, .5, .6, .75), selected = .05))
-                 column(2, sliderInput('shiftsList2.Threshold', label = 'Threshold (R)', min = 0, max = 1, value = .5, step = .05))
+                 column(2, sliderInput('shiftsList2.Threshold', label = 'Threshold (R)', min = 0, max = 1, value = .1, step = .01))
                ),
                
                tags$head(tags$style(HTML('.irs-from, .irs-to, .irs-min, .irs-max {visibility: hidden !important;}'))),
