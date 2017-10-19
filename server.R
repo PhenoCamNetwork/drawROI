@@ -92,7 +92,7 @@ shinyServer(function(input, output, session) {
       )))
     dummy <- 0
     imgDT  <- getIMG.DT(input$siteName)
-
+    
     removeModal()
     imgDT
   })
@@ -222,7 +222,7 @@ shinyServer(function(input, output, session) {
     tmpDT <- dayYearIDTable()
     tmpDT[, dif:=abs(Date- as.Date(input$shiftsList2))]
     id <- tmpDT[dif==min(dif), ID]
-    updateSliderInput(session, inputId = 'contID', value = id)
+    rv$newContID <- id
     rv$updateBeforeAfter <- rv$updateBeforeAfter + 1
   })
   
@@ -336,7 +336,7 @@ shinyServer(function(input, output, session) {
     
     autoInvalidate()
     tmp.rv.ROIs <- c(dirroipath(), "New ROI")
-
+    
     
     if(!identical(rv$ROIs, tmp.rv.ROIs))    {
       printLog(paste('dir roi.csv observed experssion was called.\t'))
@@ -650,7 +650,7 @@ shinyServer(function(input, output, session) {
     cltpath <- paste0(mainDataPath, '/data/archive/', input$siteName, '/ROI/', input$siteName, '-cli.txt')
     if(is.url(cltpath)){
       tmpath <- paste0(tempdir(), 'tempclt.txt')
-      download.file(url = cltpath, destfile = tmpath)
+      download.file(url = cltpath, destfile = tmpath, quiet = !PRINT_LOGS)
     }else{
       tmpath <- cltpath
     }
@@ -965,8 +965,15 @@ shinyServer(function(input, output, session) {
     prv <- mrgt[Haze<as.numeric(input$hazeThreshold)&ID<=rv$newContID, ID]
     nxt <- mrgt[Haze<as.numeric(input$hazeThreshold)&ID>rv$newContID, ID]
     
-    prv <- if(length(prv)==0) input$contID else prv[length(prv)]
-    nxt <- if(length(nxt)==0) input$contID else nxt[1]
+    if(length(prv)==0&length(nxt)==0)
+      showModal(strong(modalDialog("Haze threshold too low!",
+                                   style='background-color:#3b3a35; color:#fce319; ',
+                                   easyClose = T,
+                                   size = 's',
+                                   footer = NULL)))
+    
+    prv <- if(length(prv)==0) rv$newContID else prv[length(prv)]
+    nxt <- if(length(nxt)==0) rv$newContID else nxt[1]
     
     rv$PreviousDayID <- prv
     rv$NextDayID <- nxt
@@ -1582,10 +1589,10 @@ shinyServer(function(input, output, session) {
       if(input$password==tmppass) return(T)
     }else{
       if(!HTTP_LOAD)showModal(strong(modalDialog("Connection to the passfile was failed!",
-                                   style='background-color:#3b3a35; color:#fce319; ',
-                                   easyClose = T,
-                                   size = 's',
-                                   footer = NULL
+                                                 style='background-color:#3b3a35; color:#fce319; ',
+                                                 easyClose = T,
+                                                 size = 's',
+                                                 footer = NULL
       )))
     }
     
