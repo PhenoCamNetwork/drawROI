@@ -85,7 +85,7 @@ fluidPage(
                  # column(1, actionButton('goShift1', label = NULL, icon = icon('refresh'), width = '100%', 
                  #                        style="border-color: #fff; align:center; font-size: 200%;font-weight: bold;")),
                  # column(2, selectInput('shiftsList1.Threshold', label = 'Threshold (px)', choices = c(1:10, 15:30), selectize = T, selected = 10)),
-                 column(2, sliderInput('shiftsList1.Threshold', label = 'Threshold (px)', min = 1, max = 50, value = 10, step = 1)),
+                 column(2, sliderInput('shiftsList1.Threshold', label = 'Threshold (px)', min = 1, max = 100, value = 30, step = 1)),
                  
                  column(3, selectInput('shiftsList2', label = 'Correlation Shifts', choices = c(Choose=''), width = '100%')),
                  # column(1, actionButton('goShift2', label = NULL, icon = icon('refresh'), width = '100%', 
