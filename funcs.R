@@ -13,7 +13,7 @@ plotJPEG <- function(path, add=FALSE, xlim = NULL, ylim = NULL)
   
   if(is.url(path)){
     tmppath <- paste0(tempdir(), '/tmp.jpg')
-    download.file(path, destfile = tmppath, method = 'curl')
+    download.file(path, destfile = tmppath, method = 'curl', quiet = !PRINT_LOGS)
   }else{
     tmppath = path
   }
@@ -294,7 +294,7 @@ parseROI <- function(roifilename, roipath){
     
     if(is.url(maskpath)){
       tmpath <- tempfile()
-      download.file(maskpath, destfile = tmpath)
+      download.file(maskpath, destfile = tmpath, quiet = !PRINT_LOGS)
       maskpath <- tmpath
     }
       
@@ -395,6 +395,7 @@ getIMG.DT <- function(sites){
 
 # print a message into konsole given the message string for logging purposes
 printLog <- function(msg=NULL, init=F, finit=F){
+  if(!PRINT_LOGS) return()
   
   if(init){
     message(paste('\n--------------------------------------------------------------------\n', 
@@ -416,7 +417,7 @@ printLog <- function(msg=NULL, init=F, finit=F){
 
 dirHTML <- function(url, sitename, pattern = 'roi.csv$'){
   tmpath <- tempfile()
-  download.file(url, destfile = tmpath, quiet = T)
+  download.file(url, destfile = tmpath, quiet = !PRINT_LOGS)
   txt <- readLines(tmpath)
   n <- grep(paste0('<a href=\"', sitename), x = txt)
   DT <- data.table(file = as.character(sapply(txt[n], function(x){s=strsplit(x, split='<|>'); s[[1]][3]})))
