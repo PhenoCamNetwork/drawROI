@@ -13,15 +13,15 @@ plotJPEG <- function(path, add=FALSE, xlim = NULL, ylim = NULL)
   
   if(is.url(path)){
     tmppath <- paste0(tempdir(), '/tmp.jpg')
-    showModal(strong(
-      modalDialog(HTML(paste0('Loading ', basename(path) , '...')),
-                  easyClose = F,
-                  size = 's',
-                  style='background-color:#3b3a35; color:#fce319; ',
-                  footer = NULL
-      )))
+    # showModal(strong(
+    #   modalDialog(HTML(paste0('Loading ', basename(path) , '...')),
+    #               easyClose = F,
+    #               size = 's',
+    #               style='background-color:#3b3a35; color:#fce319; ',
+    #               footer = NULL
+    #   )))
     download.file(path, destfile = tmppath, method = 'curl', quiet = !PRINT_LOGS)
-    removeModal()
+    # removeModal()
   }else{
     tmppath = path
   }
