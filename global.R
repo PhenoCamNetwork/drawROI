@@ -50,6 +50,7 @@ library(RCurl)
 # if(system('hostname', intern=T)%in%c('phenocam')) TEST_MODE <- TRUE
 
 HTTP_LOAD <- T
+PRINT_LOGS <- T
 
 sitesInfoURL <- 'https://phenocam.sr.unh.edu/webcam/network/siteinfo/'
 
