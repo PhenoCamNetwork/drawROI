@@ -46,11 +46,17 @@ library(plotly)
 library(RCurl)
 
 
-# TEST_MODE <- FALSE
-# if(system('hostname', intern=T)%in%c('phenocam')) TEST_MODE <- TRUE
+TEST_MODE <- FALSE
+if(system('hostname', intern=T)%in%c('phenocam')&
+   system('whoami', intern=T)%in%c('bijan')) TEST_MODE <- TRUE
 
-HTTP_LOAD <- T
-PRINT_LOGS <- T
+if(TEST_MODE){
+  HTTP_LOAD <- F
+  PRINT_LOGS <- T
+}else{
+  HTTP_LOAD <- T
+  PRINT_LOGS <- F
+}
 
 sitesInfoURL <- 'https://phenocam.sr.unh.edu/webcam/network/siteinfo/'
 
@@ -60,6 +66,7 @@ if(HTTP_LOAD){
   
 }else{
   midddayListPath <- '/mnt/klima/home/shiny/middayList/'
+  # midddayListPath <- 'https://canopy.sr.unh.edu/webcam/network/middayimglist/'
   mainDataPath <- '/mnt/klima'
   
 }
