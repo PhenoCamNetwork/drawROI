@@ -13,7 +13,15 @@ plotJPEG <- function(path, add=FALSE, xlim = NULL, ylim = NULL)
   
   if(is.url(path)){
     tmppath <- paste0(tempdir(), '/tmp.jpg')
+    showModal(strong(
+      modalDialog(HTML(paste0('Loading ', basename(path) , '...')),
+                  easyClose = F,
+                  size = 's',
+                  style='background-color:#3b3a35; color:#fce319; ',
+                  footer = NULL
+      )))
     download.file(path, destfile = tmppath, method = 'curl', quiet = !PRINT_LOGS)
+    removeModal()
   }else{
     tmppath = path
   }
@@ -294,7 +302,15 @@ parseROI <- function(roifilename, roipath){
     
     if(is.url(maskpath)){
       tmpath <- tempfile()
+      showModal(strong(
+        modalDialog(HTML(paste0('Loading ', basename(maskpath) , '...')),
+                    easyClose = F,
+                    size = 's',
+                    style='background-color:#3b3a35; color:#fce319; ',
+                    footer = NULL
+        )))
       download.file(maskpath, destfile = tmpath, quiet = !PRINT_LOGS)
+      removeModal()
       maskpath <- tmpath
     }
       
@@ -416,11 +432,20 @@ printLog <- function(msg=NULL, init=F, finit=F){
 
 
 dirHTML <- function(url, sitename, pattern = 'roi.csv$'){
+  showModal(strong(
+    modalDialog(HTML('Loading roi.csv files ...'),
+                easyClose = F,
+                size = 's',
+                style='background-color:#3b3a35; color:#fce319; ',
+                footer = NULL
+    )))
+  
   tmpath <- tempfile()
   download.file(url, destfile = tmpath, quiet = !PRINT_LOGS)
   txt <- readLines(tmpath)
   n <- grep(paste0('<a href=\"', sitename), x = txt)
   DT <- data.table(file = as.character(sapply(txt[n], function(x){s=strsplit(x, split='<|>'); s[[1]][3]})))
   roi <- grep(DT$file, pattern = pattern)
+  removeModal()
   DT$file[roi]
 }
