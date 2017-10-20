@@ -91,7 +91,7 @@ fluidPage(
                  # column(1, actionButton('goShift2', label = NULL, icon = icon('refresh'), width = '100%', 
                  #                        style="border-color: #fff; align:center; font-size: 200%;font-weight: bold;"))
                  # column(2, selectInput('shiftsList2.Threshold', label = 'Threshold', selectize = T, choices = c(.01, 0.02, .05, .1, .15, .2, .3, .4, .5, .6, .75), selected = .05))
-                 column(2, sliderInput('shiftsList2.Threshold', label = 'Threshold (R)', min = 0, max = 1, value = .1, step = .01))
+                 column(2, sliderInput('shiftsList2.Threshold', label = 'Threshold (R)', min = 0, max = 1, value = .05, step = .01))
                ),
                
                tags$head(tags$style(HTML('.irs-from, .irs-to, .irs-min, .irs-max {visibility: hidden !important;}'))),
@@ -136,9 +136,10 @@ fluidPage(
                  column(1, actionButton("forw", "", icon = icon('plus'), width = '100%',  style="border-color: #fff")),
                  # column(1, strong()),
                  column(1, actionButton("linkedImage", "", icon = icon('copy'), style='font-weight: bold;border-color: #fff')),
-                 column(2, checkboxInput("lastNextDayShow", label = 'Before/After', value = F)),
-                 column(2, checkboxInput("cliShow", label = 'CL Image', value = F)),
-                 column(1, strong())
+                 column(1, checkboxInput("lastNextDayShow", label = 'Pre/Next', value = F)),
+                 column(1, checkboxInput("cliShow", label = 'CLI', value = F)),
+                 column(1, checkboxInput("corShow", label = 'Cor.', value = F)),
+                 column(1, checkboxInput("hrzShow", label = 'Hrz.', value = F))
                  
                ),
                fluidRow(
