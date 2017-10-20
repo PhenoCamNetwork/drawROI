@@ -115,7 +115,7 @@ shinyServer(function(input, output, session) {
   
   observe({
     printLog(paste('rv$sitesList initial observed experssion was called.\t'))
-    updateSelectInput(session, inputId = 'siteName', choices = rv$sitesList)
+    updateSelectInput(session, inputId = 'siteName', choices = rv$sitesList)#, selected = 'bartlettir')
   })
   
   observeEvent(input$siteName, {
@@ -206,8 +206,7 @@ shinyServer(function(input, output, session) {
   observe({
     printLog(paste('shiftsList2 reactive experssion was called.\t'))
     clt <- as.data.table(clTable())
-    # shiftsList2 <- as.Date(clt[!Foggy&R5.b < (1 - as.numeric(input$shiftsList2.Threshold)), Date])
-    shiftsList2 <- as.Date(clt[!Foggy&R2.r < ( as.numeric(input$shiftsList2.Threshold)), Date])
+    shiftsList2 <- as.Date(clt[!Foggy&Cor < ( as.numeric(input$shiftsList2.Threshold)), Date])
     rv$shiftsList2 <- shiftsList2
     
     updateSelectInput(session, 'shiftsList2', choices = c(Choose='', as.list(shiftsList2)))
@@ -663,12 +662,16 @@ shinyServer(function(input, output, session) {
     for(i in 2:nrow(clt))
       if(is.na(clt$Horizon[i])) clt$Horizon[i] <- clt$Horizon[i-1]
     
+    
+    
+    clt[,Cor:=R1.g]
     for(i in 2:nrow(clt))
-      if(is.na(clt$R5.b[i])) clt$R5.b[i] <- clt$R5.b[i-1]
+      if(is.na(clt$Cor[i])) clt$Cor[i] <- clt$Cor[i-1]
     
     clt$HorizonD5 <- c(clt$Horizon[-(1:5)], rep(NA, 5)) - clt$Horizon 
     clt[Haze>1,Haze:=1]
     clt[Haze<0,Haze:=0]
+    
     removeModal()
     
     as.data.frame(clt)
@@ -825,8 +828,10 @@ shinyServer(function(input, output, session) {
       
       if(!is.null(rv$shiftsList1))abline(v= clt[Date%in%as.Date(rv$shiftsList1),CLID], col= 'white', lwd=3, lty=2)
       if(!is.null(rv$shiftsList2))abline(v= clt[Date%in%as.Date(rv$shiftsList2),CLID], col= 'green', lwd=3, lty=2)
-      lines(clt[,.(CLID, Horizon)], col='yellow', lwd=3)
-      lines(clt[,.(CLID, R5.b*par()$usr[4])], col='orange', lwd=3)
+      
+      if(input$hrzShow)lines(clt[,.(CLID, Horizon)], col='yellow', lwd=3)
+      if(input$corShow)lines(clt[,.(CLID, Cor*par()$usr[4])], col='orange', lwd=3)
+      
       legend('right',
              bty = 'n', cex = 2, text.font = 2, lwd = 4,
              legend = c('Horizone', 'Correlation'), 
@@ -850,11 +855,11 @@ shinyServer(function(input, output, session) {
       }else{
         dummy <- 0
         jp <- plotJPEG(sampleImage())
-        mtext(imgDT()[,Date][input$contID], line = -2, adj = .05, col = 'yellow', font = 2, cex = 2, side = 1)
+        mtext(imgDT()[,Date][input$contID], line = -2, adj = .05, col = 'yellow', font = 2, cex = 2, side = 1, bg='grey')
         
         clt <- as.data.table(clTable())
         Haze <- clt[Date==dayYearIDTable()[ID==input$contID, Date], Haze]
-        mtext(side = 1, text = paste0('Haze: ', Haze), line = -2, adj = .95, col = 'yellow', font = 2, cex = 2)
+        mtext(side = 1, text = paste0('Haze: ', Haze), line = -2, adj = .95, col = 'yellow', font = 2, cex = 2, bg='grey')
         dummy <- 0
         if(is.null(rv$centers)) 
           absPoints <- matrix(numeric(), 0, 2)
@@ -963,7 +968,7 @@ shinyServer(function(input, output, session) {
     if(rv$updateBeforeAfter==0) return()
     mrgt <- mergedTable()
     
-    prv <- mrgt[Haze<as.numeric(input$hazeThreshold)&ID<=rv$newContID, ID]
+    prv <- mrgt[Haze<as.numeric(input$hazeThreshold)&ID<rv$newContID, ID]
     nxt <- mrgt[Haze<as.numeric(input$hazeThreshold)&ID>rv$newContID, ID]
     
     if(length(prv)==0&length(nxt)==0)
