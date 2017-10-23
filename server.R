@@ -838,7 +838,8 @@ shinyServer(function(input, output, session) {
   )
   output$clPlot <- renderPlot(
     res=36,
-    height = function(){floor(session$clientData$output_clPlot_width/2)},
+    height = 100,
+    # height = function(){floor(session$clientData$output_clPlot_width/2)},
     {
       dt <- as.Date(dayYearIDTable()[ID==input$contID, Date])
       clt <- as.data.table(clTable()[input$clRange[1]:input$clRange[2],])
@@ -924,7 +925,7 @@ shinyServer(function(input, output, session) {
       
       rect(par()$usr[1], par()$usr[3], par()$usr[2], par()$usr[4]*.05, col = 'white')
       mtext(side = 1, text = paste0('Haze: ', Haze), line = -1, adj = .95, col = 'black', font = 2, cex = 1.5)
-      mtext(side = 1, imgDT()[,Date][input$contID], line = -1, adj = .05, col = 'black', font = 2, cex = 1.5)
+      mtext(side = 1, linkedDate, line = -1, adj = .05, col = 'black', font = 2, cex = 1.5)
       
       usr <- par()$usr
       abline(v=seq(usr[1], usr[2], length.out = 10), lty=2, col='yellow', lwd = 2)
@@ -955,7 +956,7 @@ shinyServer(function(input, output, session) {
       usr <- par()$usr
       abline(v=seq(usr[1], usr[2], length.out = 10), lty=2, col='yellow', lwd = 2)
       abline(h=seq(usr[3], usr[4], length.out = 10), lty=2, col='yellow', lwd = 2)
-      mtext(side = 1, text = 'previous clear day', line = -1, adj = .5, col = 'black', font = 2, cex = 1.5)
+      mtext(side = 1, text = 'previous clear', line = -1, adj = .5, col = 'black', font = 2, cex = 1.5)
       
     })
   
@@ -984,7 +985,7 @@ shinyServer(function(input, output, session) {
       usr <- par()$usr
       abline(v=seq(usr[1], usr[2], length.out = 10), lty=2, col='yellow', lwd = 2)
       abline(h=seq(usr[3], usr[4], length.out = 10), lty=2, col='yellow', lwd = 2)
-      mtext(side = 1, text = 'next clear day', line = -1, adj = .5, col = 'black', font = 2, cex = 1.5)
+      mtext(side = 1, text = 'next clear', line = -1, adj = .5, col = 'black', font = 2, cex = 1.5)
       
     })
   
