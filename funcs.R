@@ -6,25 +6,25 @@ is.url <-function(x) {
 }
 
 # plot jpeg image using as raster given image path.
-plotJPEG <- function(path, add=FALSE, xlim = NULL, ylim = NULL, downloadDataTable, downloadDir)
+plotJPEG <- function(path, add=FALSE, xlim = NULL, ylim = NULL, downloadDataTable, downloadDir, showLoad = F)
 {
   # jpgNonNative <-  readJPEG(path, native=F) # read the file
   jpgNonNative <- NULL
   
   if(is.url(path)){
     tmppath <- paste0(tempdir(), '/tmp.jpg')
-    showModal(strong(
-      modalDialog(HTML(paste0('Loading ', basename(path) , '...')),
-                  easyClose = F,
-                  size = 's',
-                  style='background-color:#3b3a35; color:#fce319; ',
-                  footer = NULL
-      )))
+    # showModal(strong(
+    #   modalDialog(HTML(paste0('Loading ', basename(path) , '...')),
+    #               easyClose = F,
+    #               size = 's',
+    #               style='background-color:#3b3a35; color:#fce319; ',
+    #               footer = NULL
+    #   )))
     # download.file(path, destfile = tmppath, method = 'curl', quiet = !PRINT_LOGS)
-    tmpdl <- tryDownload(path, downloadDataTable = downloadDataTable, downloadDir = downloadDir)
+    tmpdl <- tryDownload(path, downloadDataTable = downloadDataTable, downloadDir = downloadDir, showLoad = showLoad)
     downloadDataTable <- tmpdl$downloadDataTable
     tmppath <- tmpdl$destfile
-    removeModal()
+    # removeModal()
   }else{
     tmppath = path
   }
@@ -308,19 +308,19 @@ parseROI <- function(roifilename, roipath,  downloadDataTable, downloadDir){
     
     if(is.url(maskpath)){
       # tmpath <- tempfile()
-      showModal(strong(
-        modalDialog(HTML(paste0('Loading ', basename(maskpath) , '...')),
-                    easyClose = F,
-                    size = 's',
-                    style='background-color:#3b3a35; color:#fce319; ',
-                    footer = NULL
-        )))
+      # showModal(strong(
+      #   modalDialog(HTML(paste0('Loading ', basename(maskpath) , '...')),
+      #               easyClose = F,
+      #               size = 's',
+      #               style='background-color:#3b3a35; color:#fce319; ',
+      #               footer = NULL
+      #   )))
       # download.file(maskpath, destfile = tmpath, quiet = !PRINT_LOGS)
       
-      tmpdl <- tryDownload(maskpath, downloadDataTable = downloadDataTable, downloadDir = downloadDir)
+      tmpdl <- tryDownload(maskpath, downloadDataTable = downloadDataTable, downloadDir = downloadDir, showLoad = T)
       downloadDataTable <- tmpdl$downloadDataTable
       maskpath <- tmpdl$destfile
-      removeModal()
+      # removeModal()
       
     }
     
@@ -463,17 +463,17 @@ dirHTML <- function(url, sitename, pattern = 'roi.csv$'){
 }
 
 
-tryDownload <- function(path, downloadDataTable, downloadDir){
+tryDownload <- function(path, downloadDataTable, downloadDir, showLoad = T){
   fname <- basename(path)
   printLog(paste('tryDownload was called with ', path, downloadDir ))
-  # showModal(strong(
-  #   modalDialog(HTML(paste0('Loading ', fname , '...')),
-  #               easyClose = F,
-  #               size = 's',
-  #               style='background-color:#3b3a35; color:#fce319; ',
-  #               footer = NULL
-  #   )), session=shiny::getDefaultReactiveDomain())
-  # 
+  if(showLoad)showModal(strong(
+    modalDialog(HTML(paste0('Loading ', fname , '...')),
+                easyClose = F,
+                size = 's',
+                style='background-color:#3b3a35; color:#fce319; ',
+                footer = NULL
+    )), session=shiny::getDefaultReactiveDomain())
+
   w <- which(downloadDataTable$path == path)
   
   destfile <- paste0(downloadDir, '/', fname)
@@ -490,7 +490,7 @@ tryDownload <- function(path, downloadDataTable, downloadDir){
   } else
     stop('More than one file in download dir!!')
 
-  # removeModal()
+  if(showLoad)removeModal()
   return(list(destfile = destfile, 
               downloadDataTable = downloadDataTable))
 }
