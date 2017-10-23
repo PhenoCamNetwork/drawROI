@@ -49,6 +49,8 @@ shinyServer(function(input, output, session) {
                        newContID = NULL,
                        shiftsList1 = NULL,
                        shiftsList2 = NULL,
+                       downloadDataTable = data.table(),
+                       downloadDir = tempdir(),
                        phenoSites = fromJSON(file = sitesInfoURL)
   )
   
@@ -84,7 +86,7 @@ shinyServer(function(input, output, session) {
     printLog(paste('imgDT reactive experssion was called.\t'))
     
     showModal(strong(
-      modalDialog(HTML('Loading Middday List ...'),
+      modalDialog(HTML('Loading mid-day list ...'),
                   easyClose = F,
                   size = 's',
                   style='background-color:#3b3a35; color:#fce319; ',
@@ -410,8 +412,13 @@ shinyServer(function(input, output, session) {
     shinyjs::disable('vegType')
     dummy=0
     dummy=0
-    tmp <- parseROI(roifilename=input$roiName,
-                    roipath = roipath())
+    tmpdl <- parseROI(roifilename=input$roiName,
+                    roipath = roipath(), 
+                    downloadDataTable = rv$downloadDataTable, 
+                    downloadDir = rv$downloadDir)
+    
+    rv$downloadDataTable <- tmpdl$downloadDataTable
+    tmp <- tmpdl$ROIList
     if(is.null(tmp)) return()
     rv$parsedROIList <- tmp
     updateSelectInput(session, inputId = 'vegType', selected =  rv$parsedROIList$vegType)
@@ -639,7 +646,7 @@ shinyServer(function(input, output, session) {
   clTable <- reactive({
     printLog(paste('clTable reactive experssion was called.\t'))
     showModal(strong(
-      modalDialog(HTML('Loading CenterLine Table ...'),
+      modalDialog(HTML('Loading CenterLine table ...'),
                   easyClose = F,
                   size = 's',
                   style='background-color:#3b3a35; color:#fce319; ',
@@ -648,8 +655,11 @@ shinyServer(function(input, output, session) {
     
     cltpath <- paste0(mainDataPath, '/data/archive/', input$siteName, '/ROI/', input$siteName, '-cli.txt')
     if(is.url(cltpath)){
-      tmpath <- paste0(tempdir(), 'tempclt.txt')
-      download.file(url = cltpath, destfile = tmpath, quiet = !PRINT_LOGS)
+      # tmpath <- paste0(tempdir(), 'tempclt.txt')
+      # download.file(url = cltpath, destfile = tmpath, quiet = !PRINT_LOGS)
+      tmpdl <- tryDownload(cltpath, downloadDataTable = isolate(rv$downloadDataTable), downloadDir = rv$downloadDir)
+      rv$downloadDataTable <- tmpdl$downloadDataTable
+      tmpath <- tmpdl$destfile
     }else{
       tmpath <- cltpath
     }
@@ -810,20 +820,36 @@ shinyServer(function(input, output, session) {
       updateSliderInput(session, inputId = 'clRange', value = c(c[2]-1, c[2]))
   }  )
   
-  
+  output$clhistPlot <- renderPlot(
+    res=36,
+    height = function(){floor(session$clientData$output_clPlot_width/2)},
+    {
+      clt <- as.data.table(clTable()[input$clRange[1]:input$clRange[2],])
+      clrgb <- readJPEG(clImage())
+      w <- clt$blackness<.9
+      if(any(w))clrgb <- clrgb[,w,]
+      par(mar=c(3,0,0,0))
+      plot(density(clrgb[,,1]), type='l', col='red', xlim= c(0, 1), lwd=2, title='', ylab='', xlab='')
+      lines(density(clrgb[,,2]), col= 'green', lwd=2)
+      lines(density(clrgb[,,3]), col= 'blue', lwd=2)
+      dummy <- 0
+      dummy <- 0
+    }
+  )
   output$clPlot <- renderPlot(
     res=36,
-    height = function(){floor(session$clientData$output_imagePlot_width/2)},
+    height = function(){floor(session$clientData$output_clPlot_width/2)},
     {
       dt <- as.Date(dayYearIDTable()[ID==input$contID, Date])
       clt <- as.data.table(clTable()[input$clRange[1]:input$clRange[2],])
-      
       par(mar=c(3,0,0,0))
       par(cex.axis = 2)
       clt[,plot(Date, Haze*0, xaxs='i',yaxs='i', yaxt='n', type='n', ylab = '', ylim = c(0, 1))]
       par(new=T)
       
-      rv$cl <- plotJPEG(clImage(), xlim = input$clRange)
+      jp <- plotJPEG(clImage(), xlim = input$clRange, downloadDataTable = rv$downloadDataTable, downloadDir = rv$downloadDir)
+      rv$downloadDataTable <- jp$downloadDataTable
+      
       abline(v= clt[Date==dt,CLID], col= 'red', lwd=5)
       
       if(!is.null(rv$shiftsList1))abline(v= clt[Date%in%as.Date(rv$shiftsList1),CLID], col= 'white', lwd=3, lty=2)
@@ -854,12 +880,16 @@ shinyServer(function(input, output, session) {
         text(mean(par()$usr[1:2]), mean(par()$usr[3:4]), 'No image for this date was found!', font=2, adj=.5)
       }else{
         dummy <- 0
-        jp <- plotJPEG(sampleImage())
-        mtext(imgDT()[,Date][input$contID], line = -2, adj = .05, col = 'yellow', font = 2, cex = 2, side = 1, bg='grey')
+        jp <- plotJPEG(sampleImage(), downloadDataTable = rv$downloadDataTable, downloadDir = rv$downloadDir)
+        rv$downloadDataTable <- jp$downloadDataTable
         
         clt <- as.data.table(clTable())
         Haze <- clt[Date==dayYearIDTable()[ID==input$contID, Date], Haze]
-        mtext(side = 1, text = paste0('Haze: ', Haze), line = -2, adj = .95, col = 'yellow', font = 2, cex = 2, bg='grey')
+        
+        rect(par()$usr[1], par()$usr[3], par()$usr[2], par()$usr[4]*.05, col = 'white')
+        mtext(side = 1, text = paste0('Haze: ', Haze), line = -1, adj = .95, col = 'black', font = 2, cex = 1.5)
+        mtext(side = 1, imgDT()[,Date][input$contID], line = -1, adj = .05, col = 'black', font = 2, cex = 1.5)
+        
         dummy <- 0
         if(is.null(rv$centers)) 
           absPoints <- matrix(numeric(), 0, 2)
@@ -881,15 +911,20 @@ shinyServer(function(input, output, session) {
   
   output$imagePlot2 <- renderPlot(
     res=36,
-    height = function(){floor(session$clientData$output_imagePlot_width/1.35)},
+    height = function(){floor(session$clientData$output_imagePlot2_width/1.35)},
     {
+      dummy <- 0
       par(mar=c(0,0,0,0))
-      plotJPEG(imgDT()[,path][rv$LinkedID])
-      mtext(imgDT()[,Date][input$contID], line = -2, adj = .05, col = 'yellow', font = 2, cex = 2, side = 1)
+      jp <- plotJPEG(imgDT()[,path][rv$LinkedID], downloadDataTable = rv$downloadDataTable, downloadDir = rv$downloadDir)
+      rv$downloadDataTable <- jp$downloadDataTable
       
+      linkedDate <- dayYearIDTable()[ID==rv$LinkedID, Date]
       clt <- as.data.table(clTable())
-      Haze <- clt[Date==dayYearIDTable()[ID==rv$LinkedID, Date], Haze]
-      mtext(side = 1, text = paste0('Haze: ', Haze), line = -2, adj = .95, col = 'yellow', font = 2, cex = 2)
+      Haze <- clt[Date==linkedDate, Haze]
+      
+      rect(par()$usr[1], par()$usr[3], par()$usr[2], par()$usr[4]*.05, col = 'white')
+      mtext(side = 1, text = paste0('Haze: ', Haze), line = -1, adj = .95, col = 'black', font = 2, cex = 1.5)
+      mtext(side = 1, imgDT()[,Date][input$contID], line = -1, adj = .05, col = 'black', font = 2, cex = 1.5)
       
       usr <- par()$usr
       abline(v=seq(usr[1], usr[2], length.out = 10), lty=2, col='yellow', lwd = 2)
@@ -899,7 +934,7 @@ shinyServer(function(input, output, session) {
   
   output$previousDay <- renderPlot(
     res=36,
-    height = function(){floor(session$clientData$output_imagePlot_width/1.35)},
+    height = function(){floor(session$clientData$output_previousDay_width/1.35)},
     {
       par(mar=c(0,0,0,0))
       if(is.null(rv$PreviousDayID)){
@@ -907,24 +942,27 @@ shinyServer(function(input, output, session) {
         text(mean(par()$usr[1:2]), mean(par()$usr[3:4]), 'No shift day has been selected yet!', font=2, adj=.5, cex=2)
         return()
       }
-      plotJPEG(imgDT()[,path][rv$PreviousDayID])
-      mtext(imgDT()[,Date][rv$PreviousDayID], line = -2, adj = .05, col = 'yellow', font = 2, cex = 2, side = 1)
+      jp <- plotJPEG(imgDT()[,path][rv$PreviousDayID], downloadDataTable = rv$downloadDataTable, downloadDir = rv$downloadDir)
+      rv$downloadDataTable <- jp$downloadDataTable
       
       clt <- as.data.table(clTable())
       Haze <- clt[Date==dayYearIDTable()[ID==rv$PreviousDayID, Date], Haze]
-      mtext(side = 1, text = paste0('Haze: ', Haze), line = -2, adj = .95, col = 'yellow', font = 2, cex = 2)
+      
+      rect(par()$usr[1], par()$usr[3], par()$usr[2], par()$usr[4]*.05, col = 'white')
+      mtext(side = 1, text = paste0('Haze: ', Haze), line = -1, adj = .95, col = 'black', font = 2, cex = 1.5)
+      mtext(side = 1, imgDT()[,Date][rv$PreviousDayID], line = -1, adj = .05, col = 'black', font = 2, cex = 1.5)
       
       usr <- par()$usr
       abline(v=seq(usr[1], usr[2], length.out = 10), lty=2, col='yellow', lwd = 2)
       abline(h=seq(usr[3], usr[4], length.out = 10), lty=2, col='yellow', lwd = 2)
-      mtext(side = 3, text = 'Previous clear day', line = -3, adj = .05, col = 'black', font = 2, cex = 3)
+      mtext(side = 1, text = 'previous clear day', line = -1, adj = .5, col = 'black', font = 2, cex = 1.5)
       
     })
   
   
   output$nextDay <- renderPlot(
     res=36,
-    height = function(){floor(session$clientData$output_imagePlot_width/1.35)},
+    height = function(){floor(session$clientData$output_nextDay_width/1.35)},
     {
       par(mar=c(0,0,0,0))
       
@@ -934,17 +972,19 @@ shinyServer(function(input, output, session) {
         return()
       }
       
-      plotJPEG(imgDT()[,path][rv$NextDayID])
-      mtext(imgDT()[,Date][rv$NextDayID], line = -2, adj = .05, col = 'yellow', font = 2, cex = 2, side = 1)
+      jp <- plotJPEG(imgDT()[,path][rv$NextDayID], downloadDataTable = rv$downloadDataTable, downloadDir = rv$downloadDir)
+      rv$downloadDataTable <- jp$downloadDataTable
       
       clt <- as.data.table(clTable())
       Haze <- clt[Date==dayYearIDTable()[ID==rv$NextDayID, Date], Haze]
-      mtext(side = 1, text = paste0('Haze: ', Haze), line = -2, adj = .95, col = 'yellow', font = 2, cex = 2)
+      rect(par()$usr[1], par()$usr[3], par()$usr[2], par()$usr[4]*.05, col = 'white')
+      mtext(side = 1, text = paste0('Haze: ', Haze), line = -1, adj = .95, col = 'black', font = 2, cex = 1.5)
+      mtext(side = 1, imgDT()[,Date][rv$NextDayID], line = -1, adj = .05, col = 'black', font = 2, cex = 1.5)
       
       usr <- par()$usr
       abline(v=seq(usr[1], usr[2], length.out = 10), lty=2, col='yellow', lwd = 2)
       abline(h=seq(usr[3], usr[4], length.out = 10), lty=2, col='yellow', lwd = 2)
-      mtext(side = 3, text = 'Next clear day', line = -3, adj = .05, col = 'black', font = 2, cex = 3)
+      mtext(side = 1, text = 'next clear day', line = -1, adj = .5, col = 'black', font = 2, cex = 1.5)
       
     })
   
