@@ -77,7 +77,7 @@ fluidPage(
              
              
              mainPanel(              
-               br(),
+               # br(),
                fluidRow(
                  column(2, sliderInput('hazeThreshold', label = 'Haze threshold', min = 0, max = 1, value = .45, step = .01)),
                  
@@ -105,7 +105,11 @@ fluidPage(
                              value = c(1, 2),
                              step = 1,
                              width = '100%'),
-                 plotOutput("clPlot", click = "clPoint", height = 'auto'),
+                 
+                 fluidRow(
+                   # column(3, plotOutput("clhistPlot", height = 'auto')),
+                   column(12, plotOutput("clPlot", click = "clPoint", height = 'auto'))
+                   ),
                  br()
                ),
                
