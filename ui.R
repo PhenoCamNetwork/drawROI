@@ -109,7 +109,7 @@ fluidPage(
                  fluidRow(
                    # column(3, plotOutput("clhistPlot", height = 'auto')),
                    column(12, plotOutput("clPlot", click = "clPoint", height = 'auto'))
-                   ),
+                 ),
                  br()
                ),
                
@@ -257,13 +257,13 @@ fluidPage(
                  textAreaInput('errorMessage', label = 'Explain the error please.', cols = 200, rows = 20) 
                )               
              )
-    # ),
-    # 
-    # tabPanel('Simple Tutorial', 
-    #          fluidPage(
-    #            # HTML('<img src="phenoCamROI.guide.png"  alt="This is alternate text" , width="100%">')
-    #            includeMarkdown('drawROI.Guide.md')
-    #          )
+             # ),
+             # 
+             # tabPanel('Simple Tutorial', 
+             #          fluidPage(
+             #            # HTML('<img src="phenoCamROI.guide.png"  alt="This is alternate text" , width="100%">')
+             #            includeMarkdown('drawROI.Guide.md')
+             #          )
     )
     
   )

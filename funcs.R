@@ -473,7 +473,7 @@ tryDownload <- function(path, downloadDataTable, downloadDir, showLoad = T){
                 style='background-color:#3b3a35; color:#fce319; ',
                 footer = NULL
     )), session=shiny::getDefaultReactiveDomain())
-
+  
   w <- which(downloadDataTable$path == path)
   
   destfile <- paste0(downloadDir, '/', fname)
@@ -481,7 +481,7 @@ tryDownload <- function(path, downloadDataTable, downloadDir, showLoad = T){
   if(length(w)==0) {
     download.file(path, destfile = destfile, quiet = !PRINT_LOGS, method = 'curl')
     downloadDataTable <- rbind(downloadDataTable,
-                                  data.table(path = path, Date = Sys.Date()))
+                               data.table(path = path, Date = Sys.Date()))
   }else if(length(w)==1){
     if(Sys.Date()!=downloadDataTable$Date[w]){
       download.file(path, destfile = destfile, quiet = !PRINT_LOGS, method = 'curl')
@@ -489,7 +489,7 @@ tryDownload <- function(path, downloadDataTable, downloadDir, showLoad = T){
     }
   } else
     stop('More than one file in download dir!!')
-
+  
   if(showLoad)removeModal()
   return(list(destfile = destfile, 
               downloadDataTable = downloadDataTable))

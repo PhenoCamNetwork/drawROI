@@ -880,7 +880,7 @@ shinyServer(function(input, output, session) {
         jp <- plotJPEG(sampleImage(), downloadDataTable = rv$downloadDataTable, downloadDir = rv$downloadDir)
         rv$downloadDataTable <- jp$downloadDataTable
         putImageFooter(id = input$contID, mrgDT = mergedTable(), footer = '')
-
+        
         dummy <- 0
         if(is.null(rv$centers)) 
           absPoints <- matrix(numeric(), 0, 2)
