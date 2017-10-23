@@ -51,7 +51,7 @@ if(system('hostname', intern=T)%in%c('phenocam')&
    system('whoami', intern=T)%in%c('bijan')) TEST_MODE <- TRUE
 
 if(TEST_MODE){
-  HTTP_LOAD <- F
+  HTTP_LOAD <- T
   PRINT_LOGS <- T
 }else{
   HTTP_LOAD <- T
