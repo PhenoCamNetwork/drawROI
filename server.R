@@ -1,5 +1,3 @@
-
-
 source('funcs.R')
 
 shinyServer(function(input, output, session) {
@@ -14,7 +12,6 @@ shinyServer(function(input, output, session) {
                 style='background-color:#3b3a35; color:#fce319; ',
                 footer = NULL
     )))
-  
   
   
   observe({
@@ -882,12 +879,7 @@ shinyServer(function(input, output, session) {
         dummy <- 0
         jp <- plotJPEG(sampleImage(), downloadDataTable = rv$downloadDataTable, downloadDir = rv$downloadDir)
         rv$downloadDataTable <- jp$downloadDataTable
-        
         putImageFooter(id = input$contID, mrgDT = mergedTable(), footer = '')
-        # Haze <- clt[Date==dayYearIDTable()[ID==input$contID, Date], Haze]
-        # rect(par()$usr[1], par()$usr[3], par()$usr[2], par()$usr[4]*.05, col = 'white')
-        # mtext(side = 1, text = paste0('Haze: ', Haze), line = -1, adj = .95, col = 'black', font = 2, cex = 1.5)
-        # mtext(side = 1, imgDT()[,Date][input$contID], line = -1, adj = .05, col = 'black', font = 2, cex = 1.5)
 
         dummy <- 0
         if(is.null(rv$centers)) 
@@ -900,10 +892,6 @@ shinyServer(function(input, output, session) {
           absPoints <- t(apply(rv$centers, 1, '*', sampleImageSize()))
         dummy <- 0
         polygon(absPoints, col = input$roiColors, pch = 9, lwd=2)
-        # usr <- par()$usr
-        # abline(v=seq(usr[1], usr[2], length.out = 10), lty=2, col='yellow', lwd = 2)
-        # abline(h=seq(usr[3], usr[4], length.out = 10), lty=2, col='yellow', lwd = 2)
-        # 
       }
     })
   
@@ -916,20 +904,7 @@ shinyServer(function(input, output, session) {
       par(mar=c(0,0,0,0))
       jp <- plotJPEG(imgDT()[,path][rv$LinkedID], downloadDataTable = rv$downloadDataTable, downloadDir = rv$downloadDir)
       rv$downloadDataTable <- jp$downloadDataTable
-      
       putImageFooter(id = rv$LinkedID, mrgDT = mergedTable(), footer = '')
-      
-      # linkedDate <- dayYearIDTable()[ID==rv$LinkedID, Date]
-      # clt <- as.data.table(clTable())
-      # Haze <- clt[Date==linkedDate, Haze]
-      # 
-      # rect(par()$usr[1], par()$usr[3], par()$usr[2], par()$usr[4]*.05, col = 'white')
-      # mtext(side = 1, text = paste0('Haze: ', Haze), line = -1, adj = .95, col = 'black', font = 2, cex = 1.5)
-      # mtext(side = 1, linkedDate, line = -1, adj = .05, col = 'black', font = 2, cex = 1.5)
-      # 
-      # usr <- par()$usr
-      # abline(v=seq(usr[1], usr[2], length.out = 10), lty=2, col='yellow', lwd = 2)
-      # abline(h=seq(usr[3], usr[4], length.out = 10), lty=2, col='yellow', lwd = 2)
     })
   
   
@@ -946,16 +921,6 @@ shinyServer(function(input, output, session) {
       jp <- plotJPEG(imgDT()[,path][rv$PreviousDayID], downloadDataTable = rv$downloadDataTable, downloadDir = rv$downloadDir)
       rv$downloadDataTable <- jp$downloadDataTable
       putImageFooter(id = rv$PreviousDayID, mrgDT = mergedTable(), footer = 'previous clear')
-      
-      # clt <- as.data.table(clTable())
-      # Haze <- clt[Date==dayYearIDTable()[ID==rv$PreviousDayID, Date], Haze]
-      # 
-      # rect(par()$usr[1], par()$usr[3], par()$usr[2], par()$usr[4]*.05, col = 'white')
-      # mtext(side = 1, text = paste0('Haze: ', Haze), line = -1, adj = .95, col = 'black', font = 2, cex = 1.5)
-      # mtext(side = 1, imgDT()[,Date][rv$PreviousDayID], line = -1, adj = .05, col = 'black', font = 2, cex = 1.5)
-      
-      # mtext(side = 1, text = 'previous clear', line = -1, adj = .5, col = 'black', font = 2, cex = 1.5)
-      
     })
   
   
@@ -970,22 +935,9 @@ shinyServer(function(input, output, session) {
         text(mean(par()$usr[1:2]), mean(par()$usr[3:4]), 'No shift day has been selected yet!', font=2, adj=.5, cex=2)
         return()
       }
-      
       jp <- plotJPEG(imgDT()[,path][rv$NextDayID], downloadDataTable = rv$downloadDataTable, downloadDir = rv$downloadDir)
       rv$downloadDataTable <- jp$downloadDataTable
       putImageFooter(id = rv$NextDayID, mrgDT = mergedTable(), footer = 'next clear')
-      
-      # clt <- as.data.table(clTable())
-      # Haze <- clt[Date==dayYearIDTable()[ID==rv$NextDayID, Date], Haze]
-      # rect(par()$usr[1], par()$usr[3], par()$usr[2], par()$usr[4]*.05, col = 'white')
-      # mtext(side = 1, text = paste0('Haze: ', Haze), line = -1, adj = .95, col = 'black', font = 2, cex = 1.5)
-      # mtext(side = 1, imgDT()[,Date][rv$NextDayID], line = -1, adj = .05, col = 'black', font = 2, cex = 1.5)
-      # 
-      # usr <- par()$usr
-      # abline(v=seq(usr[1], usr[2], length.out = 10), lty=2, col='yellow', lwd = 2)
-      # abline(h=seq(usr[3], usr[4], length.out = 10), lty=2, col='yellow', lwd = 2)
-      # mtext(side = 1, text = 'next clear', line = -1, adj = .5, col = 'black', font = 2, cex = 1.5)
-      # 
     })
   
   
