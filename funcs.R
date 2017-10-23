@@ -494,3 +494,35 @@ tryDownload <- function(path, downloadDataTable, downloadDir, showLoad = T){
   return(list(destfile = destfile, 
               downloadDataTable = downloadDataTable))
 }
+
+
+getNAfromLast <- function(x){
+  xrev <- rev(x)
+  xnew <- xrev
+  repeat{
+    w <- which(is.na(xrev))
+    xnew[w] <- xrev[w+1]
+    if(identical(xnew, xrev)) break
+    xrev <- xnew
+  }
+  rev(xrev)
+}
+
+putImageFooter <- function(id, mrgDT, footer='', grid = T){
+  Date <- mrgDT[ID==id, Date] 
+  if(length(Date)==0) return()
+  Haze <- mrgDT[ID==id, Haze]
+  Black <- signif(mrgDT[ID==id, blackness], 2)
+  
+  rect(par()$usr[1], par()$usr[3], par()$usr[2], par()$usr[4]*.05, col = 'white')
+  mtext(side = 1, Date, line = -1, adj = .05, col = 'black', font = 2, cex = 1.5)
+  mtext(side = 1, footer, line = -1, adj = .5, col = 'black', font = 2, cex = 1.5)
+  mtext(side = 1, Black, line = -1, adj = .85, col = 'black', font = 2, cex = 1.5)
+  mtext(side = 1, Haze, line = -1, adj = .95, col = 'black', font = 2, cex = 1.5)
+  
+  if(grid){
+    usr <- par()$usr
+    abline(v=seq(usr[1], usr[2], length.out = 10), lty=2, col='yellow', lwd = 2)
+    abline(h=seq(usr[3], usr[4], length.out = 10), lty=2, col='yellow', lwd = 2)
+  }
+}
