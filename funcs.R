@@ -64,7 +64,12 @@ draw.polygon <-
 
 
 # extract chromatic colors of RGB channels for given jpeg file and mask matrix
-extractCCC <- function(path, m){
+extractCCC <- function(path, m, downloadDataTable, downloadDir){
+  if(is.url(path)){
+    tmpdl <- tryDownload(path, downloadDataTable = downloadDataTable, downloadDir = downloadDir)
+    path <- tmpdl$destfile
+    downloadDataTable <- tmpdl$downloadDataTable
+  }
   
   jp <- readJPEG(path)
   dm <- dim(jp)
@@ -90,7 +95,8 @@ extractCCC <- function(path, m){
   
   list(rcc = rcc,
        gcc = gcc,
-       bcc = bcc)
+       bcc = bcc, 
+       downloadDataTable = downloadDataTable)
 }
 
 
@@ -134,7 +140,7 @@ createRasteredROI <- function(pnts, imgSize){
 
 
 #extract time series of chromatic colors for a vector of jpeg files.
-extractCCCTimeSeries <- function(rmsk, paths, PLUS=F, session=shiny::getDefaultReactiveDomain()){
+extractCCCTimeSeries <- function(rmsk, paths, PLUS=F, session=shiny::getDefaultReactiveDomain(), downloadDataTable, downloadDir){
   
   continue = TRUE
   
@@ -152,7 +158,8 @@ extractCCCTimeSeries <- function(rmsk, paths, PLUS=F, session=shiny::getDefaultR
   withProgress(value = 0, message = 'Extracting CCs',
                for(i in 1:n){
                  if(isTRUE(session$input$stopThis))break
-                 ccc <- extractCCC(paths[i], mmm)
+                 ccc <- extractCCC(paths[i], mmm, downloadDataTable = downloadDataTable, downloadDir = downloadDir)
+                 downloadDataTable <- ccc$downloadDataTable
                  if(!is.null(ccc))
                    CCCT[i,] <- as.numeric((ccc[c("rcc", "gcc", "bcc")]))
                  incProgress(1/n)
@@ -162,7 +169,7 @@ extractCCCTimeSeries <- function(rmsk, paths, PLUS=F, session=shiny::getDefaultR
   )
   CCCT <- as.data.table(CCCT)
   colnames(CCCT) <- c('rcc','gcc','bcc')
-  CCCT
+  list(CCCT = CCCT, downloadDataTable = downloadDataTable)
 }
 
 
@@ -392,12 +399,12 @@ getIMG.DT <- function(sites){
   imgDT <- data.table()
   
   for(site in sites){
-    if(is.url(midddayListPath)){
-      mdiJSON = fromJSON(file = paste0(midddayListPath, site,'/'))
+    if(is.url(middayListPath)){
+      mdiJSON = fromJSON(file = paste0(middayListPath, site,'/'))
       tbl <- data.table( DateJSON = as.Date(sapply(mdiJSON$images, function(x){x$date })),
                          path = as.character(sapply(mdiJSON$images, function(x){x$midimg})))
     }else{
-      tbl <- read.table(paste0(midddayListPath, site), header = F, colClasses = 'character', col.names = 'path')
+      tbl <- read.table(paste0(middayListPath, site), header = F, colClasses = 'character', col.names = 'path')
     }
     
     imgDT.tmp <- as.data.table(tbl)
@@ -489,6 +496,9 @@ tryDownload <- function(path, downloadDataTable, downloadDir, showLoad = T){
     }
   } else
     stop('More than one file in download dir!!')
+  
+  downloadDataTable$Date <- as.Date(downloadDataTable$Date)
+  downloadDataTable$path <- as.character(downloadDataTable$path)
   
   if(showLoad)removeModal()
   return(list(destfile = destfile, 
