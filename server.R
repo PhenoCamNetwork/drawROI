@@ -33,6 +33,7 @@ shinyServer(function(input, output, session) {
                        downloadDataTable = data.table(),
                        downloadDir = tempdir(),
                        downloadDTfile = NULL,
+                       downloadFlag = F,
                        phenoSites = fromJSON(file = sitesInfoURL)
   )
   
@@ -44,7 +45,8 @@ shinyServer(function(input, output, session) {
     if(file.exists(isolate(rv$downloadDTfile))){
       dummy <- 0
       
-      rv$downloadDataTable = as.data.table(read.csv(rv$downloadDTfile))
+      rv$downloadDataTable = as.data.table(read.csv(rv$downloadDTfile, colClasses = c('character','Date')))
+      rv$downloadFlag <- T
     }
   })
   
@@ -68,6 +70,8 @@ shinyServer(function(input, output, session) {
   observeEvent(rv$downloadDataTable, {
     dummy <- 0
     if(nrow(rv$downloadDataTable)==0) return()
+    if(!rv$downloadFlag) return()
+    
     write.csv(rv$downloadDataTable, file = paste0(rv$downloadDir, '/downloadDataTable.csv'), row.names = F)
   })
   autoInvalidate <- reactiveTimer(1000)
@@ -727,8 +731,16 @@ shinyServer(function(input, output, session) {
   
   sampleImageSize <- reactive({
     printLog(paste('sampleImageSize reactive experssion was called.\t'))
+    smpl <- sampleImage()
     
-    dim(readJPEG(sampleImage()))[2:1]
+    if(is.url(smpl)){
+      tmpdl <- tryDownload(smpl, downloadDataTable = isolate(rv$downloadDataTable), downloadDir = rv$downloadDir)
+      rv$downloadDataTable <- tmpdl$downloadDataTable
+      tmpath <- tmpdl$destfile
+    }else{
+      tmpath <- smpl
+    }
+    dim(readJPEG(tmpath))[2:1]
   })
   
   
@@ -840,7 +852,18 @@ shinyServer(function(input, output, session) {
     height = function(){floor(session$clientData$output_clPlot_width/2)},
     {
       clt <- as.data.table(clTable()[input$clRange[1]:input$clRange[2],])
-      clrgb <- readJPEG(clImage())
+      
+      tmp <- clImage()
+      if(is.url(tmp)){
+        tmpdl <- tryDownload(tmp, downloadDataTable = isolate(rv$downloadDataTable), downloadDir = rv$downloadDir)
+        rv$downloadDataTable <- tmpdl$downloadDataTable
+        tmpath <- tmpdl$destfile
+      }else{
+        tmpath <- tmp
+      }
+      
+      clrgb <- readJPEG(tmpath)
+      
       w <- clt$blackness<.9
       if(any(w))clrgb <- clrgb[,w,]
       par(mar=c(3,0,0,0))
