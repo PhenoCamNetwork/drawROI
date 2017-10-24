@@ -1,5 +1,3 @@
-source('funcs.R')
-
 shinyServer(function(input, output, session) {
   printLog(init=T)
   
@@ -31,49 +29,40 @@ shinyServer(function(input, output, session) {
                        shiftsList1 = NULL,
                        shiftsList2 = NULL,
                        downloadDataTable = data.table(),
-                       downloadDir = tempdir(),
+                       # downloadDir = tempdir(),
+                       downloadDir = paste0(gettmpdir(), '/drawROI-',system('whoami', intern=T)),
+                       # downloadDir = gettmpdir(),
                        downloadDTfile = NULL,
-                       downloadFlag = F,
+                       # downloadFlag = F,
                        phenoSites = fromJSON(file = sitesInfoURL)
   )
   
   observeEvent(rv$downloadDir,{
     printLog(paste('downloadDir observed experssion was called.\t'))
-    
+    dir.create(rv$downloadDir, showWarnings = FALSE)
     rv$downloadDTfile <- paste0(rv$downloadDir, '/downloadDataTable.csv')
     
     if(file.exists(isolate(rv$downloadDTfile))){
       dummy <- 0
       
       rv$downloadDataTable = as.data.table(read.csv(rv$downloadDTfile, colClasses = c('character','Date')))
-      rv$downloadFlag <- T
-    }
-  })
-  
-  observe({
-    
-    printLog(paste('openEnd observed experssion was called.\t'))
-    
-    req(input$maskEndDate)
-    req(input$maskEndTime)
-    if(input$openEnd) {
-      shinyjs::disable('maskEndDate')
-      shinyjs::disable('maskEndTime')
-      updateDateInput(session, 'maskEndDate', value = '9999-12-31')
-      updateTextInput(session, 'maskEndTime', value = '00:00:00')
+      # rv$downloadFlag <- T
     }else{
-      shinyjs::enable('maskEndDate')
-      shinyjs::enable('maskEndTime')
+      downloadDataTable <- data.table()
+      # downloadFlag <- F
+      
     }
   })
   
   observeEvent(rv$downloadDataTable, {
     dummy <- 0
     if(nrow(rv$downloadDataTable)==0) return()
-    if(!rv$downloadFlag) return()
-    
+    # if(!rv$downloadFlag) return()
+    # dummy <- 0
     write.csv(rv$downloadDataTable, file = paste0(rv$downloadDir, '/downloadDataTable.csv'), row.names = F)
   })
+  
+  
   autoInvalidate <- reactiveTimer(1000)
   
   observe({
@@ -98,6 +87,24 @@ shinyServer(function(input, output, session) {
     updateSelectInput(session, 'vegType', choices = vegTypes)    
   })
   
+  
+  
+  observe({
+    
+    printLog(paste('openEnd observed experssion was called.\t'))
+    
+    req(input$maskEndDate)
+    req(input$maskEndTime)
+    if(input$openEnd) {
+      shinyjs::disable('maskEndDate')
+      shinyjs::disable('maskEndTime')
+      updateDateInput(session, 'maskEndDate', value = '9999-12-31')
+      updateTextInput(session, 'maskEndTime', value = '00:00:00')
+    }else{
+      shinyjs::enable('maskEndDate')
+      shinyjs::enable('maskEndTime')
+    }
+  })
   
   # ----------------------------------------------------------------------
   # imgDT

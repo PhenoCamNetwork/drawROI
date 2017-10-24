@@ -1,5 +1,3 @@
-
-
 #' Check If String is a URL
 is.url <-function(x) {
   grepl("www.|http:|https:", x)
@@ -540,4 +538,16 @@ putImageFooter <- function(id, mrgDT, footer='', grid = T, cex = NULL){
     abline(v=seq(usr[1], usr[2], length.out = 10), lty=2, col='yellow', lwd = 2)
     abline(h=seq(usr[3], usr[4], length.out = 10), lty=2, col='yellow', lwd = 2)
   }
+}
+
+
+gettmpdir <- function() {
+  tm <- Sys.getenv(c('TMPDIR', 'TMP', 'TEMP'))
+  d <- which(file.info(tm)$isdir & file.access(tm, 2) == 0)
+  if (length(d) > 0)
+    tm[[d[1]]]
+  else if (.Platform$OS.type == 'windows')
+    Sys.getenv('R_USER')
+  else
+    '/tmp'
 }

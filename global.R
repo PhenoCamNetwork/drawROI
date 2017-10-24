@@ -1,4 +1,4 @@
-source('directoryInput.R')
+source('funcs.R')
 
 list.of.packages <- c(
   'rgdal',
@@ -27,9 +27,6 @@ new.packages <- list.of.packages[!(list.of.packages %in% installed.packages()[,"
 if(length(new.packages)) install.packages(new.packages)
 
 for(p in list.of.packages) library(p, character.only = T)
-
-source('directoryInput.R')
-source('funcs.R')
 
 
 HTTP_LOAD <- T

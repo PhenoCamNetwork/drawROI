@@ -5,7 +5,7 @@ fluidPage(
     tabPanel('ROI Tool',
              headerPanel("PhenoCam ROI Tool"),
              sidebarPanel(width = 4,
-                          directoryInput('directory', label = 'cache directory', value = tempdir()),
+                          # directoryInput('directory', label = 'cache directory', value = tempdir()),
 
                           fluidRow(
                             column(10, 
