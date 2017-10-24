@@ -1,6 +1,3 @@
-
-
-
 fluidPage(
   shinyjs::useShinyjs(),  
   tags$head(tags$style(HTML( "#Select1 ~ .selectize-control.single .selectize-input {border: 1px solid #fff;}"))),
@@ -8,6 +5,8 @@ fluidPage(
     tabPanel('ROI Tool',
              headerPanel("PhenoCam ROI Tool"),
              sidebarPanel(width = 4,
+                          directoryInput('directory', label = 'cache directory', value = tempdir()),
+
                           fluidRow(
                             column(10, 
                                    selectInput("siteName", "Site", choices = 'acadia')
