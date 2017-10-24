@@ -14,22 +14,6 @@ shinyServer(function(input, output, session) {
     )))
   
   
-  observe({
-    printLog(paste('openEnd observed experssion was called.\t'))
-    
-    req(input$maskEndDate)
-    req(input$maskEndTime)
-    if(input$openEnd) {
-      shinyjs::disable('maskEndDate')
-      shinyjs::disable('maskEndTime')
-      updateDateInput(session, 'maskEndDate', value = '9999-12-31')
-      updateTextInput(session, 'maskEndTime', value = '00:00:00')
-    }else{
-      shinyjs::enable('maskEndDate')
-      shinyjs::enable('maskEndTime')
-    }
-  })
-  
   options(warn = -1)
   rv <- reactiveValues(centers = matrix(numeric(), 0, 2),
                        MASKs = list(),
@@ -48,9 +32,44 @@ shinyServer(function(input, output, session) {
                        shiftsList2 = NULL,
                        downloadDataTable = data.table(),
                        downloadDir = tempdir(),
+                       downloadDTfile = NULL,
                        phenoSites = fromJSON(file = sitesInfoURL)
   )
   
+  observeEvent(rv$downloadDir,{
+    printLog(paste('downloadDir observed experssion was called.\t'))
+    
+    rv$downloadDTfile <- paste0(rv$downloadDir, '/downloadDataTable.csv')
+    
+    if(file.exists(isolate(rv$downloadDTfile))){
+      dummy <- 0
+      
+      rv$downloadDataTable = as.data.table(read.csv(rv$downloadDTfile))
+    }
+  })
+  
+  observe({
+    
+    printLog(paste('openEnd observed experssion was called.\t'))
+    
+    req(input$maskEndDate)
+    req(input$maskEndTime)
+    if(input$openEnd) {
+      shinyjs::disable('maskEndDate')
+      shinyjs::disable('maskEndTime')
+      updateDateInput(session, 'maskEndDate', value = '9999-12-31')
+      updateTextInput(session, 'maskEndTime', value = '00:00:00')
+    }else{
+      shinyjs::enable('maskEndDate')
+      shinyjs::enable('maskEndTime')
+    }
+  })
+  
+  observeEvent(rv$downloadDataTable, {
+    dummy <- 0
+    if(nrow(rv$downloadDataTable)==0) return()
+    write.csv(rv$downloadDataTable, file = paste0(rv$downloadDir, '/downloadDataTable.csv'), row.names = F)
+  })
   autoInvalidate <- reactiveTimer(1000)
   
   observe({
@@ -1305,9 +1324,10 @@ shinyServer(function(input, output, session) {
                                                        style='background-color:#3b3a35; color:#fce319; ',
                                                        onclick="Shiny.onInputChange('stopThis',true)")
     )))
-    cc <- extractCCCTimeSeries(isolate(curMask()), paths()$path)
+    cc <- extractCCCTimeSeries(isolate(curMask()), paths()$path, downloadDataTable = rv$downloadDataTable, downloadDir = rv$downloadDir)
+    rv$downloadDataTable <- cc$downloadDataTable
     removeModal()
-    cc
+    cc$CCCT
   })
   
   
