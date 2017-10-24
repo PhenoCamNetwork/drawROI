@@ -66,7 +66,7 @@ draw.polygon <-
 # extract chromatic colors of RGB channels for given jpeg file and mask matrix
 extractCCC <- function(path, m, downloadDataTable, downloadDir){
   if(is.url(path)){
-    tmpdl <- tryDownload(path, downloadDataTable = downloadDataTable, downloadDir = downloadDir)
+    tmpdl <- tryDownload(path, downloadDataTable = downloadDataTable, downloadDir = downloadDir, showLoad = F)
     path <- tmpdl$destfile
     downloadDataTable <- tmpdl$downloadDataTable
   }
@@ -485,7 +485,7 @@ tryDownload <- function(path, downloadDataTable, downloadDir, showLoad = T){
   
   destfile <- paste0(downloadDir, '/', fname)
   
-  if(length(w)==0) {
+  if(length(w)==0|(!file.exists(destfile))) {
     download.file(path, destfile = destfile, quiet = !PRINT_LOGS, method = 'curl')
     downloadDataTable <- rbind(downloadDataTable,
                                data.table(path = path, Date = Sys.Date()))
@@ -518,17 +518,22 @@ getNAfromLast <- function(x){
   rev(xrev)
 }
 
-putImageFooter <- function(id, mrgDT, footer='', grid = T){
+putImageFooter <- function(id, mrgDT, footer='', grid = T, cex = NULL){
+  if(is.null(cex)) {
+    dummy <- 0
+    session <- shiny::getDefaultReactiveDomain()
+    cex <- session$clientData$output_imagePlot_width/180
+  }
   Date <- mrgDT[ID==id, Date] 
   if(length(Date)==0) return()
   Haze <- mrgDT[ID==id, Haze]
   Black <- signif(mrgDT[ID==id, blackness], 2)
   
   rect(par()$usr[1], par()$usr[3], par()$usr[2], par()$usr[4]*.05, col = 'white')
-  mtext(side = 1, Date, line = -1, adj = .05, col = 'black', font = 2, cex = 1.5)
-  mtext(side = 1, footer, line = -1, adj = .5, col = 'black', font = 2, cex = 1.5)
-  mtext(side = 1, Black, line = -1, adj = .85, col = 'black', font = 2, cex = 1.5)
-  mtext(side = 1, Haze, line = -1, adj = .95, col = 'black', font = 2, cex = 1.5)
+  mtext(side = 1, Date, line = -1, adj = .05, col = 'black', font = 2, cex = cex)
+  mtext(side = 1, footer, line = -1, adj = .5, col = 'black', font = 2, cex = cex)
+  mtext(side = 1, Black, line = -1, adj = .85, col = 'black', font = 2, cex = cex)
+  mtext(side = 1, Haze, line = -1, adj = .95, col = 'black', font = 2, cex = cex)
   
   if(grid){
     usr <- par()$usr
