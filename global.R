@@ -47,6 +47,7 @@ library(RCurl)
 
 
 TEST_MODE <- FALSE
+
 if(system('hostname', intern=T)%in%c('phenocam')&
    system('whoami', intern=T)%in%c('bijan')) TEST_MODE <- TRUE
 
@@ -61,14 +62,13 @@ if(TEST_MODE){
 sitesInfoURL <- 'https://phenocam.sr.unh.edu/webcam/network/siteinfo/'
 
 if(HTTP_LOAD){
-  midddayListPath <- 'https://canopy.sr.unh.edu/webcam/network/middayimglist/'
+  middayListPath <- 'https://phenocam.sr.unh.edu/webcam/network/middayimglist/'
   mainDataPath <- 'https://phenocam.sr.unh.edu'
   
 }else{
-  midddayListPath <- '/mnt/klima/home/shiny/middayList/'
-  # midddayListPath <- 'https://canopy.sr.unh.edu/webcam/network/middayimglist/'
+  middayListPath <- '/mnt/klima/home/shiny/middayList/'
+  # middayListPath <- 'https://phenocam.sr.unh.edu/webcam/network/middayimglist/'
   mainDataPath <- '/mnt/klima'
-  
 }
 
 
