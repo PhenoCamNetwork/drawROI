@@ -1,3 +1,5 @@
+source('directoryInput.R')
+
 list.of.packages <- c(
   'rgdal',
   'shiny',
@@ -5,6 +7,7 @@ list.of.packages <- c(
   'shinyBS',
   'shinyAce',
   'shinyTime',
+  'shinyFiles',
   'shinydashboard',
   'colourpicker',
   'rjson',
@@ -23,41 +26,20 @@ list.of.packages <- c(
 new.packages <- list.of.packages[!(list.of.packages %in% installed.packages()[,"Package"])]
 if(length(new.packages)) install.packages(new.packages)
 
+for(p in list.of.packages) library(p, character.only = T)
+
+source('directoryInput.R')
+source('funcs.R')
 
 
-library(rgdal)
-library(shiny)
-library(shinyjs)
-library(shinyBS)
-library(shinyAce)
-library(shinyTime)
-library(shinydashboard)
-library(colourpicker)
-library(rjson)
-library(stringr)
-library(sendmailR)
-library(sp)
-library(raster)
-library(jpeg)
-library(tiff)
-library(data.table)
-library(lubridate)
-library(plotly)
-library(RCurl)
+HTTP_LOAD <- T
+PRINT_LOGS <- T
 
+if(system('hostname', intern=T)%in%c('phenocam')) PRINT_LOGS <- T
+   
+# if(system('hostname', intern=T)%in%c('phenocam')&
+#    system('whoami', intern=T)%in%c('bijan')) HTTP_LOAD <- F
 
-TEST_MODE <- FALSE
-
-if(system('hostname', intern=T)%in%c('phenocam')&
-   system('whoami', intern=T)%in%c('bijan')) TEST_MODE <- TRUE
-
-if(TEST_MODE){
-  HTTP_LOAD <- T
-  PRINT_LOGS <- T
-}else{
-  HTTP_LOAD <- T
-  PRINT_LOGS <- F
-}
 
 sitesInfoURL <- 'https://phenocam.sr.unh.edu/webcam/network/siteinfo/'
 
