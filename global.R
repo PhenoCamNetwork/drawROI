@@ -29,13 +29,18 @@ if(length(new.packages)) install.packages(new.packages, repos='http://cran.rstud
 for(p in list.of.packages) library(p, character.only = T)
 
 
-HTTP_LOAD <- T
-PRINT_LOGS <- T
 CACHE_LIMIT <- 500
+
+PRINT_LOGS <- T
 if(system('hostname', intern=T)%in%c('phenocam')) PRINT_LOGS <- T
    
+HTTP_LOAD <- T
 # if(system('hostname', intern=T)%in%c('phenocam')&
 #    system('whoami', intern=T)%in%c('bijan')) HTTP_LOAD <- F
+
+SHINY_SERVER <- F
+if(system('hostname', intern=T)%in%c('phenocam')&
+   system('whoami', intern=T)%in%c('shiny')) SHINY_SERVER <- T
 
 
 sitesInfoURL <- 'https://phenocam.sr.unh.edu/webcam/network/siteinfo/'
