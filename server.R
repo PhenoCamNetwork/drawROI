@@ -59,6 +59,8 @@ shinyServer(function(input, output, session) {
     if(nrow(rv$downloadDataTable)==0) return()
     # if(!rv$downloadFlag) return()
     # dummy <- 0
+    ndl <- nrow(rv$downloadDataTable)
+    if(ndl>CACHE_LIMIT) rv$downloadDataTable <- rv$downloadDataTable[(ndl-CACHE_LIMIT+1):ndl]
     write.csv(rv$downloadDataTable, file = paste0(rv$downloadDir, '/downloadDataTable.csv'), row.names = F)
   })
   

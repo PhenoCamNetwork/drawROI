@@ -31,7 +31,7 @@ for(p in list.of.packages) library(p, character.only = T)
 
 HTTP_LOAD <- T
 PRINT_LOGS <- T
-
+CACHE_LIMIT <- 500
 if(system('hostname', intern=T)%in%c('phenocam')) PRINT_LOGS <- T
    
 # if(system('hostname', intern=T)%in%c('phenocam')&
