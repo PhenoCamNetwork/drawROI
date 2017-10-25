@@ -6,7 +6,16 @@ fluidPage(
              headerPanel("PhenoCam ROI Tool"),
              sidebarPanel(width = 4,
                           # directoryInput('directory', label = 'cache directory', value = tempdir()),
-
+                          conditionalPanel(condition="output.showClearCache=='TRUE'", 
+                                           fixedRow(
+                                             column(9, htmlOutput('cacheDir')),
+                                             column(1, actionButton('clearCache', label = NULL, icon = icon('trash'), 
+                                                                    style="border-color: #f5f5f5; align:center; background-color:#f5f5f5; font-weight: bold;font-size: 100%;"))
+                                             
+                                           )),
+                          
+                          span(textOutput('showClearCache'), style="color: #f5f5f5; border-color: #f5f5f5; align:center; background-color:#f5f5f5; font-size: 0%;"),
+                          
                           fluidRow(
                             column(10, 
                                    selectInput("siteName", "Site", choices = 'acadia')

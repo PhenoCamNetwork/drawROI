@@ -37,6 +37,22 @@ shinyServer(function(input, output, session) {
                        phenoSites = fromJSON(file = sitesInfoURL)
   )
   
+  # observeEvent(input$showClearCache,
+  #      if(SHINY_SERVER)updateCheckboxInput(session, inputId = 'showClearCache', value = F)
+  # )
+  output$showClearCache <- reactive({
+    as.character(!SHINY_SERVER)
+  })
+  observeEvent(input$clearCache, {
+    printLog(paste('clearCache observed experssion was called.\t'))
+    
+    file.remove(dir(path = rv$downloadDir, full.names = T))
+  })
+  
+  output$cacheDir <- renderUI(
+    HTML(paste0(strong('Cache: '), rv$downloadDir))
+  )
+  
   observeEvent(rv$downloadDir,{
     printLog(paste('downloadDir observed experssion was called.\t'))
     dir.create(rv$downloadDir, showWarnings = FALSE)
@@ -55,6 +71,8 @@ shinyServer(function(input, output, session) {
   })
   
   observeEvent(rv$downloadDataTable, {
+    printLog(paste('downloadDataTable observed experssion was called.\t'))
+    
     dummy <- 0
     if(nrow(rv$downloadDataTable)==0) return()
     # if(!rv$downloadFlag) return()
@@ -686,7 +704,7 @@ shinyServer(function(input, output, session) {
     if(is.url(cltpath)){
       # tmpath <- paste0(tempdir(), 'tempclt.txt')
       # download.file(url = cltpath, destfile = tmpath, quiet = !PRINT_LOGS)
-      tmpdl <- tryDownload(cltpath, downloadDataTable = isolate(rv$downloadDataTable), downloadDir = rv$downloadDir)
+      tmpdl <- tryDownload(cltpath, downloadDataTable = isolate(rv$downloadDataTable), downloadDir = rv$downloadDir, Update = T)
       rv$downloadDataTable <- tmpdl$downloadDataTable
       tmpath <- tmpdl$destfile
     }else{
@@ -743,7 +761,7 @@ shinyServer(function(input, output, session) {
     smpl <- sampleImage()
     
     if(is.url(smpl)){
-      tmpdl <- tryDownload(smpl, downloadDataTable = isolate(rv$downloadDataTable), downloadDir = rv$downloadDir)
+      tmpdl <- tryDownload(smpl, downloadDataTable = isolate(rv$downloadDataTable), downloadDir = rv$downloadDir, Update = F)
       rv$downloadDataTable <- tmpdl$downloadDataTable
       tmpath <- tmpdl$destfile
     }else{
@@ -864,7 +882,7 @@ shinyServer(function(input, output, session) {
       
       tmp <- clImage()
       if(is.url(tmp)){
-        tmpdl <- tryDownload(tmp, downloadDataTable = isolate(rv$downloadDataTable), downloadDir = rv$downloadDir)
+        tmpdl <- tryDownload(tmp, downloadDataTable = isolate(rv$downloadDataTable), downloadDir = rv$downloadDir, Update = T)
         rv$downloadDataTable <- tmpdl$downloadDataTable
         tmpath <- tmpdl$destfile
       }else{
@@ -895,7 +913,7 @@ shinyServer(function(input, output, session) {
       clt[,plot(Date, Haze*0, xaxs='i',yaxs='i', yaxt='n', type='n', ylab = '', ylim = c(0, 1))]
       par(new=T)
       
-      jp <- plotJPEG(clImage(), xlim = input$clRange, downloadDataTable = rv$downloadDataTable, downloadDir = rv$downloadDir)
+      jp <- plotJPEG(clImage(), xlim = input$clRange, downloadDataTable = rv$downloadDataTable, downloadDir = rv$downloadDir, Update = T)
       rv$downloadDataTable <- jp$downloadDataTable
       
       abline(v= clt[Date==dt,CLID], col= 'red', lwd=5)
