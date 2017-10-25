@@ -4,7 +4,7 @@ is.url <-function(x) {
 }
 
 # plot jpeg image using as raster given image path.
-plotJPEG <- function(path, add=FALSE, xlim = NULL, ylim = NULL, downloadDataTable, downloadDir, showLoad = F)
+plotJPEG <- function(path, add=FALSE, xlim = NULL, ylim = NULL, downloadDataTable, downloadDir, showLoad = F, Update = F)
 {
   # jpgNonNative <-  readJPEG(path, native=F) # read the file
   jpgNonNative <- NULL
@@ -19,7 +19,7 @@ plotJPEG <- function(path, add=FALSE, xlim = NULL, ylim = NULL, downloadDataTabl
     #               footer = NULL
     #   )))
     # download.file(path, destfile = tmppath, method = 'curl', quiet = !PRINT_LOGS)
-    tmpdl <- tryDownload(path, downloadDataTable = downloadDataTable, downloadDir = downloadDir, showLoad = showLoad)
+    tmpdl <- tryDownload(path, downloadDataTable = downloadDataTable, downloadDir = downloadDir, showLoad = showLoad, Update = Update)
     downloadDataTable <- tmpdl$downloadDataTable
     tmppath <- tmpdl$destfile
     # removeModal()
@@ -64,7 +64,7 @@ draw.polygon <-
 # extract chromatic colors of RGB channels for given jpeg file and mask matrix
 extractCCC <- function(path, m, downloadDataTable, downloadDir){
   if(is.url(path)){
-    tmpdl <- tryDownload(path, downloadDataTable = downloadDataTable, downloadDir = downloadDir, showLoad = F)
+    tmpdl <- tryDownload(path, downloadDataTable = downloadDataTable, downloadDir = downloadDir, showLoad = F, Update = F)
     path <- tmpdl$destfile
     downloadDataTable <- tmpdl$downloadDataTable
   }
@@ -322,7 +322,7 @@ parseROI <- function(roifilename, roipath,  downloadDataTable, downloadDir){
       #   )))
       # download.file(maskpath, destfile = tmpath, quiet = !PRINT_LOGS)
       
-      tmpdl <- tryDownload(maskpath, downloadDataTable = downloadDataTable, downloadDir = downloadDir, showLoad = T)
+      tmpdl <- tryDownload(maskpath, downloadDataTable = downloadDataTable, downloadDir = downloadDir, showLoad = T, Update = F)
       downloadDataTable <- tmpdl$downloadDataTable
       maskpath <- tmpdl$destfile
       # removeModal()
@@ -468,7 +468,7 @@ dirHTML <- function(url, sitename, pattern = 'roi.csv$'){
 }
 
 
-tryDownload <- function(path, downloadDataTable, downloadDir, showLoad = T){
+tryDownload <- function(path, downloadDataTable, downloadDir, showLoad = T, Update = T){
   fname <- basename(path)
   printLog(paste('tryDownload was called with ', path, downloadDir ))
   if(showLoad)showModal(strong(
@@ -479,21 +479,24 @@ tryDownload <- function(path, downloadDataTable, downloadDir, showLoad = T){
                 footer = NULL
     )), session=shiny::getDefaultReactiveDomain())
   
-  w <- which(downloadDataTable$path == path)
   
   destfile <- paste0(downloadDir, '/', fname)
   
-  if(length(w)==0|(!file.exists(destfile))) {
-    download.file(path, destfile = destfile, quiet = !PRINT_LOGS, method = 'curl')
-    downloadDataTable <- rbind(downloadDataTable,
-                               data.table(path = path, Date = Sys.Date()))
-  }else if(length(w)==1){
-    if(Sys.Date()!=downloadDataTable$Date[w]){
+  if(Update){
+    w <- which(downloadDataTable$path == path)
+    if(length(w)==0) {
+      download.file(path, destfile = destfile, quiet = !PRINT_LOGS, method = 'curl')
+      downloadDataTable <- rbind(downloadDataTable,
+                                 data.table(path = path, Date = Sys.Date()))
+    }else if(length(w)==1&Sys.Date()!=downloadDataTable$Date[w]){
       download.file(path, destfile = destfile, quiet = !PRINT_LOGS, method = 'curl')
       downloadDataTable$Date[w] <- Sys.Date()
-    }
-  } else
-    stop('More than one file in download dir!!')
+    }else if(length(w)>1)
+      stop('More than one file in downloadDataTable!!')
+  }
+  
+  if(!file.exists(destfile)) 
+    download.file(path, destfile = destfile, quiet = !PRINT_LOGS, method = 'curl')
   
   downloadDataTable$Date <- as.Date(downloadDataTable$Date)
   downloadDataTable$path <- as.character(downloadDataTable$path)
