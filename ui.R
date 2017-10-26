@@ -43,37 +43,41 @@ fluidPage(
                           hr(),
                           strong(textOutput('roiFileName')),
                           br(),
-                          selectInput("maskName", label = 'Mask', choices = 'New mask'),
+                          conditionalPanel('input.siteName!=""', {
+                            selectInput("maskName", label = 'Mask', choices = 'New mask')}),
                           # textOutput('maskfilename'),
-                          strong('Sample Image:'),
+                          conditionalPanel('input.siteName!=""', {
+                            strong('Sample Image:')}),
                           textOutput('sampleImagePath'),
                           br(),
-                          fluidRow(
+                          conditionalPanel('input.siteName!=""', { fluidRow(
                             column(6, actionButton( 'matchStart', 'Match start', width = '100%', style='background-color:#666; color:#fff;font-weight: bold;')),
                             column(6, actionButton( 'matchEnd', 'Match end', width = '100%', style='background-color:#666; color:#fff;font-weight: bold;'))
-                          ),
+                          )
+                          }),
                           br(),
                           
-                          fluidRow(
+                          conditionalPanel('input.siteName!=""', {fluidRow(
                             column(1, strong('from', style='font-size:70%;font-weight: bold;')),
                             column(5, dateInput('maskStartDate', label = NULL, value =  '2001-01-01', startview = 'day')),
                             column(4, textInput('maskStartTime', label = NULL, value = '00:08:00')),
                             column(1, '')
-                          ),
-                          fluidRow(
-                            column(1, strong('to', style='font-size:70%')),
-                            column(5, dateInput('maskEndDate', label = NULL, value =  '2099-01-01', startview = 'day')),
-                            column(4, textInput('maskEndTime', label = NULL, value = '00:20:00')),
-                            column(1, checkboxInput('openEnd', label = '', value = F))
-                          ),
+                          )}),
+                          conditionalPanel('input.siteName!=""', {
+                            fluidRow(
+                              column(1, strong('to', style='font-size:70%')),
+                              column(5, dateInput('maskEndDate', label = NULL, value =  '2099-01-01', startview = 'day')),
+                              column(4, textInput('maskEndTime', label = NULL, value = '00:20:00')),
+                              column(1, checkboxInput('openEnd', label = '', value = F))
+                            )}),
                           
                           
                           br(),
-                          fluidRow(
+                          conditionalPanel('input.siteName!=""', {fluidRow(
                             # column(6, actionButton("emailROI", "Submit for review", icon = icon('send'), width = "100%")),
                             column(6, p()),
                             column(6, downloadButton("downloadROI", "Download ROI files"))
-                          )
+                          )})
                           # br(),
                           # br(),
                           # passwordInput("password", label = NULL, placeholder = 'Password to save in the database'),
@@ -250,9 +254,13 @@ fluidPage(
                    
                  )
                )
+             }),
+             conditionalPanel('input.siteName==""', {
+               strong('Select a site from the ROI Tool first!')
              }
+             
              )
-    ),
+             ),
     tabPanel('Report Errors', 
              fluidPage(
                headerPanel('Report an error'),
