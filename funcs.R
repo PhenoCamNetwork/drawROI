@@ -409,6 +409,7 @@ getIMG.DT <- function(sites){
     imgDT.tmp$path <- paste0(mainDataPath, imgDT.tmp$path)
     imgDT <- rbind(imgDT, imgDT.tmp)
   }
+  
   pathsub <- imgDT[, .(gsub(path, pattern = mainDataPath, replacement = ''))]
   splt <- pathsub[, tstrsplit(V1, split = '/')]
   colnames(splt) <- c('empty','data','archive','site','year','month','filenames') 
@@ -530,17 +531,18 @@ putImageFooter <- function(id, mrgDT, footer='', grid = T, cex = NULL){
   Haze <- mrgDT[ID==id, Haze]
   Black <- signif(mrgDT[ID==id, blackness], 2)
   
+  if(grid){
+    usr <- par()$usr
+    abline(v=seq(usr[1], usr[2], length.out = 10), lty=2, col='yellow', lwd = 2)
+    abline(h=seq(usr[3], usr[4], length.out = 10), lty=2, col='yellow', lwd = 2)
+  }
+  
   rect(par()$usr[1], par()$usr[3], par()$usr[2], par()$usr[4]*.05, col = 'white')
   mtext(side = 1, Date, line = -1, adj = .05, col = 'black', font = 2, cex = cex)
   mtext(side = 1, footer, line = -1, adj = .5, col = 'black', font = 2, cex = cex)
   mtext(side = 1, Black, line = -1, adj = .85, col = 'black', font = 2, cex = cex)
   mtext(side = 1, Haze, line = -1, adj = .95, col = 'black', font = 2, cex = cex)
   
-  if(grid){
-    usr <- par()$usr
-    abline(v=seq(usr[1], usr[2], length.out = 10), lty=2, col='yellow', lwd = 2)
-    abline(h=seq(usr[3], usr[4], length.out = 10), lty=2, col='yellow', lwd = 2)
-  }
 }
 
 
