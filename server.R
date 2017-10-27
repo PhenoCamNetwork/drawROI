@@ -28,12 +28,7 @@ shinyServer(function(input, output, session) {
                        newContID = NULL,
                        shiftsList1 = NULL,
                        shiftsList2 = NULL,
-                       downloadDataTable = data.table(),
-                       # downloadDir = tempdir(),
                        downloadDir = paste0(gettmpdir(), '/drawROI-',system('whoami', intern=T)),
-                       # downloadDir = gettmpdir(),
-                       downloadDTfile = NULL,
-                       # downloadFlag = F,
                        phenoSites = fromJSON(file = sitesInfoURL)
   )
   
@@ -57,33 +52,9 @@ shinyServer(function(input, output, session) {
   observeEvent(rv$downloadDir,{
     printLog(paste('downloadDir observed experssion was called.\t'))
     dir.create(rv$downloadDir, showWarnings = FALSE)
-    rv$downloadDTfile <- paste0(rv$downloadDir, '/downloadDataTable.csv')
-    
-    if(file.exists(isolate(rv$downloadDTfile))){
-      dummy <- 0
-      
-      rv$downloadDataTable = as.data.table(read.csv(rv$downloadDTfile, colClasses = c('character','Date')))
-      # rv$downloadFlag <- T
-    }else{
-      downloadDataTable <- data.table()
-      # downloadFlag <- F
-      
-    }
+
   })
-  
-  observeEvent(rv$downloadDataTable, {
-    printLog(paste('downloadDataTable observed experssion was called.\t'))
-    
-    dummy <- 0
-    if(nrow(rv$downloadDataTable)==0) return()
-    # if(!rv$downloadFlag) return()
-    # dummy <- 0
-    ndl <- nrow(rv$downloadDataTable)
-    if(ndl>CACHE_LIMIT) rv$downloadDataTable <- rv$downloadDataTable[(ndl-CACHE_LIMIT+1):ndl]
-    write.csv(rv$downloadDataTable, file = paste0(rv$downloadDir, '/downloadDataTable.csv'), row.names = F)
-  })
-  
-  
+
   autoInvalidate <- reactiveTimer(1000)
   
   observe({
@@ -91,6 +62,7 @@ shinyServer(function(input, output, session) {
     
     vegTypes <-   list('AG','DB','EB','EN','DN','GR','MX',
                        'NV','RF','SH','TN','UN','WL','XX')
+    
     names(vegTypes) <- c('Agriculture (AG)',
                          'Deciduous Broadleaf (DB)',
                          'Evergreen Broadleaf (EB)',
@@ -105,6 +77,7 @@ shinyServer(function(input, output, session) {
                          'Understory (UN)',
                          'Wetland (WL)',
                          'Other/Canopy (XX)')
+    
     updateSelectInput(session, 'vegType', choices = vegTypes)    
   })
   
@@ -495,16 +468,12 @@ shinyServer(function(input, output, session) {
     
     shinyjs::disable('vegType')
     dummy=0
-    dummy=0
-    tmpdl <- parseROI(roifilename=input$roiName,
+    ROIList <- parseROI(roifilename=input$roiName,
                       roipath = roipath(), 
-                      downloadDataTable = rv$downloadDataTable, 
                       downloadDir = rv$downloadDir)
     
-    rv$downloadDataTable <- tmpdl$downloadDataTable
-    tmp <- tmpdl$ROIList
-    if(is.null(tmp)) return()
-    rv$parsedROIList <- tmp
+    if(is.null(ROIList)) return()
+    rv$parsedROIList <- ROIList
     updateSelectInput(session, inputId = 'vegType', selected =  rv$parsedROIList$vegType)
     updateTextInput(session, inputId = 'siteDescription', value = rv$parsedROIList$Description)
     updateTextInput(session, inputId = 'roiOwner', value = rv$parsedROIList$Owner)
@@ -775,17 +744,9 @@ shinyServer(function(input, output, session) {
       )))
     
     cltpath <- paste0(mainDataPath, '/data/archive/', input$siteName, '/ROI/', input$siteName, '-cli.txt')
-    if(is.url(cltpath)){
-      # tmpath <- paste0(tempdir(), 'tempclt.txt')
-      # download.file(url = cltpath, destfile = tmpath, quiet = !PRINT_LOGS)
-      tmpdl <- tryDownload(cltpath, downloadDataTable = isolate(rv$downloadDataTable), downloadDir = rv$downloadDir, Update = T)
-      rv$downloadDataTable <- tmpdl$downloadDataTable
-      tmpath <- tmpdl$destfile
-    }else{
-      tmpath <- cltpath
-    }
-    
-    clt <- read.csv(tmpath)
+    cltpath <- tryDownload(cltpath, downloadDir = rv$downloadDir, Update = T)
+
+    clt <- read.csv(cltpath)
     
     clt <- as.data.table(clt)
     clt[,CLID:=1:.N]
@@ -838,15 +799,8 @@ shinyServer(function(input, output, session) {
     if(input$siteName=='') return()
     
     smpl <- sampleImage()
-    
-    if(is.url(smpl)){
-      tmpdl <- tryDownload(smpl, downloadDataTable = isolate(rv$downloadDataTable), downloadDir = rv$downloadDir, Update = F)
-      rv$downloadDataTable <- tmpdl$downloadDataTable
-      tmpath <- tmpdl$destfile
-    }else{
-      tmpath <- smpl
-    }
-    dim(readJPEG(tmpath))[2:1]
+    smpl <- tryDownload(smpl, downloadDir = rv$downloadDir, Update = F)
+    dim(readJPEG(smpl))[2:1]
   })
   
   
@@ -975,15 +929,8 @@ shinyServer(function(input, output, session) {
       clt <- as.data.table(clTable()[input$clRange[1]:input$clRange[2],])
       
       tmp <- clImage()
-      if(is.url(tmp)){
-        tmpdl <- tryDownload(tmp, downloadDataTable = isolate(rv$downloadDataTable), downloadDir = rv$downloadDir, Update = T)
-        rv$downloadDataTable <- tmpdl$downloadDataTable
-        tmpath <- tmpdl$destfile
-      }else{
-        tmpath <- tmp
-      }
-      
-      clrgb <- readJPEG(tmpath)
+      tmp <- tryDownload(tmp, downloadDir = rv$downloadDir, Update = T)
+      clrgb <- readJPEG(tmp)
       
       w <- clt$blackness<.9
       if(any(w))clrgb <- clrgb[,w,]
@@ -1010,8 +957,7 @@ shinyServer(function(input, output, session) {
       clt[,plot(Date, Haze*0, xaxs='i',yaxs='i', yaxt='n', type='n', ylab = '', ylim = c(0, 1))]
       par(new=T)
       
-      jp <- plotJPEG(clImage(), xlim = input$clRange, downloadDataTable = rv$downloadDataTable, downloadDir = rv$downloadDir, Update = T)
-      rv$downloadDataTable <- jp$downloadDataTable
+      jp <- plotJPEG(clImage(), xlim = input$clRange, downloadDir = rv$downloadDir, Update = T)
       
       abline(v= clt[Date==dt,CLID], col= 'red', lwd=5)
       
@@ -1045,8 +991,7 @@ shinyServer(function(input, output, session) {
         text(mean(par()$usr[1:2]), mean(par()$usr[3:4]), 'No image for this date was found!', font=2, adj=.5)
       }else{
         dummy <- 0
-        jp <- plotJPEG(sampleImage(), downloadDataTable = rv$downloadDataTable, downloadDir = rv$downloadDir)
-        rv$downloadDataTable <- jp$downloadDataTable
+        jp <- plotJPEG(sampleImage(),  downloadDir = rv$downloadDir)
         putImageFooter(id = input$contID, mrgDT = mergedTable(), footer = '')
         
         dummy <- 0
@@ -1072,8 +1017,7 @@ shinyServer(function(input, output, session) {
       
       dummy <- 0
       par(mar=c(0,0,0,0))
-      jp <- plotJPEG(imgDT()[,path][rv$LinkedID], downloadDataTable = rv$downloadDataTable, downloadDir = rv$downloadDir)
-      rv$downloadDataTable <- jp$downloadDataTable
+      jp <- plotJPEG(imgDT()[,path][rv$LinkedID],  downloadDir = rv$downloadDir)
       putImageFooter(id = rv$LinkedID, mrgDT = mergedTable(), footer = '')
     })
   
@@ -1090,8 +1034,7 @@ shinyServer(function(input, output, session) {
         text(mean(par()$usr[1:2]), mean(par()$usr[3:4]), 'No shift day has been selected yet!', font=2, adj=.5, cex=2)
         return()
       }
-      jp <- plotJPEG(imgDT()[,path][rv$PreviousDayID], downloadDataTable = rv$downloadDataTable, downloadDir = rv$downloadDir)
-      rv$downloadDataTable <- jp$downloadDataTable
+      jp <- plotJPEG(imgDT()[,path][rv$PreviousDayID],   downloadDir = rv$downloadDir)
       putImageFooter(id = rv$PreviousDayID, mrgDT = mergedTable(), footer = 'previous clear')
     })
   
@@ -1109,8 +1052,7 @@ shinyServer(function(input, output, session) {
         text(mean(par()$usr[1:2]), mean(par()$usr[3:4]), 'No shift day has been selected yet!', font=2, adj=.5, cex=2)
         return()
       }
-      jp <- plotJPEG(imgDT()[,path][rv$NextDayID], downloadDataTable = rv$downloadDataTable, downloadDir = rv$downloadDir)
-      rv$downloadDataTable <- jp$downloadDataTable
+      jp <- plotJPEG(imgDT()[,path][rv$NextDayID],   downloadDir = rv$downloadDir)
       putImageFooter(id = rv$NextDayID, mrgDT = mergedTable(), footer = 'next clear')
     })
   
@@ -1508,10 +1450,9 @@ shinyServer(function(input, output, session) {
                                                        style='background-color:#3b3a35; color:#fce319; ',
                                                        onclick="Shiny.onInputChange('stopThis',true)")
     )))
-    cc <- extractCCCTimeSeries(isolate(curMask()), paths()$path, downloadDataTable = rv$downloadDataTable, downloadDir = rv$downloadDir)
-    rv$downloadDataTable <- cc$downloadDataTable
+    CCCT <- extractCCCTimeSeries(isolate(curMask()), paths()$path, downloadDir = rv$downloadDir)
     removeModal()
-    cc$CCCT
+    CCCT
   })
   
   
