@@ -93,19 +93,19 @@ fluidPage(
                mainPanel(
                  # br(),
                  fluidRow(
-                   column(2, sliderInput('hazeThreshold', label = 'Haze threshold', min = 0, max = 1, value = .45, step = .01)),
+                   column(2, sliderInput('hazeThreshold', label = 'Haze threshold', min = 0, max = 1, value = .25, step = .01)),
                    
                    column(3, selectInput('shiftsList1', label = 'Horizon Shifts', choices = c(Choose=''), width = '100%')),
                    # column(1, actionButton('goShift1', label = NULL, icon = icon('refresh'), width = '100%', 
                    #                        style="border-color: #fff; align:center; font-size: 200%;font-weight: bold;")),
                    # column(2, selectInput('shiftsList1.Threshold', label = 'Threshold (px)', choices = c(1:10, 15:30), selectize = T, selected = 10)),
-                   column(2, sliderInput('shiftsList1.Threshold', label = 'Threshold (px)', min = 1, max = 100, value = 30, step = 1)),
+                   column(2, sliderInput('shiftsList1.Threshold', label = 'Threshold (px)', min = 1, max = 100, value = 20, step = 1)),
                    
                    column(3, selectInput('shiftsList2', label = 'Correlation Shifts', choices = c(Choose=''), width = '100%')),
                    # column(1, actionButton('goShift2', label = NULL, icon = icon('refresh'), width = '100%', 
                    #                        style="border-color: #fff; align:center; font-size: 200%;font-weight: bold;"))
                    # column(2, selectInput('shiftsList2.Threshold', label = 'Threshold', selectize = T, choices = c(.01, 0.02, .05, .1, .15, .2, .3, .4, .5, .6, .75), selected = .05))
-                   column(2, sliderInput('shiftsList2.Threshold', label = 'Threshold (R)', min = 0, max = 1, value = .05, step = .01))
+                   column(2, sliderInput('shiftsList2.Threshold', label = 'Threshold (R)', min = 0, max = 1, value = .02, step = .01))
                  ),
                  
                  tags$head(tags$style(HTML('.irs-from, .irs-to, .irs-min, .irs-max {visibility: hidden !important;}'))),
