@@ -204,9 +204,11 @@ shinyServer(function(input, output, session) {
     if(input$siteName=='') return()
     
     clt <- as.data.table(clTable())
-    clt[,Group:=rep(1:.N, each=3, length.out=.N)]
-    clt[,HzMed:=median(as.double(na.omit(Horizon))),Group]
-    clt[, dHz := diff(HzMed)]
+    dummy <- 0
+    clt <- clt[blackness<=.8&Haze<=input$hazeThreshold]
+    # clt[,Group:=rep(1:.N, each=3, length.out=.N)]
+    # clt[,HzMed:=median(as.double(na.omit(Horizon))),Group]
+    clt[, dHz := diff(Horizon)]
     shiftsList1 <- as.Date(clt[abs(dHz)>as.numeric(input$shiftsList1.Threshold), Date])
     rv$shiftsList1 <- shiftsList1
     
@@ -220,7 +222,7 @@ shinyServer(function(input, output, session) {
     if(input$siteName=='') return()
     
     if(input$shiftsList1=='') return()
-    
+    rv$slideShow <- 0
     dummy <- 1
     tmpDT <- dayYearIDTable()
     tmpDT[, dif:=abs(Date- as.Date(input$shiftsList1))]
@@ -243,7 +245,9 @@ shinyServer(function(input, output, session) {
     if(input$siteName=='') return()
     
     clt <- as.data.table(clTable())
-    shiftsList2 <- as.Date(clt[Haze<input$hazeThreshold&R < ( as.numeric(input$shiftsList2.Threshold)), Date])
+    clt <- clt[blackness<=.8&Haze<=input$hazeThreshold]
+    
+    shiftsList2 <- as.Date(clt[R < ( as.numeric(input$shiftsList2.Threshold)), Date])
     rv$shiftsList2 <- shiftsList2
     
     updateSelectInput(session, 'shiftsList2', choices = c(Choose='', as.list(shiftsList2)))
@@ -254,7 +258,7 @@ shinyServer(function(input, output, session) {
     printLog(paste('input$shiftsList2 was changed to:', '\t',input$shiftsList2))
     if(input$siteName=='') return()
     if(input$shiftsList2=='') return()
-    
+    rv$slideShow <- 0
     dummy <- 1
     tmpDT <- dayYearIDTable()
     tmpDT[, dif:=abs(Date- as.Date(input$shiftsList2))]
@@ -752,7 +756,7 @@ shinyServer(function(input, output, session) {
     clt[,CLID:=1:.N]
     clt[,Date:= as.Date(Date)]
     
-    okay <- which(clt$Haze<input$hazeThreshold& clt$blackness<.8)
+    okay <- which(clt$Haze<=input$hazeThreshold|clt$blackness<=.8)
     clt$Horizon[-okay] <- NA
     clt$R[-okay] <- NA
     
@@ -1079,8 +1083,8 @@ shinyServer(function(input, output, session) {
     if(rv$updateBeforeAfter==0) return()
     mrgt <- mergedTable()
     
-    prv <- mrgt[Haze<input$hazeThreshold&ID<rv$newContID, ID]
-    nxt <- mrgt[Haze<input$hazeThreshold&ID>rv$newContID, ID]
+    prv <- mrgt[Haze<=input$hazeThreshold&ID<rv$newContID&blackness<=.8, ID]
+    nxt <- mrgt[Haze<=input$hazeThreshold&ID>rv$newContID&blackness<=.8, ID]
     
     if(length(prv)==0&length(nxt)==0)
       showModal(strong(modalDialog("Haze threshold too low!",
