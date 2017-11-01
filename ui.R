@@ -93,7 +93,7 @@ fluidPage(
                mainPanel(
                  # br(),
                  fluidRow(
-                   column(2, sliderInput('hazeThreshold', label = 'Haze threshold', min = 0, max = 1, value = .25, step = .01)),
+                   column(2, sliderInput('hazeThreshold', label = 'Haze threshold', min = 0, max = 1, value = .4, step = .01)),
                    
                    column(3, selectInput('shiftsList1', label = 'Horizon Shifts', choices = c(Choose=''), width = '100%')),
                    # column(1, actionButton('goShift1', label = NULL, icon = icon('refresh'), width = '100%', 
@@ -203,8 +203,8 @@ fluidPage(
                           actionButton("acceptCanvas", "Accept", icon = icon('thumbs-up'), class="btn-primary", width = "110px", style='font-weight: bold;')
                    ),
                    column(2, strong())
-                 )
-                 # br(),
+                 ),
+                 br()
                  
                  # fluidRow(
                  #   column(1, strong()),
@@ -260,7 +260,11 @@ fluidPage(
              }
              
              )
-             ),
+    ),
+    tabPanel('FOV Shifts Monitor', {
+      tags$iframe(src='http://134.114.109.3:3838/phenoShifts/', height=1000, width=1000)
+    }
+    ),
     tabPanel('Report Errors', 
              fluidPage(
                headerPanel('Report an error'),
