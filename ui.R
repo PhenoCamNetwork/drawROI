@@ -262,7 +262,7 @@ fluidPage(
              )
     ),
     tabPanel('FOV Shifts Monitor', {
-      tags$iframe(src='http://134.114.109.3:3838/phenoShifts/', height=1000, width=1000)
+      tags$iframe(src='http://134.114.109.3:3838/phenoShifts/', height=1000, width='100%')
     }
     ),
     tabPanel('Report Errors', 

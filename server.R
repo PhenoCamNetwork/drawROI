@@ -756,9 +756,9 @@ shinyServer(function(input, output, session) {
     clt[,CLID:=1:.N]
     clt[,Date:= as.Date(Date)]
     
-    okay <- which(clt$Haze<=input$hazeThreshold|clt$blackness<=.8)
-    clt$Horizon[-okay] <- NA
-    clt$R[-okay] <- NA
+    # okay <- which(clt$Haze<=input$hazeThreshold|clt$blackness<=.8)
+    # clt$Horizon[-okay] <- NA
+    # clt$R[-okay] <- NA
     
     clt$Horizon <- getNAfromLast(clt$Horizon)
     clt$R <- getNAfromLast(clt$R)
