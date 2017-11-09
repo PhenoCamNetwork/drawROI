@@ -1,3 +1,13 @@
+#######################################################################
+# The global setup for the drawROI shiny app. 
+# 
+# The drawROI app is developed and maintained by Bijan Seyednasrollah.
+# The main initial development was done in May to November, 2017.
+#
+# Most recent release: https://github.com/bnasr/drawROI
+#######################################################################
+
+
 source('funcs.R')
 
 list.of.packages <- c(
