@@ -175,8 +175,10 @@
                    column(1, actionButton("play", "", icon = icon('forward'), width = '100%', style="background-color: #222222; border-color: #222222; align:center")),
                    column(1, actionButton("forw", "", icon = icon('plus'), width = '100%',  style="background-color: #222222; border-color: #222222")),
                    # column(1, strong()),
-                   column(1, actionButton("linkedImage", "", icon = icon('copy'), style='font-weight: bold; background-color: #222222;border-color: #222222')),
-                   column(1, checkboxInput("lastNextDayShow", label = 'Pre/Next', value = F)),
+                   column(2, fluidRow(
+                     column(3, actionButton("linkedImage", "", icon = icon('copy'), style='font-weight: bold; background-color: #222222;border-color: #222222')),
+                     column(9, checkboxInput("lastNextDayShow", label = 'Pre/Next', value = F))
+                   )),
                    column(1, checkboxInput("cliShow", label = 'CLI', value = F)),
                    column(1, checkboxInput("corShow", label = 'Cor.', value = F)),
                    column(1, checkboxInput("hrzShow", label = 'Hrz.', value = F))
@@ -186,6 +188,22 @@
                    column(1, strong()),
                    column(5, plotOutput("imagePlot", click = "newPoint", dblclick = 'gapPoint', height = 'auto')),
                    column(5, plotOutput("imagePlot2", height = 'auto')),
+                   column(1, strong())
+                 ),
+                 
+
+                 br(),
+                 fluidRow(
+                   column(1, strong()),
+                   column(5,  fluidRow(
+                     column(4, actionButton("clearCanvas", "Erase", icon = icon('eraser'), class="btn-primary", width = "100%", style='font-weight: bold;')),
+                     column(4,  actionButton("undoCanvas", "Undo", icon = icon('undo'), class="btn-primary", width = "100%", style='font-weight: bold;')),
+                     column(4, actionButton("acceptCanvas", "Accept", icon = icon('thumbs-up'), class="btn-primary", width = "100%", style='font-weight: bold;'))
+                   )),
+                   column(5,  fluidRow(
+                     column(6, checkboxInput('showMask', label = 'Show Mask', value = F)),
+                     column(6, colourpicker::colourInput(inputId = 'roiColors', allowTransparent=T, label = NULL, value = '#ab522280',  showColour = 'background'))
+                   )),
                    column(1, strong())
                  ),
                  
@@ -199,33 +217,28 @@
                      column(1, strong())
                    )
                  ) ,
-                 
-                 fluidRow(
-                   br(),
-                   
-                   column(1, strong()),
-                   column(5, plotOutput("maskPlot", height = 'auto')),
-                   # column(1, strong()),
-                   column(1, 
-                          br(),
-                          colourpicker::colourInput(inputId = 'roiColors', 
-                                                    allowTransparent=T, 
-                                                    # transparentText = 'clear',
-                                                    label = NULL,
-                                                    value = '#ab522200', 
-                                                    showColour = 'background')
-                   ),
-                   column(1, strong()),
-                   column(2, 
-                          br(),
-                          actionButton("clearCanvas", "Erase", icon = icon('eraser'), class="btn-primary", width = "110px", style='font-weight: bold;'),
-                          br(),br(),
-                          actionButton("undoCanvas", "Undo", icon = icon('undo'), class="btn-primary", width = "110px", style='font-weight: bold;'),
-                          br(),br(),
-                          actionButton("acceptCanvas", "Accept", icon = icon('thumbs-up'), class="btn-primary", width = "110px", style='font-weight: bold;')
-                   ),
-                   column(2, strong())
-                 ),
+                 # fluidRow(
+                 #   br(),
+                 #   
+                 #   column(1, strong()),
+                 #   # column(5, plotOutput("maskPlot", height = 'auto')),
+                 #   # column(1, strong()),
+                 #   column(6, checkboxInput('showMask', label = 'Show Mask', value = F)),
+                 #   column(1, 
+                 #          br(),
+                 #          colourpicker::colourInput(inputId = 'roiColors',  allowTransparent=T,  label = NULL, value = '#ab522200',  showColour = 'background')
+                 #   ),
+                 #   column(1, strong()),
+                 #   column(2, 
+                 #          br(),
+                 #          actionButton("clearCanvas", "Erase", icon = icon('eraser'), class="btn-primary", width = "110px", style='font-weight: bold;'),
+                 #          br(),br(),
+                 #          actionButton("undoCanvas", "Undo", icon = icon('undo'), class="btn-primary", width = "110px", style='font-weight: bold;'),
+                 #          br(),br(),
+                 #          actionButton("acceptCanvas", "Accept", icon = icon('thumbs-up'), class="btn-primary", width = "110px", style='font-weight: bold;')
+                 #   ),
+                 #   column(2, strong())
+                 # ),
                  br()
                  
                  # fluidRow(

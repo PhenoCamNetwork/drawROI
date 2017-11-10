@@ -1017,7 +1017,10 @@ shinyServer(function(input, output, session) {
         else 
           absPoints <- t(apply(rv$centers, 1, '*', sampleImageSize()))
         dummy <- 0
-        polygon(absPoints, col = input$roiColors, pch = 9, lwd=2)
+        # polygon(absPoints, col = input$roiColors, pch = 9, lwd=1)
+        polygon(absPoints, pch = 9, lwd=1)
+        mm <- curMask()
+        if(!is.null(mm)&input$showMask)addMaskPlot(mm, col = input$roiColors)
       }
     })
   
