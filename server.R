@@ -148,7 +148,7 @@ shinyServer(function(input, output, session) {
   
   observe({
     printLog(paste('rv$sitesList initial observed experssion was called.\t'))
-    updateSelectInput(session, inputId = 'siteName', choices = c(Choose='', as.list(rv$sitesList)))
+    updateSelectInput(session, inputId = 'siteName', choices = c('Select a Site'='', as.list(rv$sitesList)))
   })
   
   observeEvent(input$siteName, {
@@ -1005,7 +1005,7 @@ shinyServer(function(input, output, session) {
       }else{
         dummy <- 0
         jp <- plotJPEG(sampleImage(),  downloadDir = rv$downloadDir)
-        putImageFooter(id = input$contID, mrgDT = mergedTable(), footer = '')
+        putImageFooter(id = input$contID, mrgDT = mergedTable(), footer = 'sample image')
         
         dummy <- 0
         if(is.null(rv$centers)) 
@@ -1031,7 +1031,7 @@ shinyServer(function(input, output, session) {
       dummy <- 0
       par(mar=c(0,0,0,0))
       jp <- plotJPEG(imgDT()[,path][rv$LinkedID],  downloadDir = rv$downloadDir)
-      putImageFooter(id = rv$LinkedID, mrgDT = mergedTable(), footer = '')
+      putImageFooter(id = rv$LinkedID, mrgDT = mergedTable(), footer = 'copied image')
     })
   
   
