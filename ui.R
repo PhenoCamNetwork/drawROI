@@ -329,7 +329,7 @@
              #          )
     ),
     tabPanel('About',{
-      
+      includeHTML('about.html')
     })
     
   )
