@@ -19,6 +19,7 @@ list.of.packages <- c(
   'shinyTime',
   'shinyFiles',
   'shinydashboard',
+  'shinythemes',
   'colourpicker',
   'rjson',
   'stringr',
