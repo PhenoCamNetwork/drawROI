@@ -6,31 +6,43 @@
 #
 # Most recent release: https://github.com/bnasr/drawROI
 #######################################################################
-
-fluidPage(
-  shinyjs::useShinyjs(),  
+ fluidPage(
+   theme= shinytheme('darkly'),
+   shinyjs::useShinyjs(),  
   tags$head(tags$style(HTML( "#Select1 ~ .selectize-control.single .selectize-input {border: 1px solid #fff;}"))),
-  tabsetPanel(
+  # dashboardPage( 
+    tabsetPanel(
     tabPanel('ROI Tool',
-             headerPanel("PhenoCam ROI Tool"),
+             # headerPanel("PhenoCam ROI Tool"),
+             br(),
              sidebarPanel(width = 4,
                           # directoryInput('directory', label = 'cache directory', value = tempdir()),
                           conditionalPanel(condition="output.showClearCache=='TRUE'", 
                                            fixedRow(
                                              column(9, htmlOutput('cacheDir')),
                                              column(1, actionButton('clearCache', label = NULL, icon = icon('trash'), 
-                                                                    style="border-color: #f5f5f5; align:center; background-color:#f5f5f5; font-weight: bold;font-size: 100%;"))
+                                                                    style="border-color: #303030; align:center; background-color:#303030; font-weight: bold;font-size: 100%;"))
                                              
                                            )),
                           
-                          span(textOutput('showClearCache'), style="color: #f5f5f5; border-color: #f5f5f5; align:center; background-color:#f5f5f5; font-size: 0%;"),
+                          span(textOutput('showClearCache'), style="border-color: #303030; align:center; background-color:#303030; font-size: 0%;"),
+                          
+                          
+                          # fluidRow(
+                          #   column(1, actionButton('previousSite', label = NULL, icon = icon('arrow-circle-left'), width = '100%',  style= "border-color: #f5f5f5; align:center; background-color:#f5f5f5; color:#337ab7; font-size: 100%;font-weight: bold;")),
+                          #   column(7, p()),
+                          #   column(1, actionButton('nextSite', label = NULL, icon = icon('arrow-circle-right'), width = '100%',  style="border-color: #f5f5f5; align:center; background-color:#f5f5f5; color:#337ab7; font-size: 100%;font-weight: bold;"))
+                          # ),
                           
                           fluidRow(
-                            column(10, 
-                                   selectInput("siteName", "Site", choices = c(Choose=''))
+                            column(1, actionButton('previousSite', label = NULL, icon = icon('arrow-circle-left'), width = '100%',  style= "border-color: #303030; align:center; background-color:#303030; color:#337ab7; font-size: 100%;font-weight: bold;")),
+                            
+                            column(7, 
+                                   selectInput("siteName", NULL, choices = c('Select a Site'=''))
                             ),
-                            br(),
-                            column(2, strong(actionButton('siteInfo', label = NULL, icon = icon('info'), width = '100%', style="border-color: #f5f5f5; align:center; background-color:#f5f5f5; color:#337ab7; font-size: 200%;font-weight: bold;")),
+                            column(1, actionButton('nextSite', label = NULL, icon = icon('arrow-circle-right'), width = '100%',  style="border-color: #303030; align:center; background-color:#303030; color:#337ab7; font-size: 100%;font-weight: bold;")),
+                            
+                            column(2, strong(actionButton('siteInfo', label = NULL, icon = icon('info'), width = '100%', style="border-color: #303030; align:center; background-color:#303030; color:#337ab7; font-size: 100%;font-weight: bold;")),
                                    bsModal("modalSiteInfo", "Site Info", "siteInfo", 
                                            size = "medium",
                                            footer = NULL, 
@@ -39,6 +51,7 @@ fluidPage(
                             )
                           ),
                           
+                          br(),
                           fluidRow(
                             column(10, selectInput("roiName", "ROI", 'New ROI')),
                             br(),
@@ -140,7 +153,7 @@ fluidPage(
                    column(3, 
                           fluidRow( 
                             column(8, strong(dateInput('gotoDate', label = ''), style='font-size:20%;font-weight: bold;')),
-                            column(4, actionButton('gotoDateButton', label = NULL, icon = icon('refresh'), width = '100%', style="border-color: #fff; align:center; font-size: 200%;font-weight: bold;"))
+                            column(4, actionButton('gotoDateButton', label = NULL, icon = icon('refresh'), width = '100%', style="background-color: #222222; border-color: #222222; align:center; font-size: 200%;font-weight: bold;"))
                           )
                    ),
                    column(9, sliderInput(inputId = "contID",
@@ -156,13 +169,13 @@ fluidPage(
                  
                  fluidRow(
                    column(1, strong()),
-                   column(1, actionButton("back", "", icon = icon('minus'), width = '100%', style="border-color: #fff")),
-                   column(1, actionButton("backplay", "", icon = icon('backward'), width = '100%', style="border-color: #fff; align:center")),
-                   column(1, actionButton("pause", "", icon = icon('stop'), width = '100%',  style="border-color: #fff")),
-                   column(1, actionButton("play", "", icon = icon('forward'), width = '100%', style="border-color: #fff; align:center")),
-                   column(1, actionButton("forw", "", icon = icon('plus'), width = '100%',  style="border-color: #fff")),
+                   column(1, actionButton("back", "", icon = icon('minus'), width = '100%', style="background-color: #222222; border-color: #222222")),
+                   column(1, actionButton("backplay", "", icon = icon('backward'), width = '100%', style="background-color: #222222; border-color: #222222; align:center")),
+                   column(1, actionButton("pause", "", icon = icon('stop'), width = '100%',  style="background-color: #222222; border-color: #222222")),
+                   column(1, actionButton("play", "", icon = icon('forward'), width = '100%', style="background-color: #222222; border-color: #222222; align:center")),
+                   column(1, actionButton("forw", "", icon = icon('plus'), width = '100%',  style="background-color: #222222; border-color: #222222")),
                    # column(1, strong()),
-                   column(1, actionButton("linkedImage", "", icon = icon('copy'), style='font-weight: bold;border-color: #fff')),
+                   column(1, actionButton("linkedImage", "", icon = icon('copy'), style='font-weight: bold; background-color: #222222;border-color: #222222')),
                    column(1, checkboxInput("lastNextDayShow", label = 'Pre/Next', value = F)),
                    column(1, checkboxInput("cliShow", label = 'CLI', value = F)),
                    column(1, checkboxInput("corShow", label = 'Cor.', value = F)),
@@ -170,10 +183,10 @@ fluidPage(
                    
                  ),
                  fluidRow(
-                   column(1, actionButton('previousSite', label = NULL, icon = icon('arrow-circle-left'), width = '100%',  style="border-color: #fff; font-size: 175%")),
+                   column(1, strong()),
                    column(5, plotOutput("imagePlot", click = "newPoint", dblclick = 'gapPoint', height = 'auto')),
                    column(5, plotOutput("imagePlot2", height = 'auto')),
-                   column(1, actionButton('nextSite', label = NULL, icon = icon('arrow-circle-right'), width = '100%',  style="border-color: #fff; font-size: 175%"))
+                   column(1, strong())
                  ),
                  
                  conditionalPanel(
@@ -244,9 +257,9 @@ fluidPage(
     ),
     
     tabPanel('Time Series Extraction Tool',
-             conditionalPanel('input.siteName!=""', {
+             # conditionalPanel('input.siteName!=""', {
                fluidPage(
-                 
+                 br(),
                  fluidRow(
                    column(2, 
                           radioButtons('ccRange', label = NULL, choices = c('Week', 'Month', 'Year', 'Entire data'), width = "330px",inline = F),
@@ -263,20 +276,17 @@ fluidPage(
                    
                  )
                )
-             }),
-             conditionalPanel('input.siteName==""', {
-               strong('Select a site from the ROI Tool first!')
-             }
-             
-             )
+             # }),
+             # conditionalPanel('input.siteName==""', {strong('Select a site from the ROI Tool first!')})
     ),
-    tabPanel('FOV Shifts Monitor', {
+    
+    tabPanel('FOV Shifts Monitor', 
       tags$iframe(src='http://134.114.109.3:3838/phenoShifts/', height=1000, width='100%')
-    }
     ),
+    
     tabPanel('Report Errors', 
              fluidPage(
-               headerPanel('Report an error'),
+               # headerPanel('Report an error'),
                br(),
                sidebarPanel(    
                  textInput('errorUser', label = 'Your contact info', placeholder = 'Name', width = '100%'),
@@ -304,7 +314,10 @@ fluidPage(
              #            # HTML('<img src="phenoCamROI.guide.png"  alt="This is alternate text" , width="100%">')
              #            includeMarkdown('drawROI.Guide.md')
              #          )
-    )
+    ),
+    tabPanel('About',{
+      
+    })
     
   )
 )
