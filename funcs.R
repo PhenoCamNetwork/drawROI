@@ -111,7 +111,7 @@ createRasteredROI <- function(pnts, imgSize){
            })
   )
   
-  r <- rasterize(polys, raster(ext, nrow = imgSize[1], ncol = imgSize[2]))
+  r <- rasterize(polys, raster(ext, nrow = imgSize[2], ncol = imgSize[1]))
   r[!is.na(r)] <- 1
   
   m1 <- as.matrix(r)
@@ -517,4 +517,19 @@ gettmpdir <- function() {
     Sys.getenv('R_USER')
   else
     '/tmp'
+}
+
+
+
+
+addMaskPlot <- function(mask, add = T, col='black'){
+  wd <- getwd()
+  setwd(tmpDir())
+  writeTIFF(mask*1, 'tmp.tif')
+  rmask <- raster('tmp.tif')
+  rmask[rmask!=0] <- NA
+  
+  plot(rmask,legend=F, add=T, col=col)
+  # file.remove('tmp.tif')
+  setwd(wd)
 }
