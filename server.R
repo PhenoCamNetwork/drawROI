@@ -27,6 +27,7 @@ shinyServer(function(input, output, session) {
                        slideShow = 0,
                        nroi = NULL,
                        ROIs = vector(),
+                       nextROIs = NULL,
                        sitesList = vector(),
                        parsedROIList = NULL,
                        cl = NULL,
@@ -442,11 +443,17 @@ shinyServer(function(input, output, session) {
   observe({
     if(input$siteName=='') {
       shinyjs::disable('roiName')
-      shinyjs::disable('vegType')
+      shinyjs::disable("vegType")
+      shinyjs::disable("nextROIID")
+      shinyjs::disable("siteDescription")
+      shinyjs::disable("roiOwner")      
     }else{
       shinyjs::enable('roiName')
-      shinyjs::enable('vegType')
-    }
+      shinyjs::enable("vegType")
+      shinyjs::enable("nextROIID")
+      shinyjs::enable("siteDescription")
+      shinyjs::enable("roiOwner")   
+      }
   })
   
   # ----------------------------------------------------------------------
@@ -505,31 +512,50 @@ shinyServer(function(input, output, session) {
   observe({
     autoInvalidate()
     if(input$siteName=='') return()
+    nextID <- nextROIID(site = input$siteName, vegType = input$vegType)
+    if(identical(rv$nextROIs, nextID)) return()
+    if(input$roiName=='New ROI') {
+      rv$nextROIs = nextID
+    }else{
+      dummy <- 0
+      rv$nextROIs = rv$parsedROIList$ID
+    }
     
+  })
+
+  observeEvent(rv$nextROIs,{
+    dummy <- 0
+    updateSelectInput(session, inputId = 'nextROIID', choices = rv$nextROIs)
+  })
+  
+  observe({
+    autoInvalidate()
+    if(input$siteName=='') return()
+
     dummy <- 0
     template <- paste0(input$siteName, '_', input$vegType)
     sameTemplate <- grepl(template, rv$ROIs)
-    if(sum(sameTemplate)==0) 
+    if(sum(sameTemplate)==0)
       n <- 1
     else
       n <- max(
         as.numeric(
           sapply(
             strsplit(
-              rv$ROIs[sameTemplate], '_'), 
+              rv$ROIs[sameTemplate], '_'),
             function(x)(x[3])
           )
         )
       ) + 1
     n
-    
+
     if(!identical(n , rv$nroi)) {
       printLog(paste('rv$nroi observed experssion was called.\t'))
       rv$nroi <- n
     }
   })
   
-  output$noROI <- renderText({
+  output$nr <- renderText({
     autoInvalidate()
     if(input$siteName=='') return()
     
@@ -550,7 +576,7 @@ shinyServer(function(input, output, session) {
     
     dummy <- 0
     if(input$roiName=='New ROI') {
-      return(rv$nroi)
+      return(as.integer(input$nextROIID))
     }
     else {
       dummy = 0 
@@ -1018,7 +1044,7 @@ shinyServer(function(input, output, session) {
           absPoints <- t(apply(rv$centers, 1, '*', sampleImageSize()))
         dummy <- 0
         # polygon(absPoints, col = input$roiColors, pch = 9, lwd=1)
-        polygon(absPoints, pch = 9, lwd=1)
+        polygon(absPoints, pch = 9, lwd=3, border=input$roiColors)
         mm <- curMask()
         if(!is.null(mm)&input$showMask)addMaskPlot(mm, col = input$roiColors)
       }
@@ -1634,6 +1660,7 @@ shinyServer(function(input, output, session) {
                        sprintf('%02d',maskID), sep = '_')
       names(tmp)[length(tmp)] <- tmpName
       rv$MASKs <- tmp
+      
       updateSelectInput(session, inputId = 'maskName', choices = c(names(tmp), 'New mask'), selected = tmpName)
       
       removeModal()
@@ -1840,7 +1867,7 @@ shinyServer(function(input, output, session) {
   shinyjs::disable("saveROI")
   shinyjs::disable("downloadROI")
   shinyjs::disable("emailROI")
-  shinyjs::disable("vegType")
+
   shinyjs::disable("shiftsList")
   shinyjs::disable("gotoShiftFOV")
   

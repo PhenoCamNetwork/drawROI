@@ -60,6 +60,7 @@
                             column(2, strong(textOutput('noROI')))
                           ),
                           selectInput("vegType", "Vegetation Type", choices = list('Agriculture (AG)'='AG')),
+                          selectInput('nextROIID', 'ROI ID', choices = c(1)),
                           textInput('siteDescription','Description', placeholder = 'Enter a description for the ROI'),
                           textInput('roiOwner','Owner', placeholder = 'Enter your name'),
                           hr(),

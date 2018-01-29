@@ -293,7 +293,7 @@ parseROI <- function(roifilename, roipath, downloadDir){
       maskpoints <- NULL
     }
     
-    maskpath <- tryDownload(maskpath, downloadDir = downloadDir, showLoad = T, Update = F)
+    maskpath <- tryDownload(maskpath, downloadDir = downloadDir, showLoad = F, Update = F)
     
     tmpMask <- list(maskpoints = maskpoints, 
                     startdate = as.character(parsedMasks$start_date[i]), 
@@ -533,3 +533,19 @@ addMaskPlot <- function(mask, add = T, col='black'){
   # file.remove('tmp.tif')
   setwd(wd)
 }
+
+nextROIID <- function(site, vegType){
+  roisLst <- fromJSON(file = paste0('https://phenocam.sr.unh.edu/webcam/roi/roilistinfo/', site, '/?unlinked=yes'))
+  rois <- t(sapply(roisLst, function(x){list(x$veg_type, x$roi_id_number)}))
+  rois <- data.table(Type = unlist(rois[,1]),
+                     ID = unlist(rois[,2]))
+  rois[,Group:=floor(ID/1000)*1000]
+  
+  if(rois[Type==vegType, .N]==0) return(c(1, 1000))
+  
+  nextCurrent <- rois[Type==vegType, .(nextID = max(ID) + 1), Group][,nextID]
+  maxGroup <- rois[Type==vegType, max(Group)+1000]
+  
+  c(nextCurrent, maxGroup)
+}
+
