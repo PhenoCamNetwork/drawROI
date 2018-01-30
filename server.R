@@ -199,7 +199,7 @@ shinyServer(function(input, output, session) {
     updateSelectInput(session, 'roiName', choices = rv$ROIs, selected = 'New ROI')
     updateSelectInput(session, 'roiName', selected = 'New ROI')
     updateSelectInput(session, 'vegType', selected = 'AG')
-    updateTextInput(session, 'siteDescription', value = '')
+    updateTextInput(session, 'roiDescription', value = '')
     updateTextInput(session, 'roiOwner', value = '')
     dummy <- 0
     rv$MASKs <- list()
@@ -445,13 +445,13 @@ shinyServer(function(input, output, session) {
       shinyjs::disable('roiName')
       shinyjs::disable("vegType")
       shinyjs::disable("nextROIID")
-      shinyjs::disable("siteDescription")
+      shinyjs::disable("roiDescription")
       shinyjs::disable("roiOwner")      
     }else{
       shinyjs::enable('roiName')
       shinyjs::enable("vegType")
       shinyjs::enable("nextROIID")
-      shinyjs::enable("siteDescription")
+      shinyjs::enable("roiDescription")
       shinyjs::enable("roiOwner")   
       }
   })
@@ -472,7 +472,7 @@ shinyServer(function(input, output, session) {
       rv$centers <- matrix(numeric(), 0, 2)
       updateSelectInput(session, inputId = 'maskName', choices = 'New mask')
       updateSelectInput(session, inputId = 'vegType', selected = list('Agriculture (AG)'='AG'))
-      updateSelectInput(session, inputId = 'siteDescription', selected = '')
+      updateSelectInput(session, inputId = 'roiDescription', selected = '')
       updateTextInput(session, inputId = 'roiOwner', value = '')
       
       return()
@@ -495,7 +495,7 @@ shinyServer(function(input, output, session) {
     if(is.null(ROIList)) return()
     rv$parsedROIList <- ROIList
     updateSelectInput(session, inputId = 'vegType', selected =  rv$parsedROIList$vegType)
-    updateTextInput(session, inputId = 'siteDescription', value = rv$parsedROIList$Description)
+    updateTextInput(session, inputId = 'roiDescription', value = rv$parsedROIList$Description)
     updateTextInput(session, inputId = 'roiOwner', value = rv$parsedROIList$Owner)
     dummy=0
     
@@ -567,7 +567,12 @@ shinyServer(function(input, output, session) {
     roiName.now <- input$roiName
     if(input$siteName=='') return()
     
-    updateSelectInput(session, 'roiName', selected = roiName.now)
+    updateSelectInput(session, 'roiName', selected = 'New ROI')
+    rv$MASKs <- NULL
+    input$roiOwner <- ''
+    input$roiDescription <- ''
+    
+    
   })
   
   roiID <- reactive({
@@ -1031,7 +1036,7 @@ shinyServer(function(input, output, session) {
       }else{
         dummy <- 0
         jp <- plotJPEG(sampleImage(),  downloadDir = rv$downloadDir)
-        putImageFooter(id = input$contID, mrgDT = mergedTable(), footer = 'sample image')
+        putImageFooter(id = input$contID, mrgDT = mergedTable(), footer = 'sample image', grid = input$showGrid)
         
         dummy <- 0
         if(is.null(rv$centers)) 
@@ -1060,7 +1065,7 @@ shinyServer(function(input, output, session) {
       dummy <- 0
       par(mar=c(0,0,0,0))
       jp <- plotJPEG(imgDT()[,path][rv$LinkedID],  downloadDir = rv$downloadDir)
-      putImageFooter(id = rv$LinkedID, mrgDT = mergedTable(), footer = 'copied image')
+      putImageFooter(id = rv$LinkedID, mrgDT = mergedTable(), footer = 'copied image', grid = input$showGrid)
     })
   
   
@@ -1077,7 +1082,7 @@ shinyServer(function(input, output, session) {
         return()
       }
       jp <- plotJPEG(imgDT()[,path][rv$PreviousDayID],   downloadDir = rv$downloadDir)
-      putImageFooter(id = rv$PreviousDayID, mrgDT = mergedTable(), footer = 'previous clear')
+      putImageFooter(id = rv$PreviousDayID, mrgDT = mergedTable(), footer = 'previous clear', grid = input$showGrid)
     })
   
   
@@ -1095,7 +1100,7 @@ shinyServer(function(input, output, session) {
         return()
       }
       jp <- plotJPEG(imgDT()[,path][rv$NextDayID],   downloadDir = rv$downloadDir)
-      putImageFooter(id = rv$NextDayID, mrgDT = mergedTable(), footer = 'next clear')
+      putImageFooter(id = rv$NextDayID, mrgDT = mergedTable(), footer = 'next clear', grid = input$showGrid)
     })
   
   
@@ -1263,7 +1268,7 @@ shinyServer(function(input, output, session) {
                     vegType = input$vegType, 
                     ID = roiID(),
                     Owner= input$roiOwner, 
-                    Description = input$siteDescription, 
+                    Description = input$roiDescription, 
                     createDate = strftime(systime, format = '%Y-%m-%d'),
                     createTime = strftime(systime, format = '%H:%M:%S'),
                     updateDate = strftime(systime, format = '%Y-%m-%d'),
@@ -1320,7 +1325,7 @@ shinyServer(function(input, output, session) {
                       vegType = input$vegType, 
                       ID = roiID(),
                       Owner= input$roiOwner, 
-                      Description = input$siteDescription, 
+                      Description = input$roiDescription, 
                       createDate = strftime(systime, format = '%Y-%m-%d'),
                       createTime = strftime(systime, format = '%H:%M:%S'),
                       updateDate = strftime(systime, format = '%Y-%m-%d'),
@@ -1366,7 +1371,7 @@ shinyServer(function(input, output, session) {
                     vegType = input$vegType, 
                     ID = roiID(),
                     Owner= input$roiOwner, 
-                    Description = input$siteDescription, 
+                    Description = input$roiDescription, 
                     createDate = strftime(systime, format = '%Y-%m-%d'),
                     createTime = strftime(systime, format = '%H:%M:%S'),
                     updateDate = strftime(systime, format = '%Y-%m-%d'),
@@ -1843,7 +1848,7 @@ shinyServer(function(input, output, session) {
   
   ##LOG
   
-  observeEvent(input$siteDescription, printLog(paste('input$siteDescription was changed to:', '\t',input$siteDescription)))
+  observeEvent(input$roiDescription, printLog(paste('input$roiDescription was changed to:', '\t',input$roiDescription)))
   observeEvent(input$roiOwner, printLog(paste('input$roiOwner was changed to:', '\t',input$roiOwner)))
   observeEvent(input$roiColors, printLog(paste('input$roiColors was changed to:', '\t',input$roiColors)))
   observeEvent(input$ccRange, printLog(paste('input$ccRange was changed to:', '\t',input$ccRange)))
