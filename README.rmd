@@ -14,6 +14,6 @@ runGitHub("drawROI", "bnasr")
 ```
 
 
-The R package is developed and maintained by [Bijan Seyednarollah](https://github.com/bnasr) since May, 2017.
+The R package is developed and maintained by [Bijan Seyednarollah](https://github.com/bnasr) since April, 2017.
 
 Most recent release is available from: https://github.com/bnasr/drawROI
