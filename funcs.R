@@ -535,7 +535,10 @@ addMaskPlot <- function(mask, add = T, col='black'){
 }
 
 nextROIID <- function(site, vegType){
-  roisLst <- fromJSON(file = paste0('https://phenocam.sr.unh.edu/webcam/roi/roilistinfo/', site, '/?unlinked=yes'))
+  url <- paste0('https://phenocam.sr.unh.edu/webcam/roi/roilistinfo/', site, '/?unlinked=yes')
+  if(!url.exists(url)) return(c(1, 1000))
+  
+  roisLst <- fromJSON(file = url)
   rois <- t(sapply(roisLst, function(x){list(x$veg_type, x$roi_id_number)}))
   rois <- data.table(Type = unlist(rois[,1]),
                      ID = unlist(rois[,2]))
