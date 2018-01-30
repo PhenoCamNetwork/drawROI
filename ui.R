@@ -54,14 +54,15 @@
                           br(),
                           fluidRow(
                             column(10, selectInput("roiName", "ROI", 'New ROI')),
+                            column(2, actionButton('refreshROI', label = NULL, icon = icon('refresh'), width = '100%', style="border-color: #303030; align:center; background-color:#303030; color:#337ab7; font-size: 100%;font-weight: bold;")),
+                            
                             br(),
                             br(),
-                            # column(2, actionButton('refreshROI', label = NULL, icon = icon('refresh'), width = '100%', style="border-color: #f5f5f5; align:center; background-color:#f5f5f5; color:#337ab7; font-size: 150%;font-weight: bold;"))
                             column(2, strong(textOutput('noROI')))
                           ),
                           selectInput("vegType", "Vegetation Type", choices = list('Agriculture (AG)'='AG')),
                           selectInput('nextROIID', 'ROI ID', choices = c(1)),
-                          textInput('siteDescription','Description', placeholder = 'Enter a description for the ROI'),
+                          textInput('roiDescription','Description', placeholder = 'Enter a description for the ROI'),
                           textInput('roiOwner','Owner', placeholder = 'Enter your name'),
                           hr(),
                           strong(textOutput('roiFileName')),
@@ -202,8 +203,9 @@
                      column(4, actionButton("acceptCanvas", "Accept", icon = icon('thumbs-up'), class="btn-primary", width = "100%", style='font-weight: bold;'))
                    )),
                    column(5,  fluidRow(
-                     column(6, checkboxInput('showMask', label = 'Show Mask', value = F)),
-                     column(6, colourpicker::colourInput(inputId = 'roiColors', allowTransparent=T, label = NULL, value = '#ab522280',  showColour = 'background'))
+                     column(4, checkboxInput('showMask', label = 'Show Mask', value = F)),
+                     column(4, checkboxInput('showGrid', label = 'Show Grid', value = F)),
+                     column(4, colourpicker::colourInput(inputId = 'roiColors', allowTransparent=T, label = NULL, value = '#ab522280',  showColour = 'background'))
                    )),
                    column(1, strong())
                  ),
