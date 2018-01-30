@@ -568,12 +568,13 @@ shinyServer(function(input, output, session) {
     if(input$siteName=='') return()
     
     updateSelectInput(session, 'roiName', selected = 'New ROI')
-    rv$MASKs <- NULL
-    input$roiOwner <- ''
-    input$roiDescription <- ''
-    
-    
-  })
+    rv$MASKs <- list()
+    rv$centers <- matrix(numeric(), 0, 2)
+    updateSelectInput(session, inputId = 'maskName', choices = 'New mask')
+    updateSelectInput(session, inputId = 'vegType', selected = list('Agriculture (AG)'='AG'))
+    updateTextInput(session, 'roiDescription', value = '')
+    updateTextInput(session, inputId = 'roiOwner', value = '') 
+    })
   
   roiID <- reactive({
     printLog(paste('roiID reactive experssion was called.\t'))
