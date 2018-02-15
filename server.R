@@ -1024,6 +1024,39 @@ shinyServer(function(input, output, session) {
   # ----------------------------------------------------------------------
   # Plot image
   # ----------------------------------------------------------------------
+  
+  output$imagePlotBig <- renderPlot(
+    res=36,
+    height = function(){floor(session$clientData$output_imagePlotBig_width/1.35)},
+    {
+      if(input$siteName=='') return()
+      
+      par(mar=c(0,0,0,0))
+      if(is.na(sampleImage())){
+        plot(NA, xlim=c(0,1), ylim=c(0,1), xaxs='i',yaxs='i', xaxt='n', yaxt='n', bty='o', xlab='',ylab='')
+        text(mean(par()$usr[1:2]), mean(par()$usr[3:4]), 'No image for this date was found!', font=2, adj=.5)
+      }else{
+        dummy <- 0
+        jp <- plotJPEG(sampleImage(),  downloadDir = rv$downloadDir)
+        putImageFooter(id = input$contID, mrgDT = mergedTable(), footer = 'sample image', grid = input$showGrid)
+        
+        dummy <- 0
+        if(is.null(rv$centers)) 
+          absPoints <- matrix(numeric(), 0, 2)
+        else if(nrow(rv$centers)==0) 
+          absPoints <- matrix(numeric(), 0, 2)
+        else if(nrow(rv$centers)==1) 
+          absPoints <- rv$centers*sampleImageSize()
+        else 
+          absPoints <- t(apply(rv$centers, 1, '*', sampleImageSize()))
+        dummy <- 0
+        # polygon(absPoints, col = input$roiColors, pch = 9, lwd=1)
+        polygon(absPoints, pch = 9, lwd=3, border=input$roiColors)
+        mm <- curMask()
+        if(!is.null(mm)&input$showMask)addMaskPlot(mm, col = input$roiColors)
+      }
+    })
+  
   output$imagePlot <- renderPlot(
     res=36,
     height = function(){floor(session$clientData$output_imagePlot_width/1.35)},
@@ -1431,7 +1464,7 @@ shinyServer(function(input, output, session) {
     
     dummy <- 0
     n <- length(tsYearDayRange())
-    
+    return()
     if(n<=53) return()
     # if(n<=53|passwordCorrect()) return()
     # if(input$ccRange%in%c("Week", "Month")|passwordCorrect()) return()
