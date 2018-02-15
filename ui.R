@@ -6,12 +6,12 @@
 #
 # Most recent release: https://github.com/bnasr/drawROI
 #######################################################################
- fluidPage(
-   theme= shinytheme('darkly'),
-   shinyjs::useShinyjs(),  
+fluidPage(
+  theme= shinytheme('darkly'),
+  shinyjs::useShinyjs(),  
   tags$head(tags$style(HTML( "#Select1 ~ .selectize-control.single .selectize-input {border: 1px solid #fff;}"))),
   # dashboardPage( 
-    tabsetPanel(
+  tabsetPanel(
     tabPanel('ROI Tool',
              # headerPanel("PhenoCam ROI Tool"),
              br(),
@@ -177,23 +177,36 @@
                    column(1, actionButton("play", "", icon = icon('forward'), width = '100%', style="background-color: #222222; border-color: #222222; align:center")),
                    column(1, actionButton("forw", "", icon = icon('plus'), width = '100%',  style="background-color: #222222; border-color: #222222")),
                    # column(1, strong()),
-                   column(2, fluidRow(
-                     column(3, actionButton("linkedImage", "", icon = icon('copy'), style='font-weight: bold; background-color: #222222;border-color: #222222')),
-                     column(9, checkboxInput("lastNextDayShow", label = 'Pre/Next', value = F))
+                   column(1, fluidRow(
+                     column(6, checkboxInput("linkedImageShow", label = NULL, value = TRUE)),
+                     column(6, actionButton("linkedImage", "", icon = icon('copy'), style='font-weight: bold; background-color: #222222;border-color: #222222'))
                    )),
-                   column(1, checkboxInput("cliShow", label = 'CLI', value = F)),
-                   column(1, checkboxInput("corShow", label = 'Cor.', value = F)),
-                   column(1, checkboxInput("hrzShow", label = 'Hrz.', value = F))
+                   column(4, fluidRow(
+                     column(3, checkboxInput("lastNextDayShow", label = 'Pre/Nxt', value = F)),
+                     column(3, checkboxInput("cliShow", label = 'CLI', value = F)),
+                     column(3, checkboxInput("corShow", label = 'Cor', value = F)),
+                     column(3, checkboxInput("hrzShow", label = 'Hrz', value = F))
+                   ))
                    
                  ),
-                 fluidRow(
-                   column(1, strong()),
-                   column(5, plotOutput("imagePlot", click = "newPoint", dblclick = 'gapPoint', height = 'auto')),
-                   column(5, plotOutput("imagePlot2", height = 'auto')),
-                   column(1, strong())
+                 conditionalPanel(
+                   condition = "input.linkedImageShow",
+                   fluidRow(
+                     column(1, strong()),
+                     column(5, plotOutput("imagePlot", click = "newPoint", dblclick = 'gapPoint', height = 'auto')),
+                     column(5, plotOutput("imagePlot2", height = 'auto')),
+                     column(1, strong())
+                   )
+                 ),
+                 conditionalPanel(
+                   condition = "!input.linkedImageShow",
+                   fluidRow(
+                     column(1, strong()),
+                     column(10, plotOutput("imagePlotBig", click = "newPoint", dblclick = 'gapPoint', height = 'auto')),
+                     column(1, strong())
+                   )
                  ),
                  
-
                  br(),
                  fluidRow(
                    column(1, strong()),
@@ -274,30 +287,30 @@
     
     tabPanel('Time Series Extraction Tool',
              # conditionalPanel('input.siteName!=""', {
-               fluidPage(
-                 br(),
-                 fluidRow(
-                   column(2, 
-                          radioButtons('ccRange', label = NULL, choices = c('Week', 'Month', 'Year', 'Entire data'), width = "330px",inline = F),
-                          
-                          selectInput('ccInterval', label = 'Interval', choices = c(1:7, 10, 15, 20, 30), selected = 1, width = '50px'),
-                          
-                          actionButton("startExtractCC", "Extract", icon = icon('line-chart'), onclick="Shiny.onInputChange('stopThis',false)", width = "110px", style="background-color:#666; color:#fff;font-weight: bold;"),
-                          hr(),
-                          checkboxGroupInput('ccBand', label = NULL, choices = c(Red='R', Green='G', Blue='B', Haze= 'H'), selected = c('R','G','B'), width = '100%', inline = F),
-                          hr(),
-                          downloadButton("downloadTSData", "Download\t")
-                   ),
-                   column(10, plotlyOutput(outputId = "timeSeriesPlotly", height = "500px", width = "100%"))
-                   
-                 )
+             fluidPage(
+               br(),
+               fluidRow(
+                 column(2, 
+                        radioButtons('ccRange', label = NULL, choices = c('Week', 'Month', 'Year', 'Entire data'), width = "330px",inline = F),
+                        
+                        selectInput('ccInterval', label = 'Interval', choices = c(1:7, 10, 15, 20, 30), selected = 1, width = '50px'),
+                        
+                        actionButton("startExtractCC", "Extract", icon = icon('line-chart'), onclick="Shiny.onInputChange('stopThis',false)", width = "110px", style="background-color:#666; color:#fff;font-weight: bold;"),
+                        hr(),
+                        checkboxGroupInput('ccBand', label = NULL, choices = c(Red='R', Green='G', Blue='B', Haze= 'H'), selected = c('R','G','B'), width = '100%', inline = F),
+                        hr(),
+                        downloadButton("downloadTSData", "Download\t")
+                 ),
+                 column(10, plotlyOutput(outputId = "timeSeriesPlotly", height = "500px", width = "100%"))
+                 
                )
+             )
              # }),
              # conditionalPanel('input.siteName==""', {strong('Select a site from the ROI Tool first!')})
     ),
     
     tabPanel('FOV Shifts Monitor', 
-      tags$iframe(src='http://134.114.109.3:3838/phenoShifts/', height=1000, width='100%')
+             tags$iframe(src='http://134.114.109.3:3838/phenoShifts/', height=1000, width='100%')
     ),
     
     tabPanel('Report Errors', 
