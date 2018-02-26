@@ -571,7 +571,7 @@ shinyServer(function(input, output, session) {
     rv$MASKs <- list()
     rv$centers <- matrix(numeric(), 0, 2)
     updateSelectInput(session, inputId = 'maskName', choices = 'New mask')
-    updateSelectInput(session, inputId = 'vegType', selected = list('Agriculture (AG)'='AG'))
+    # updateSelectInput(session, inputId = 'vegType', selected = list('Agriculture (AG)'='AG'))
     updateTextInput(session, 'roiDescription', value = '')
     updateTextInput(session, inputId = 'roiOwner', value = '') 
     })
@@ -588,6 +588,24 @@ shinyServer(function(input, output, session) {
       dummy = 0 
       rv$parsedROIList$ID
     }
+  })
+  
+  observeEvent(input$nextROIID,{
+    printLog(paste('input$nextROIID was changed to:', '\t',input$nextROIID))
+    if(input$siteName=='') return()
+    
+    rv$slideShow <- 0 
+    if(length(rv$MASKs)==0) return()
+    
+    maskNames <- names(rv$MASKs)
+    f <- function(x, y){
+      z <- unlist(strsplit(x, '_'))
+      paste(c(z[1:2], y, z[4]), collapse = '_')
+    }
+    
+    newmaskNames <- as.vector(sapply(maskNames, f, y = input$nextROIID))
+    if(!is.null(rv$MASKs))names(rv$MASKs) <- newmaskNames
+    updateSelectInput(session, inputId = 'maskName', choices = c(names(rv$MASKs), 'New mask'))
   })
   
   curMask <- reactive({
