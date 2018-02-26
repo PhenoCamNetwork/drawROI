@@ -178,7 +178,7 @@ fluidPage(
                    column(1, actionButton("forw", "", icon = icon('plus'), width = '100%',  style="background-color: #222222; border-color: #222222")),
                    # column(1, strong()),
                    column(1, fluidRow(
-                     column(6, checkboxInput("linkedImageShow", label = NULL, value = TRUE)),
+                     column(6, checkboxInput("linkedImageShow", label = NULL, value = FALSE)),
                      column(6, actionButton("linkedImage", "", icon = icon('copy'), style='font-weight: bold; background-color: #222222;border-color: #222222'))
                    )),
                    column(4, fluidRow(
