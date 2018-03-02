@@ -117,15 +117,23 @@ fluidPage(
                mainPanel(
                  # br(),
                  fluidRow(
+                   column(2,
+                          strong(dateInput('gotoDate', label = 'Goto Date'), style='font-size:100%;font-weight: bold;')
+                          # fluidRow(
+                          #   column(9, strong(dateInput('gotoDate', label = ''), style='font-size:20%;font-weight: bold;')),
+                          #   column(3, actionButton('gotoDateButton', label = NULL, icon = icon('refresh'), width = '100%', 
+                          #                          style="background-color: #222222; border-color: #222222; align:center; font-size: 100%;font-weight: bold;"))
+                          # )
+                   ),
                    column(2, sliderInput('hazeThreshold', label = 'Haze threshold', min = 0, max = 1, value = .4, step = .01)),
                    
-                   column(3, selectInput('shiftsList1', label = 'Horizon Shifts', choices = c(Choose=''), width = '100%')),
+                   column(2, selectInput('shiftsList1', label = 'Horizon Shifts', choices = c(Choose=''), width = '100%')),
                    # column(1, actionButton('goShift1', label = NULL, icon = icon('refresh'), width = '100%', 
                    #                        style="border-color: #fff; align:center; font-size: 200%;font-weight: bold;")),
                    # column(2, selectInput('shiftsList1.Threshold', label = 'Threshold (px)', choices = c(1:10, 15:30), selectize = T, selected = 10)),
                    column(2, sliderInput('shiftsList1.Threshold', label = 'Threshold (px)', min = 1, max = 100, value = 20, step = 1)),
                    
-                   column(3, selectInput('shiftsList2', label = 'Correlation Shifts', choices = c(Choose=''), width = '100%')),
+                   column(2, selectInput('shiftsList2', label = 'Correlation Shifts', choices = c(Choose=''), width = '100%')),
                    # column(1, actionButton('goShift2', label = NULL, icon = icon('refresh'), width = '100%', 
                    #                        style="border-color: #fff; align:center; font-size: 200%;font-weight: bold;"))
                    # column(2, selectInput('shiftsList2.Threshold', label = 'Threshold', selectize = T, choices = c(.01, 0.02, .05, .1, .15, .2, .3, .4, .5, .6, .75), selected = .05))
@@ -152,13 +160,13 @@ fluidPage(
                  ),
                  
                  fluidRow( 
-                   column(3, 
-                          fluidRow( 
-                            column(8, strong(dateInput('gotoDate', label = ''), style='font-size:20%;font-weight: bold;')),
-                            column(4, actionButton('gotoDateButton', label = NULL, icon = icon('refresh'), width = '100%', style="background-color: #222222; border-color: #222222; align:center; font-size: 200%;font-weight: bold;"))
-                          )
-                   ),
-                   column(9, sliderInput(inputId = "contID",
+                   # column(3, 
+                   #        fluidRow( 
+                   #          column(8, strong(dateInput('gotoDate', label = ''), style='font-size:20%;font-weight: bold;')),
+                   #          column(4, actionButton('gotoDateButton', label = NULL, icon = icon('refresh'), width = '100%', style="background-color: #222222; border-color: #222222; align:center; font-size: 200%;font-weight: bold;"))
+                   #        )
+                   # ),
+                   column(12, sliderInput(inputId = "contID",
                                          label =  NULL,
                                          min = 1, max = 1,
                                          ticks = F,
@@ -167,7 +175,7 @@ fluidPage(
                                          step = 1,
                                          width = '100%'))
                  ),
-                 
+                 plotOutput("timePlot", height='auto'),
                  
                  fluidRow(
                    column(1, strong()),
@@ -218,7 +226,7 @@ fluidPage(
                    column(5,  fluidRow(
                      column(4, checkboxInput('showMask', label = 'Show Mask', value = F)),
                      column(4, checkboxInput('showGrid', label = 'Show Grid', value = F)),
-                     column(4, colourpicker::colourInput(inputId = 'roiColors', allowTransparent=T, label = NULL, value = '#ab522280',  showColour = 'background'))
+                     column(4, colourpicker::colourInput(inputId = 'roiColors', allowTransparent=T, label = NULL, value = '#f1f27280',  showColour = 'background'))
                    )),
                    column(1, strong())
                  ),
