@@ -1301,8 +1301,10 @@ shinyServer(function(input, output, session) {
     
     updateTextInput(session, inputId = 'maskStartTime', value = tmpmask$starttime)
     updateTextInput(session, inputId = 'maskEndTime', value = tmpmask$endtime)
-    
-    rv$ID <- imageID()
+    dummy <- 0
+    # rv$ID <- imageID()
+    id <- dayYearIDTable()[Year==tmpmask$sampleyear&DOY==tmpmask$sampleday,ID]
+    updateSliderInput(session, 'contID', value = id)
   })
   
   
