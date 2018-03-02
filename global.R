@@ -42,14 +42,14 @@ for(p in list.of.packages) library(p, character.only = T)
 
 CACHE_LIMIT <- 500
 
-PRINT_LOGS <- T
+PRINT_LOGS <- TRUE
 if(system('hostname', intern=T)%in%c('phenocam')) PRINT_LOGS <- T
    
-HTTP_LOAD <- T
+HTTP_LOAD <- FALSE  
 # if(system('hostname', intern=T)%in%c('phenocam')&
 #    system('whoami', intern=T)%in%c('bijan')) HTTP_LOAD <- F
 
-SHINY_SERVER <- F
+SHINY_SERVER <- FALSE
 if(system('hostname', intern=T)%in%c('phenocam')&
    system('whoami', intern=T)%in%c('shiny')) SHINY_SERVER <- T
 
@@ -61,9 +61,8 @@ if(HTTP_LOAD){
   mainDataPath <- 'https://phenocam.sr.unh.edu'
   
 }else{
-  middayListPath <- '/mnt/klima/home/shiny/middayList/'
-  # middayListPath <- 'https://phenocam.sr.unh.edu/webcam/network/middayimglist/'
-  mainDataPath <- '/mnt/klima'
+  middayListPath <- 'https://phenocam.sr.unh.edu/webcam/network/middayimglist/'
+  mainDataPath <- ''
 }
 
 
