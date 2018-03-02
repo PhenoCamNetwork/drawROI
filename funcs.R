@@ -53,7 +53,7 @@ draw.polygon <-
 
 # extract chromatic colors of RGB channels for given jpeg file and mask matrix
 extractCCC <- function(path, m, downloadDir){
-
+  
   path <- tryDownload(path, downloadDir = downloadDir, showLoad = F, Update = F)
   jp <- readJPEG(path)
   dm <- dim(jp)
@@ -293,7 +293,7 @@ parseROI <- function(roifilename, roipath, downloadDir){
       maskpoints <- NULL
     }
     
-    maskpath <- tryDownload(maskpath, downloadDir = downloadDir, showLoad = F, Update = F)
+    maskpath <- tryDownload(maskpath, downloadDir = downloadDir, showLoad = F, Update = T)
     
     tmpMask <- list(maskpoints = maskpoints, 
                     startdate = as.character(parsedMasks$start_date[i]), 
@@ -393,22 +393,25 @@ getIMG.DT <- function(sites){
 # print a message into konsole given the message string for logging purposes
 printLog <- function(msg=NULL, init=F, finit=F){
   if(!PRINT_LOGS) return()
+  systime <- Sys.time()
   
   if(init){
     message(paste('\n--------------------------------------------------------------------\n', 
-                  as.character(Sys.time()),'New session just started!',
+                  as.character(systime),'New session just started!',
                   '\n--------------------------------------------------------------------\n'))
     return()
   }
   
   if(finit){
     message(paste('\n--------------------------------------------------------------------\n', 
-                  as.character(Sys.time()),'Initial setup was completed!',
+                  as.character(systime),'Initial setup was completed!',
                   '\n--------------------------------------------------------------------\n'))
     return()
   }
   
-  message(paste(as.character(Sys.time()), msg, '\t'))
+  message(paste(as.character(systime), 
+                signif(as.numeric(systime)-floor(as.numeric(systime)),3),
+                msg, '\t'))
 }
 
 
@@ -454,7 +457,7 @@ tryDownload <- function(path, Update = T, showLoad = T, downloadDir){
     )), session=shiny::getDefaultReactiveDomain())
   
   
-
+  
   destfile <- paste0(downloadDir, '/', fname)
   
   if(!file.exists(destfile)) 
