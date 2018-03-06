@@ -146,7 +146,7 @@ extractCCCTimeSeries <- function(rmsk, paths, PLUS=F, session=shiny::getDefaultR
                    CCCT[i,] <- as.numeric((ccc[c("rcc", "gcc", "bcc")]))
                  incProgress(1/n)
                  # Sys.sleep(1)
-                 httpuv:::service()
+                 if(i%%20==0)httpuv:::service()
                }
   )
   CCCT <- as.data.table(CCCT)
