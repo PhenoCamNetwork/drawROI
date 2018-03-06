@@ -59,9 +59,8 @@ sitesInfoURL <- 'https://phenocam.sr.unh.edu/webcam/network/siteinfo/'
 if(HTTP_LOAD){
   middayListPath <- 'https://phenocam.sr.unh.edu/webcam/network/middayimglist/'
   mainDataPath <- 'https://phenocam.sr.unh.edu'
-  
 }else{
-  middayListPath <- 'https://phenocam.sr.unh.edu/webcam/network/middayimglist/'
+  middayListPath <- '/data/archive/'
   mainDataPath <- ''
 }
 

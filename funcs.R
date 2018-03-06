@@ -361,14 +361,21 @@ getIMG.DT <- function(sites){
   imgDT <- data.table()
   
   for(site in sites){
+    tmp <- paste0(middayListPath, site, '/ROI/',site,'-midday.txt')
+    
     if(is.url(middayListPath)){
       mdiJSON = fromJSON(file = paste0(middayListPath, site,'/'))
       tbl <- data.table( DateJSON = as.Date(sapply(mdiJSON$images, function(x){x$date })),
                          path = as.character(sapply(mdiJSON$images, function(x){x$midimg})))
+    }else if(file.exists(tmp)){
+      tbl <- read.table(tmp, header = F, colClasses = 'character', col.names = 'path')
     }else{
-      tbl <- read.table(paste0(middayListPath, site), header = F, colClasses = 'character', col.names = 'path')
+      tmp <- paste0('https://phenocam.sr.unh.edu/webcam/network/middayimglist/', site,'/')
+      mdiJSON = fromJSON(file = tmp)
+      tbl <- data.table( DateJSON = as.Date(sapply(mdiJSON$images, function(x){x$date })),
+                         path = as.character(sapply(mdiJSON$images, function(x){x$midimg})))
     }
-    
+  
     imgDT.tmp <- as.data.table(tbl)
     imgDT.tmp$path <- paste0(mainDataPath, imgDT.tmp$path)
     imgDT <- rbind(imgDT, imgDT.tmp)
