@@ -548,7 +548,7 @@ shinyServer(function(input, output, session) {
     printLog(paste('nextROIs was changed  to xxx.\t'))
     
     dummy <- 0
-    updateSelectInput(session, inputId = 'nextROIID', choices = rv$nextROIs)
+    updateSelectInput(session, inputId = 'nextROIID', choices = rv$nextROIs, selected = max(rv$nextROIs))
   })
   
   observe({
