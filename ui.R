@@ -34,6 +34,8 @@ fluidPage(
                           #   column(1, actionButton('nextSite', label = NULL, icon = icon('arrow-circle-right'), width = '100%',  style="border-color: #f5f5f5; align:center; background-color:#f5f5f5; color:#337ab7; font-size: 100%;font-weight: bold;"))
                           # ),
                           
+                          selectInput("siteType", NULL, choices = c('All', 'Type I', 'Type II', 'Type III', 'NEON', 'SPRUCE'), width = '100'),
+                          
                           fluidRow(
                             column(1, actionButton('previousSite', label = NULL, icon = icon('arrow-circle-left'), width = '100%',  style= "border-color: #303030; align:center; background-color:#303030; color:#337ab7; font-size: 100%;font-weight: bold;")),
                             
@@ -90,8 +92,8 @@ fluidPage(
                           conditionalPanel('input.siteName!=""', {
                             fluidRow(
                               column(1, strong('to', style='font-size:70%')),
-                              column(5, dateInput('maskEndDate', label = NULL, value =  '2099-01-01', startview = 'day')),
-                              column(4, textInput('maskEndTime', label = NULL, value = '00:20:00')),
+                              column(5, dateInput('maskEndDate', label = NULL, value =  '9999-12-31', startview = 'day')),
+                              column(4, textInput('maskEndTime', label = NULL, value = '00:00:00')),
                               column(1, checkboxInput('openEnd', label = '', value = F))
                             )}),
                           

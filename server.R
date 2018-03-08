@@ -67,9 +67,9 @@ shinyServer(function(input, output, session) {
   observeEvent(rv$downloadDir,{
     printLog(paste('downloadDir observed experssion was called.\t'))
     dir.create(rv$downloadDir, showWarnings = FALSE)
-
+    
   })
-
+  
   autoInvalidate <- reactiveTimer(1000)
   
   observe({
@@ -144,11 +144,19 @@ shinyServer(function(input, output, session) {
   observe({
     printLog(paste('phenoSitesList observed experssion was called.\t'))
     
-    phenoSitesList <- sapply(rv$phenoSites, function(x){x$site})
-    names(rv$phenoSites) <- phenoSitesList
-    phenoSitesList <- phenoSitesList[-which(phenoSitesList=='HF_Vivotek')]
+    sitesName <- sapply(rv$phenoSites, function(x){x$site})
+    sitesType <- sapply(rv$phenoSites, function(x){x$site_type})
+    names(rv$phenoSites) <- sitesName
     
-    rv$sitesList <- phenoSitesList
+    f <- switch(input$siteType, 
+                'All'=sitesType%in%c('I','II','III'), 
+                'Type I'=sitesType=='I',
+                'Type II'=sitesType=='II',
+                'Type III'=sitesType=='III',
+                'NEON'=grepl('NEON', sitesName),
+                'SPRUCE'=grepl('spruce', sitesName)&sitesName!='sprucetree')
+    
+    rv$sitesList <- sitesName[which(sitesName!='HF_Vivotek'&f)]
     
   })
   
@@ -461,7 +469,7 @@ shinyServer(function(input, output, session) {
       shinyjs::enable("nextROIID")
       shinyjs::enable("roiDescription")
       shinyjs::enable("roiOwner")   
-      }
+    }
   })
   
   # ----------------------------------------------------------------------
@@ -506,8 +514,8 @@ shinyServer(function(input, output, session) {
     shinyjs::disable('vegType')
     dummy=0
     ROIList <- parseROI(roifilename=input$roiName,
-                      roipath = roipath(), 
-                      downloadDir = rv$downloadDir)
+                        roipath = roipath(), 
+                        downloadDir = rv$downloadDir)
     
     if(is.null(ROIList)) return()
     rv$parsedROIList <- ROIList
@@ -530,7 +538,7 @@ shinyServer(function(input, output, session) {
   
   observe({
     printLog(paste('nextROIs observe experssion was called.\t'))
-
+    
     # autoInvalidate()
     if(input$siteName=='') return()
     nextID <- nextROIID(site = input$siteName, vegType = input$vegType)
@@ -541,9 +549,9 @@ shinyServer(function(input, output, session) {
       dummy <- 0
       rv$nextROIs = rv$parsedROIList$ID
     }
-
+    
   })
-
+  
   observeEvent(rv$nextROIs,{
     printLog(paste('nextROIs was changed  to xxx.\t'))
     
@@ -556,7 +564,7 @@ shinyServer(function(input, output, session) {
     
     # autoInvalidate()
     if(input$siteName=='') return()
-
+    
     dummy <- 0
     template <- paste0(input$siteName, '_', input$vegType)
     sameTemplate <- grepl(template, rv$ROIs)
@@ -573,7 +581,7 @@ shinyServer(function(input, output, session) {
         )
       ) + 1
     n
-
+    
     if(!identical(n , rv$nroi)) {
       printLog(paste('rv$nroi observed experssion was called.\t'))
       rv$nroi <- n
@@ -603,7 +611,7 @@ shinyServer(function(input, output, session) {
     # updateSelectInput(session, inputId = 'vegType', selected = list('Agriculture (AG)'='AG'))
     updateTextInput(session, 'roiDescription', value = '')
     updateTextInput(session, inputId = 'roiOwner', value = '') 
-    })
+  })
   
   roiID <- reactive({
     printLog(paste('roiID reactive experssion was called.\t'))
@@ -837,7 +845,7 @@ shinyServer(function(input, output, session) {
     
     cltpath <- paste0(mainDataPath, '/data/archive/', input$siteName, '/ROI/', input$siteName, '-cli.txt')
     cltpath <- tryDownload(cltpath, downloadDir = rv$downloadDir, Update = T)
-
+    
     clt <- read.csv(cltpath)
     
     clt <- as.data.table(clt)
@@ -910,7 +918,7 @@ shinyServer(function(input, output, session) {
     sampleImageName()
     
   }
-    
+  
   )
   
   
@@ -1070,7 +1078,7 @@ shinyServer(function(input, output, session) {
       par(mar=c(3,0,0,0))
       par(cex.axis = 2)
       clt[,plot(Date, Haze*0, xaxs='i',yaxs='i', yaxt='n', xaxt='s', type='n', ylab = '', ylim = c(0, .1))]
-      })
+    })
   
   output$clPlot <- renderPlot(
     res=36,
@@ -1443,11 +1451,27 @@ shinyServer(function(input, output, session) {
   # ----------------------------------------------------------------------
   output$downloadROI <- downloadHandler(
     filename = function(){
+      tmp <- paste(siteInfo()$date_start, 
+                   ' to ',
+                   siteInfo()$date_end,
+                   '\n',
+                   input$maskStartDate, 
+                   ' to ', 
+                   input$maskEndDate)
+      
+      showModal(strong(modalDialog(tmp,
+                                   style='background-color:#3b3a35; color:#fce319; ',
+                                   easyClose = T,
+                                   size = 's',
+                                   footer = NULL
+      )))
       make.names(paste0(input$roiOwner, '_',roiLabel(),'_roi.zip'))
     },
     content = function(fname){
       printLog(paste('downloadROI downloadHandler experssion was called.\t'))
       if(input$siteName=='') return()
+      
+      
       
       wd <- getwd()
       
@@ -1564,7 +1588,7 @@ shinyServer(function(input, output, session) {
     return()
     dummy <- 0
     n <- length(tsYearDayRange())
-
+    
     if(n<=53) return()
     # if(n<=53|passwordCorrect()) return()
     # if(input$ccRange%in%c("Week", "Month")|passwordCorrect()) return()
@@ -2006,7 +2030,7 @@ shinyServer(function(input, output, session) {
   shinyjs::disable("saveROI")
   shinyjs::disable("downloadROI")
   shinyjs::disable("emailROI")
-
+  
   shinyjs::disable("shiftsList")
   shinyjs::disable("gotoShiftFOV")
   
