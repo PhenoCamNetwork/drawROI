@@ -528,21 +528,21 @@ shinyServer(function(input, output, session) {
   
   
   
-  # observe({
-  #   printLog(paste('nextROIs observe experssion was called.\t'))
-  #   
-  #   autoInvalidate()
-  #   if(input$siteName=='') return()
-  #   nextID <- nextROIID(site = input$siteName, vegType = input$vegType)
-  #   if(identical(rv$nextROIs, nextID)) return()
-  #   if(input$roiName=='New ROI') {
-  #     rv$nextROIs = nextID
-  #   }else{
-  #     dummy <- 0
-  #     rv$nextROIs = rv$parsedROIList$ID
-  #   }
-  #   
-  # })
+  observe({
+    printLog(paste('nextROIs observe experssion was called.\t'))
+
+    # autoInvalidate()
+    if(input$siteName=='') return()
+    nextID <- nextROIID(site = input$siteName, vegType = input$vegType)
+    if(identical(rv$nextROIs, nextID)) return()
+    if(input$roiName=='New ROI') {
+      rv$nextROIs = nextID
+    }else{
+      dummy <- 0
+      rv$nextROIs = rv$parsedROIList$ID
+    }
+
+  })
 
   observeEvent(rv$nextROIs,{
     printLog(paste('nextROIs was changed  to xxx.\t'))
