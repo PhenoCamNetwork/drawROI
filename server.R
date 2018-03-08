@@ -357,17 +357,19 @@ shinyServer(function(input, output, session) {
                                       dummy <- 1
                                       
                                       x <- data.frame(Site = inf$site, 
-                                                      Site.Type = inf$site_type,
+                                                      'Site Type' = inf$site_type,
                                                       MAT = paste0(inf$MAT_worldclim, ' °C'),
                                                       MAP = paste0(inf$MAP_worldclim, ' mm/year'),
-                                                      Koeppen.Class = inf$koeppen_geiger,
+                                                      'Koeppen Class' = inf$koeppen_geiger,
                                                       Latitude = paste0(inf$lat, ' °'),
                                                       Longitude = paste0(inf$lon, ' °'),
                                                       Elevation = paste0(inf$elev, ' m'),
                                                       Descriotion = inf$site_description,
-                                                      Primary.Vegetation = inf$primary_veg_type,
+                                                      'Primary Vegetation' = inf$primary_veg_type,
                                                       Contact1 = inf$contact1,
-                                                      Contact2 = inf$contact2
+                                                      Contact2 = inf$contact2,
+                                                      'Start Date'= inf$date_start,
+                                                      'End Date' = inf$date_end
                                       )
                                       
                                       tx <- t(x)
