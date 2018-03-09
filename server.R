@@ -1130,9 +1130,9 @@ shinyServer(function(input, output, session) {
       if(input$siteName=='') return()
       
       par(mar=c(0,0,0,0))
-      if(is.na(sampleImage())){
+      if(is.na(sampleImage())|(!is.url(sampleImage())&!file.exists(sampleImage()))){
         plot(NA, xlim=c(0,1), ylim=c(0,1), xaxs='i',yaxs='i', xaxt='n', yaxt='n', bty='o', xlab='',ylab='')
-        text(mean(par()$usr[1:2]), mean(par()$usr[3:4]), 'No image for this date was found!', font=2, adj=.5)
+        text(mean(par()$usr[1:2]), mean(par()$usr[3:4]), 'No image for this date was found!', font=2, adj=.5, cex=2)
       }else{
         dummy <- 0
         jp <- plotJPEG(sampleImage(),  downloadDir = rv$downloadDir)
@@ -1164,9 +1164,9 @@ shinyServer(function(input, output, session) {
       if(input$siteName=='') return()
       
       par(mar=c(0,0,0,0))
-      if(is.na(sampleImage())){
+      if(is.na(sampleImage())|(!is.url(sampleImage())&!file.exists(sampleImage()))){
         plot(NA, xlim=c(0,1), ylim=c(0,1), xaxs='i',yaxs='i', xaxt='n', yaxt='n', bty='o', xlab='',ylab='')
-        text(mean(par()$usr[1:2]), mean(par()$usr[3:4]), 'No image for this date was found!', font=2, adj=.5)
+        text(mean(par()$usr[1:2]), mean(par()$usr[3:4]), 'No image for this date was found!', font=2, adj=.5, cex=2)
       }else{
         dummy <- 0
         jp <- plotJPEG(sampleImage(),  downloadDir = rv$downloadDir)
@@ -1197,11 +1197,15 @@ shinyServer(function(input, output, session) {
       printLog(paste('imagePlot2 renderPlot experssion was called.\t'))
       
       if(input$siteName=='') return()
-      
-      dummy <- 0
+      copiedImage <- imgDT()[,path][rv$LinkedID]
       par(mar=c(0,0,0,0))
-      jp <- plotJPEG(imgDT()[,path][rv$LinkedID],  downloadDir = rv$downloadDir)
+      if(is.na(copiedImage)|(!is.url(copiedImage)&!file.exists(copiedImage))){
+        plot(NA, xlim=c(0,1), ylim=c(0,1), xaxs='i',yaxs='i', xaxt='n', yaxt='n', bty='o', xlab='',ylab='')
+        text(mean(par()$usr[1:2]), mean(par()$usr[3:4]), 'No image for this date was found!', font=2, adj=.5, cex=2)
+      }else{
+      jp <- plotJPEG(copiedImage,  downloadDir = rv$downloadDir)
       putImageFooter(id = rv$LinkedID, mrgDT = mergedTable(), footer = 'copied image', grid = input$showGrid)
+      }
     })
   
   
