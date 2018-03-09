@@ -55,9 +55,9 @@ draw.polygon <-
 extractCCC <- function(path, m, downloadDir){
   
   path <- tryDownload(path, downloadDir = downloadDir, showLoad = F, Update = F)
-  if(!file.exists(path)) return(  list(rcc = NA,
-                                       gcc = NA,
-                                       bcc = NA))
+  if(is.null(path)) return(  list(rcc = NA,
+                                  gcc = NA,
+                                  bcc = NA))
   jp <- readJPEG(path)
   dm <- dim(jp)
   rgb <- jp
@@ -378,7 +378,7 @@ getIMG.DT <- function(sites){
       tbl <- data.table( DateJSON = as.Date(sapply(mdiJSON$images, function(x){x$date })),
                          path = as.character(sapply(mdiJSON$images, function(x){x$midimg})))
     }
-  
+    
     imgDT.tmp <- as.data.table(tbl)
     imgDT.tmp$path <- paste0(mainDataPath, imgDT.tmp$path)
     imgDT <- rbind(imgDT, imgDT.tmp)
