@@ -55,6 +55,9 @@ draw.polygon <-
 extractCCC <- function(path, m, downloadDir){
   
   path <- tryDownload(path, downloadDir = downloadDir, showLoad = F, Update = F)
+  if(!file.exists(path)) return(  list(rcc = NA,
+                                       gcc = NA,
+                                       bcc = NA))
   jp <- readJPEG(path)
   dm <- dim(jp)
   rgb <- jp
