@@ -232,7 +232,7 @@ shinyServer(function(input, output, session) {
     clt <- clt[blackness<=.8&Haze<=input$hazeThreshold]
     # clt[,Group:=rep(1:.N, each=3, length.out=.N)]
     # clt[,HzMed:=median(as.double(na.omit(Horizon))),Group]
-    clt[, dHz := diff(Horizon)]
+    clt[, dHz := c(diff(Horizon), 0)]
     shiftsList1 <- as.Date(clt[abs(dHz)>as.numeric(input$shiftsList1.Threshold), Date])
     rv$shiftsList1 <- shiftsList1
     
@@ -632,17 +632,17 @@ shinyServer(function(input, output, session) {
   observeEvent(input$nextROIID,{
     printLog(paste('input$nextROIID was changed to:', '\t',input$nextROIID))
     if(input$siteName=='') return()
-    
+   dummy <- 0 
     rv$slideShow <- 0 
     if(length(rv$MASKs)==0) return()
     
     maskNames <- names(rv$MASKs)
     f <- function(x, y){
       z <- unlist(strsplit(x, '_'))
-      paste(c(z[1:2], y, z[4]), collapse = '_')
+      paste(c(z[1:2], sprintf('%04d',(y)), z[4]), collapse = '_')
     }
     
-    newmaskNames <- as.vector(sapply(maskNames, f, y = input$nextROIID))
+    newmaskNames <- as.vector(sapply(maskNames, f, y = as.numeric(input$nextROIID)))
     if(!is.null(rv$MASKs))names(rv$MASKs) <- newmaskNames
     updateSelectInput(session, inputId = 'maskName', choices = c(names(rv$MASKs), 'New mask'))
   })
@@ -943,6 +943,7 @@ shinyServer(function(input, output, session) {
   observeEvent(input$matchEnd, {
     printLog(paste('input$matchEnd was changed to:', '\t',input$matchEnd))
     if(input$siteName=='') return()
+    updateCheckboxInput(session, 'openEnd', value = F)
     
     tmp <- unlist(strsplit(sampleImageName(), '_'))
     endDate <- as.Date(paste(tmp[2:4], collapse = '-'))
@@ -1460,10 +1461,13 @@ shinyServer(function(input, output, session) {
       tmp <- paste(siteInfo()$date_start, 
                    ' to ',
                    siteInfo()$date_end,
-                   '\n',
-                   input$maskStartDate, 
+                   '<br/> ',
+                   # input$maskStartDate, 
+                   min(sapply(rv$MASKs, function(x)as.character(x$startdate))),
                    ' to ', 
-                   input$maskEndDate)
+                   max(sapply(rv$MASKs, function(x)as.character(x$enddate)))
+                   # input$maskEndDate
+                   )
       
       showModal(strong(modalDialog(tmp,
                                    style='background-color:#3b3a35; color:#fce319; ',
