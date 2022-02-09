@@ -8,7 +8,7 @@
 #######################################################################
 fluidPage(
   theme= shinytheme('darkly'),
-  shinyjs::useShinyjs(),  
+  shinyjs::useShinyjs(),
   tags$head(tags$style(HTML( "#Select1 ~ .selectize-control.single .selectize-input {border: 1px solid #fff;}"))),
   # dashboardPage( 
   tabsetPanel(
@@ -16,7 +16,6 @@ fluidPage(
              # headerPanel("PhenoCam ROI Tool"),
              br(),
              sidebarPanel(width = 4,
-                          # directoryInput('directory', label = 'cache directory', value = tempdir()),
                           conditionalPanel(condition="output.showClearCache=='TRUE'", 
                                            fixedRow(
                                              column(9, htmlOutput('cacheDir')),
@@ -35,7 +34,6 @@ fluidPage(
                           # ),
                           
                           selectInput("siteType", NULL, choices = c('All', 'Type I', 'Type II', 'Type III', 'NEON', 'SPRUCE'), width = '100'),
-                          
                           fluidRow(
                             column(1, actionButton('previousSite', label = NULL, icon = icon('arrow-circle-left'), width = '100%',  style= "border-color: #303030; align:center; background-color:#303030; color:#337ab7; font-size: 100%;font-weight: bold;")),
                             
@@ -56,7 +54,7 @@ fluidPage(
                           br(),
                           fluidRow(
                             column(10, selectInput("roiName", "ROI", 'New ROI')),
-                            column(2, actionButton('refreshROI', label = NULL, icon = icon('refresh'), width = '100%', style="border-color: #303030; align:center; background-color:#303030; color:#337ab7; font-size: 100%;font-weight: bold;")),
+                            column(2, actionButton('refreshROI', label = NULL, icon = icon('sync'), width = '100%', style="border-color: #303030; align:center; background-color:#303030; color:#337ab7; font-size: 100%;font-weight: bold;")),
                             
                             br(),
                             br(),
@@ -123,20 +121,20 @@ fluidPage(
                           strong(dateInput('gotoDate', label = 'Goto Date'), style='font-size:100%;font-weight: bold;')
                           # fluidRow(
                           #   column(9, strong(dateInput('gotoDate', label = ''), style='font-size:20%;font-weight: bold;')),
-                          #   column(3, actionButton('gotoDateButton', label = NULL, icon = icon('refresh'), width = '100%', 
+                          #   column(3, actionButton('gotoDateButton', label = NULL, icon = icon('sync'), width = '100%', 
                           #                          style="background-color: #222222; border-color: #222222; align:center; font-size: 100%;font-weight: bold;"))
                           # )
                    ),
                    column(2, sliderInput('hazeThreshold', label = 'Haze threshold', min = 0, max = 1, value = .4, step = .01)),
                    
                    column(2, selectInput('shiftsList1', label = 'Horizon Shifts', choices = c(Choose=''), width = '100%')),
-                   # column(1, actionButton('goShift1', label = NULL, icon = icon('refresh'), width = '100%', 
+                   # column(1, actionButton('goShift1', label = NULL, icon = icon('sync'), width = '100%', 
                    #                        style="border-color: #fff; align:center; font-size: 200%;font-weight: bold;")),
                    # column(2, selectInput('shiftsList1.Threshold', label = 'Threshold (px)', choices = c(1:10, 15:30), selectize = T, selected = 10)),
                    column(2, sliderInput('shiftsList1.Threshold', label = 'Threshold (px)', min = 1, max = 100, value = 20, step = 1)),
                    
                    column(2, selectInput('shiftsList2', label = 'Correlation Shifts', choices = c(Choose=''), width = '100%')),
-                   # column(1, actionButton('goShift2', label = NULL, icon = icon('refresh'), width = '100%', 
+                   # column(1, actionButton('goShift2', label = NULL, icon = icon('sync'), width = '100%', 
                    #                        style="border-color: #fff; align:center; font-size: 200%;font-weight: bold;"))
                    # column(2, selectInput('shiftsList2.Threshold', label = 'Threshold', selectize = T, choices = c(.01, 0.02, .05, .1, .15, .2, .3, .4, .5, .6, .75), selected = .05))
                    column(2, sliderInput('shiftsList2.Threshold', label = 'Threshold (R)', min = 0, max = 1, value = .02, step = .01))
@@ -165,7 +163,7 @@ fluidPage(
                    # column(3, 
                    #        fluidRow( 
                    #          column(8, strong(dateInput('gotoDate', label = ''), style='font-size:20%;font-weight: bold;')),
-                   #          column(4, actionButton('gotoDateButton', label = NULL, icon = icon('refresh'), width = '100%', style="background-color: #222222; border-color: #222222; align:center; font-size: 200%;font-weight: bold;"))
+                   #          column(4, actionButton('gotoDateButton', label = NULL, icon = icon('sync'), width = '100%', style="background-color: #222222; border-color: #222222; align:center; font-size: 200%;font-weight: bold;"))
                    #        )
                    # ),
                    column(12, sliderInput(inputId = "contID",
@@ -305,7 +303,7 @@ fluidPage(
                         
                         selectInput('ccInterval', label = 'Interval', choices = c(1:7, 10, 15, 20, 30), selected = 1, width = '50px'),
                         
-                        actionButton("startExtractCC", "Extract", icon = icon('line-chart'), onclick="Shiny.onInputChange('stopThis',false)", width = "110px", style="background-color:#666; color:#fff;font-weight: bold;"),
+                        actionButton("startExtractCC", "Extract", icon = icon('chart-line'), onclick="Shiny.onInputChange('stopThis',false)", width = "110px", style="background-color:#666; color:#fff;font-weight: bold;"),
                         hr(),
                         checkboxGroupInput('ccBand', label = NULL, choices = c(Red='R', Green='G', Blue='B', Haze= 'H'), selected = c('R','G','B'), width = '100%', inline = F),
                         hr(),
@@ -339,7 +337,7 @@ fluidPage(
                                                                              'No, it just returned an error message.',
                                                                              'No, but the output does not make sense.',
                                                                              'No, I have some suggestions.'), selected = ''),
-                 actionButton("errorSend", "Submit", width = '100%', icon = icon('send'), class="btn-primary")
+                 actionButton("errorSend", "Submit", width = '100%', icon = icon('paper-plane'), class="btn-primary")
                ),
                
                mainPanel( 
