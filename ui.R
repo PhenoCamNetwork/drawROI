@@ -317,9 +317,9 @@ fluidPage(
              # conditionalPanel('input.siteName==""', {strong('Select a site from the ROI Tool first!')})
     ),
     
-    tabPanel('FOV Shifts Monitor', 
-             tags$iframe(src='http://134.114.109.3:3838/phenoShifts/', height=1000, width='100%')
-    ),
+    ## tabPanel('FOV Shifts Monitor', 
+    ##          tags$iframe(src='http://134.114.109.3:3838/phenoShifts/', height=1000, width='100%')
+    ## ),
     
     tabPanel('Report Errors', 
              fluidPage(
