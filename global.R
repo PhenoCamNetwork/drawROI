@@ -45,7 +45,7 @@ CACHE_LIMIT <- 500
 PRINT_LOGS <- TRUE
 if(system('hostname', intern=T)%in%c('phenocam')) PRINT_LOGS <- T
    
-HTTP_LOAD <- FALSE  
+HTTP_LOAD <- TRUE
 # if(system('hostname', intern=T)%in%c('phenocam')&
 #    system('whoami', intern=T)%in%c('bijan')) HTTP_LOAD <- F
 
