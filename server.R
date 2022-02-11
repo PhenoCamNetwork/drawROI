@@ -846,7 +846,12 @@ shinyServer(function(input, output, session) {
       )))
     
     cltpath <- paste0(mainDataPath, '/data/archive/', input$siteName, '/ROI/', input$siteName, '-cli.txt')
+
+    printLog(paste('cltpath: ', cltpath))
+    
     cltpath <- tryDownload(cltpath, downloadDir = rv$downloadDir, Update = T)
+
+    printLog(paste('cltpath: ', cltpath))
     
     clt <- read.csv(cltpath)
     
