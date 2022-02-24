@@ -35,7 +35,7 @@ list.of.packages <- c(
 )
 
 new.packages <- list.of.packages[!(list.of.packages %in% installed.packages()[,"Package"])]
-if(length(new.packages)) install.packages(new.packages, repos='http://cran.rstudio.com/')
+if(length(new.packages)) install.packages(new.packages, repos='http://cran.rstudio.com/', type="source")
 
 for(p in list.of.packages) library(p, character.only = T)
 
@@ -45,13 +45,13 @@ CACHE_LIMIT <- 500
 PRINT_LOGS <- TRUE
 if(system('hostname', intern=T)%in%c('phenocam')) PRINT_LOGS <- T
    
-HTTP_LOAD <- FALSE  
+HTTP_LOAD <- TRUE
 # if(system('hostname', intern=T)%in%c('phenocam')&
 #    system('whoami', intern=T)%in%c('bijan')) HTTP_LOAD <- F
 
 SHINY_SERVER <- FALSE
-if(system('hostname', intern=T)%in%c('phenocam')&
-   system('whoami', intern=T)%in%c('shiny')) SHINY_SERVER <- T
+## if(system('hostname', intern=T)%in%c('phenocam')&
+##    system('whoami', intern=T)%in%c('shiny')) SHINY_SERVER <- T
 
 
 sitesInfoURL <- 'https://phenocam.sr.unh.edu/webcam/network/siteinfo/'
