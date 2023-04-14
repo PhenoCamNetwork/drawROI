@@ -40,26 +40,20 @@ if(length(new.packages)) install.packages(new.packages, repos='http://cran.rstud
 for(p in list.of.packages) library(p, character.only = T)
 
 
-CACHE_LIMIT <- 500
+CACHE_LIMIT <- 5000
 
 PRINT_LOGS <- TRUE
 if(system('hostname', intern=T)%in%c('phenocam')) PRINT_LOGS <- T
    
-HTTP_LOAD <- TRUE
-# if(system('hostname', intern=T)%in%c('phenocam')&
-#    system('whoami', intern=T)%in%c('bijan')) HTTP_LOAD <- F
-
-SHINY_SERVER <- FALSE
-if(system('hostname', intern=T)%in%c('phenocam')&
-   system('whoami', intern=T)%in%c('shiny')) SHINY_SERVER <- T
-
-
-sitesInfoURL <- 'https://phenocam.nau.edu/webcam/network/siteinfo/'
+HTTP_LOAD <- FALSE
+SHINY_SERVER <- TRUE
+SHINY_SERVER_FQDN = Sys.getenv("HOSTNAME")
+sitesInfoURL <- paste0('https://', SHINY_SERVER_FQDN, '/webcam/network/siteinfo/')
 
 if(HTTP_LOAD){
-  middayListPath <- 'https://phenocam.nau.edu/webcam/network/middayimglist/'
-  mainDataPath <- 'https://phenocam.nau.edu'
-}else{
+  middayListPath <- paste0('https://', SHINY_SERVER_FQDN,  '/webcam/network/middayimglist/')
+  mainDataPath <- paste0('https://', SHINY_SERVER_FQDN)
+  }else{
   middayListPath <- '/data/archive/'
   mainDataPath <- ''
 }

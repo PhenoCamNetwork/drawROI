@@ -70,7 +70,7 @@ shinyServer(function(input, output, session) {
     
   })
   
-  autoInvalidate <- reactiveTimer(1000)
+  autoInvalidate <- reactiveTimer(360000)
   
   observe({
     printLog(paste('vegTypes initial observed experssion was called.\t'))
@@ -1116,7 +1116,7 @@ shinyServer(function(input, output, session) {
       
       legend('right',
              bty = 'n', cex = 2, text.font = 2, lwd = 4,
-             legend = c('Horizone', 'Correlation'), 
+             legend = c('Horizon', 'Correlation'), 
              col = c('yellow', 'orange'), 
              text.col = c('yellow', 'orange'))
     }
