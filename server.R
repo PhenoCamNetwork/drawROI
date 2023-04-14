@@ -396,7 +396,7 @@ shinyServer(function(input, output, session) {
     printLog(paste('dirroipath observed experssion was called.\t'))
     if(input$siteName=='') return()
     
-    # ROIsJSON <- jsonlite::fromJSON(txt = paste0('https://phenocam.sr.unh.edu/webcam/roi/roilistinfo/', input$siteName))
+    # ROIsJSON <- jsonlite::fromJSON(txt = paste0('https://phenocam.nau.edu/webcam/roi/roilistinfo/', input$siteName))
     
     if(is.url(roipath())){
       dirHTML(url = roipath(), sitename = input$siteName, pattern = 'roi.csv$')

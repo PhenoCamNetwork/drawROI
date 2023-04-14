@@ -373,7 +373,7 @@ getIMG.DT <- function(sites){
     }else if(file.exists(tmp)){
       tbl <- read.table(tmp, header = F, colClasses = 'character', col.names = 'path')
     }else{
-      tmp <- paste0('https://phenocam.sr.unh.edu/webcam/network/middayimglist/', site,'/')
+      tmp <- paste0('https://phenocam.nau.edu/webcam/network/middayimglist/', site,'/')
       mdiJSON = fromJSON(file = tmp)
       tbl <- data.table( DateJSON = as.Date(sapply(mdiJSON$images, function(x){x$date })),
                          path = as.character(sapply(mdiJSON$images, function(x){x$midimg})))
@@ -548,7 +548,7 @@ addMaskPlot <- function(mask, add = T, col='black'){
 }
 
 nextROIID <- function(site, vegType){
-  url <- paste0('https://phenocam.sr.unh.edu/webcam/roi/roilistinfo/', site, '/?unlinked=yes')
+  url <- paste0('https://phenocam.nau.edu/webcam/roi/roilistinfo/', site, '/?unlinked=yes')
   if(!url.exists(url)) return(c(1, 1000))
   
   roisLst <- fromJSON(file = url)

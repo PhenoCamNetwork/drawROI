@@ -54,11 +54,11 @@ if(system('hostname', intern=T)%in%c('phenocam')&
    system('whoami', intern=T)%in%c('shiny')) SHINY_SERVER <- T
 
 
-sitesInfoURL <- 'https://phenocam.sr.unh.edu/webcam/network/siteinfo/'
+sitesInfoURL <- 'https://phenocam.nau.edu/webcam/network/siteinfo/'
 
 if(HTTP_LOAD){
-  middayListPath <- 'https://phenocam.sr.unh.edu/webcam/network/middayimglist/'
-  mainDataPath <- 'https://phenocam.sr.unh.edu'
+  middayListPath <- 'https://phenocam.nau.edu/webcam/network/middayimglist/'
+  mainDataPath <- 'https://phenocam.nau.edu'
 }else{
   middayListPath <- '/data/archive/'
   mainDataPath <- ''
