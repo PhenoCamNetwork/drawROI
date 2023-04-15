@@ -548,11 +548,7 @@ addMaskPlot <- function(mask, add = T, col='black'){
 }
 
 nextROIID <- function(site, vegType){
-<<<<<<< HEAD
-  url <- paste0('https://phenocam.nau.edu/webcam/roi/roilistinfo/', site, '/?unlinked=yes')
-=======
   url <- paste0('https://',SHINY_SERVER_FQDN, '/webcam/roi/roilistinfo/', site, '/?unlinked=yes')
->>>>>>> 849add0 (working development branch)
   if(!url.exists(url)) return(c(1, 1000))
   
   roisLst <- fromJSON(file = url)
