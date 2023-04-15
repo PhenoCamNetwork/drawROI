@@ -3,7 +3,7 @@ Getting started with drawROI
 
 ### Introduction
 
-**drawROI** is an interactive application that facilitates extraction of time-series data from digital repeat photography. Although the main purpose of **drawROI** is to serve the [PhenoCam Network](https://phenocam.sr.unh.edu/), it significantly facilitates extraction of phenological data from any stack of digital repeat photography images.
+**drawROI** is an interactive application that facilitates extraction of time-series data from digital repeat photography. Although the main purpose of **drawROI** is to serve the [PhenoCam Network](https://phenocam.nau.edu/), it significantly facilitates extraction of phenological data from any stack of digital repeat photography images.
 
 **drawROI** provides a responsive environment for phenological scientists to interactively a) delineate [ROIs](https://en.wikipedia.org/wiki/Region_of_interest), b) handle field of view (FOV) shifts, and c) extract and export time series data characterizing image color (i.e. red, green and blue channel digital numbers for the defined ROI).
 
