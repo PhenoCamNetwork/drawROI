@@ -6,7 +6,15 @@
 #
 # Most recent release: https://github.com/bnasr/drawROI
 #######################################################################
+print('UI Page Top')
+
 fluidPage(
+  
+  # observeEvent(input$siteName, {
+  #   print(paste0("input$siteName value: ", input$siteName))
+  # }),
+  
+  
   theme= shinytheme('darkly'),
   shinyjs::useShinyjs(),
   tags$head(tags$style(HTML( "#Select1 ~ .selectize-control.single .selectize-input {border: 1px solid #fff;}"))),
@@ -83,7 +91,7 @@ fluidPage(
                           
                           conditionalPanel('input.siteName!=""', {fluidRow(
                             column(1, strong('from', style='font-size:70%;font-weight: bold;')),
-                            column(5, dateInput('maskStartDate', label = NULL, value =  '2001-01-01', startview = 'day')),
+                            column(5, dateInput('maskStartDate', label = NULL, value =  '2023-01-01', startview = 'day')),
                             column(4, textInput('maskStartTime', label = NULL, value = '00:08:00')),
                             column(1, '')
                           )}),
@@ -121,7 +129,7 @@ fluidPage(
                           strong(dateInput('gotoDate', label = 'Goto Date'), style='font-size:100%;font-weight: bold;')
                           # fluidRow(
                           #   column(9, strong(dateInput('gotoDate', label = ''), style='font-size:20%;font-weight: bold;')),
-                          #   column(3, actionButton('gotoDateButton', label = NULL, icon = icon('sync'), width = '100%', 
+                          #   column(3, actionButton('gotoDateButton', label = NULL, icon = icon('sync'), width = '100%',
                           #                          style="background-color: #222222; border-color: #222222; align:center; font-size: 100%;font-weight: bold;"))
                           # )
                    ),

@@ -53,15 +53,23 @@ SHINY_SERVER <- FALSE
 ## if(system('hostname', intern=T)%in%c('phenocam')&
 ##    system('whoami', intern=T)%in%c('shiny')) SHINY_SERVER <- T
 
-
-sitesInfoURL <- 'https://phenocam.sr.unh.edu/webcam/network/siteinfo/'
+## TODO middayListPath does not seem to exist. Get correct address.
+# sitesInfoURL <- 'https://phenocam.sr.unh.edu/webcam/network/siteinfo/'
+sitesInfoURL <- 'https://phenocam.nau.edu/webcam/network/siteinfo/'
 
 if(HTTP_LOAD){
-  middayListPath <- 'https://phenocam.sr.unh.edu/webcam/network/middayimglist/'
-  mainDataPath <- 'https://phenocam.sr.unh.edu'
+  # https://phenocam.nau.edu/webcam/network/middayimglist/ecb4/
+  # middayListPath <- 'https://phenocam.nau.edu/webcam/middayimglist/'
+  # middayListPath <- 'https://phenocam.nau.edu/webcam/network/middayimglist/'
+  # TODO remove this for proiduction code. 
+  middayListPath <- 'sftp://mkf58@monsoon.hpc.nau.edu/projects/phenocam/data/archive/'
+  middayListPathTxt <- 'https://phenocam.nau.edu/data/archive/'
+  mainDataPath <- 'https://phenocam.nau.edu'
 }else{
   middayListPath <- '/data/archive/'
   mainDataPath <- ''
 }
+
+print('Global Page Bottom')
 
 

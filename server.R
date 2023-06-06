@@ -6,7 +6,7 @@
 #
 # Most recent release: https://github.com/bnasr/drawROI
 #######################################################################
-
+print('Server Page top.')
 shinyServer(function(input, output, session) {
   printLog(init=T)
   
@@ -118,6 +118,10 @@ shinyServer(function(input, output, session) {
   # ----------------------------------------------------------------------
   # imgDT
   # ----------------------------------------------------------------------
+  #TODO see if the siteName runs and what its value is since it causes a
+  # crash given the conditional panel is based on it. 
+  # print(paste0('Server site name panel: ', input$siteName))
+  
   imgDT <- reactive({
     printLog(paste('imgDT reactive experssion was called.\t'))
     if(input$siteName=='') return()
@@ -202,6 +206,8 @@ shinyServer(function(input, output, session) {
     
     dmin <- imgDT()[Site==input$siteName, min(Date)]
     dmax <- imgDT()[Site==input$siteName, max(Date)]
+    
+    print(paste0('gotoDate, dmin, dmax: ', dmin, ', ', dmax))
     updateDateInput(session, 'gotoDate', value = dmin, min = dmin, max = dmax)
     
     
@@ -998,6 +1004,12 @@ shinyServer(function(input, output, session) {
   })
   
   observeEvent(input$gotoDate,{
+    # innput$date = "9999-12-31"
+    print(paste0('input$gotoDate: ', input$gotoDate, ' test: ', is.null(input$gotoDate)))
+    # if(is.null(input$gotoDate) || is.null(input$gotoDate) || input$gotoDate == ' '){
+    #   print('entered if statement.')
+    #   input$gotoDate = as.Date('9999-12-31', format = '%Y%m%d')
+    # }
     printLog(paste('input$gotoDate was changed to:', '\t',input$gotoDate))
     if(input$siteName=='') return()
     
