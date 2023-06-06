@@ -364,23 +364,35 @@ getIMG.DT <- function(sites){
   imgDT <- data.table()
   
   for(site in sites){
-    # tmp <- paste0(middayListPath, site, '/ROI/',site,'-midday.txt')
-    tmp <- paste0(middayListPathTxt, site, '/ROI/',site,'-midday.txt')
-    print(tmp)
+    # # tmp <- paste0(middayListPath, site, '/ROI/',site,'-midday.txt')
+    # tmp <- paste0(middayListPathTxt, site, '/ROI/',site,'-midday.txt')
+    # print(tmp)
+    # 
+    # # if(is.url(middayListPath)){
+    # #   mdiJSON = fromJSON(file = paste0(middayListPath, site,'/'))
+    # #   tbl <- data.table( DateJSON = as.Date(sapply(mdiJSON$images, function(x){x$date })),
+    # #                      path = as.character(sapply(mdiJSON$images, function(x){x$midimg})))
+    # # }else 
+    # if(file.exists(tmp)){
+    #   print('IF BLOCK')
+    #   # tbl <- read.table(tmp, header = F, colClasses = 'character', col.names = 'path')
+    # }else{
+    #   print('ELSE BLOCK')
+    #   # tmp <- paste0('https://phenocam.nau.edu/webcam/network/middayimglist/', site,'/')
+    #   # mdiJSON = fromJSON(file = tmp)
+    #   # tbl <- data.table( DateJSON = as.Date(sapply(mdiJSON$images, function(x){x$date })),
+    #   #                    path = as.character(sapply(mdiJSON$images, function(x){x$midimg})))
+    # }
     
-    # if(is.url(middayListPath)){
-    #   mdiJSON = fromJSON(file = paste0(middayListPath, site,'/'))
-    #   tbl <- data.table( DateJSON = as.Date(sapply(mdiJSON$images, function(x){x$date })),
-    #                      path = as.character(sapply(mdiJSON$images, function(x){x$midimg})))
-    # }else 
-    if(file.exists(tmp)){
-      tbl <- read.table(tmp, header = F, colClasses = 'character', col.names = 'path')
-    }else{
-      tmp <- paste0('https://phenocam.nau.edu/webcam/network/middayimglist/', site,'/')
-      mdiJSON = fromJSON(file = tmp)
-      tbl <- data.table( DateJSON = as.Date(sapply(mdiJSON$images, function(x){x$date })),
-                         path = as.character(sapply(mdiJSON$images, function(x){x$midimg})))
-    }
+    # code to test parsing new image data
+    # Tom's new API implementation MKF 6/6/2023
+    tmp = paste0('https://phenocam.nau.edu/api/middayimages/', site, '/')
+    mdiJSON = fromJSON(file = tmp)
+    print(paste0('mdiJSON new: ', mdiJSON))
+    tbl = data.table( DateJSON = as.Date(sapply(mdiJSON, function(x){x$imgdate })),
+                             path = as.character(sapply(mdiJSON, function(x){x$imgpath})))
+    # tbl_newAPI = fromJSON(file = tmp_newAPI)
+    print(paste0('tbl_newAPI:    ', tbl))
     
     imgDT.tmp <- as.data.table(tbl)
     imgDT.tmp$path <- paste0(mainDataPath, imgDT.tmp$path)
