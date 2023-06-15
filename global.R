@@ -35,36 +35,32 @@ list.of.packages <- c(
 )
 
 new.packages <- list.of.packages[!(list.of.packages %in% installed.packages()[,"Package"])]
-if(length(new.packages)) install.packages(new.packages, repos='http://cran.rstudio.com/', type="source")
+if(length(new.packages)) install.packages(new.packages, repos='http://cran.rstudio.com/')
 
 for(p in list.of.packages) library(p, character.only = T)
 
 
-CACHE_LIMIT <- 500
+CACHE_LIMIT <- 5000
 
 PRINT_LOGS <- TRUE
 if(system('hostname', intern=T)%in%c('phenocam')) PRINT_LOGS <- T
    
 HTTP_LOAD <- TRUE
-# if(system('hostname', intern=T)%in%c('phenocam')&
-#    system('whoami', intern=T)%in%c('bijan')) HTTP_LOAD <- F
-
 SHINY_SERVER <- FALSE
-## if(system('hostname', intern=T)%in%c('phenocam')&
-##    system('whoami', intern=T)%in%c('shiny')) SHINY_SERVER <- T
 
-## TODO middayListPath does not seem to exist. Get correct address.
-# sitesInfoURL <- 'https://phenocam.sr.unh.edu/webcam/network/siteinfo/'
-sitesInfoURL <- 'https://phenocam.nau.edu/webcam/network/siteinfo/'
+SHINY_SERVER_FQDN = Sys.getenv("HOSTNAME")
+# For Testing on local system
+SHINY_SERVER_FQDN = 'phenocam.nau.edu'
 
+sitesInfoURL <- paste0('https://', SHINY_SERVER_FQDN, '/webcam/network/siteinfo/')
+print(paste0('sitesInfoURL: ', sitesInfoURL))
+# sitesInfoURL <- 'https://phenocam.nau.edu/webcam/network/siteinfo/'
+# print(paste0('sitesInfoURL: ', sitesInfoURL))
+
+middayListPath <- 'https://phenocam.nau.edu/api/middayimages/'
 if(HTTP_LOAD){
-  # https://phenocam.nau.edu/webcam/network/middayimglist/ecb4/
-  # middayListPath <- 'https://phenocam.nau.edu/webcam/middayimglist/'
-  # middayListPath <- 'https://phenocam.nau.edu/webcam/network/middayimglist/'
-  # TODO remove this for proiduction code. 
-  middayListPath <- 'sftp://mkf58@monsoon.hpc.nau.edu/projects/phenocam/data/archive/'
-  middayListPathTxt <- 'https://phenocam.nau.edu/data/archive/'
   mainDataPath <- 'https://phenocam.nau.edu'
+
 }else{
   middayListPath <- '/data/archive/'
   mainDataPath <- ''

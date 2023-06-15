@@ -16,7 +16,9 @@ is.url <-function(x) {
 plotJPEG <- function(path, add=FALSE, xlim = NULL, ylim = NULL, downloadDir, showLoad = F, Update = F)
 {
   jpgNonNative <- NULL
+  print(paste0('path fail: ', path))
   path <- tryDownload(path, downloadDir = downloadDir, showLoad = showLoad, Update = Update)
+  # print(paste0('path fail: ', path))
   jpgNative <-  readJPEG(path, native=T) # read the file
   res <-  dim(jpgNative)[2:1] # get the resolution
   if(is.null(xlim)) xlim <- c(1,res[1])
@@ -386,6 +388,7 @@ getIMG.DT <- function(sites){
     
     # code to test parsing new image data
     # Tom's new API implementation MKF 6/6/2023
+    # TODO probably should move the URL to the global.R script.
     tmp = paste0('https://phenocam.nau.edu/api/middayimages/', site, '/')
     mdiJSON = fromJSON(file = tmp)
     print(paste0('mdiJSON new: ', mdiJSON))
@@ -564,7 +567,8 @@ addMaskPlot <- function(mask, add = T, col='black'){
 }
 
 nextROIID <- function(site, vegType){
-  url <- paste0('https://phenocam.sr.unh.edu/webcam/roi/roilistinfo/', site, '/?unlinked=yes')
+  # url <- paste0('https://phenocam.nau.edu/webcam/roi/roilistinfo/', site, '/?unlinked=yes')
+  url <- paste0('https://',SHINY_SERVER_FQDN, '/webcam/roi/roilistinfo/', site, '/?unlinked=yes')
   if(!url.exists(url)) return(c(1, 1000))
   
   roisLst <- fromJSON(file = url)

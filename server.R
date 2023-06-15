@@ -70,7 +70,7 @@ shinyServer(function(input, output, session) {
     
   })
   
-  autoInvalidate <- reactiveTimer(1000)
+  autoInvalidate <- reactiveTimer(360000) # was 1000
   
   observe({
     printLog(paste('vegTypes initial observed experssion was called.\t'))
@@ -255,6 +255,7 @@ shinyServer(function(input, output, session) {
     rv$slideShow <- 0
     dummy <- 1
     tmpDT <- dayYearIDTable()
+    print(paste0(input$shiftsList1)) # TODO remove once done debugging 
     tmpDT[, dif:=abs(Date- as.Date(input$shiftsList1))]
     id <- tmpDT[dif==min(dif), ID]
     rv$newContID <- id
@@ -1004,12 +1005,7 @@ shinyServer(function(input, output, session) {
   })
   
   observeEvent(input$gotoDate,{
-    # innput$date = "9999-12-31"
     print(paste0('input$gotoDate: ', input$gotoDate, ' test: ', is.null(input$gotoDate)))
-    # if(is.null(input$gotoDate) || is.null(input$gotoDate) || input$gotoDate == ' '){
-    #   print('entered if statement.')
-    #   input$gotoDate = as.Date('9999-12-31', format = '%Y%m%d')
-    # }
     printLog(paste('input$gotoDate was changed to:', '\t',input$gotoDate))
     if(input$siteName=='') return()
     
@@ -1128,7 +1124,7 @@ shinyServer(function(input, output, session) {
       
       legend('right',
              bty = 'n', cex = 2, text.font = 2, lwd = 4,
-             legend = c('Horizone', 'Correlation'), 
+             legend = c('Horizon', 'Correlation'), 
              col = c('yellow', 'orange'), 
              text.col = c('yellow', 'orange'))
     }
