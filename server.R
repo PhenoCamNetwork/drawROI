@@ -248,18 +248,31 @@ shinyServer(function(input, output, session) {
   
   
   observeEvent(input$shiftsList1,{
-    printLog(paste('input$shiftsList1 was changed to:', '\t',input$shiftsList1))
-    if(input$siteName=='') return()
-    
-    if(input$shiftsList1=='') return()
-    rv$slideShow <- 0
-    dummy <- 1
-    tmpDT <- dayYearIDTable()
-    print(paste0(input$shiftsList1)) # TODO remove once done debugging 
-    tmpDT[, dif:=abs(Date- as.Date(input$shiftsList1))]
-    id <- tmpDT[dif==min(dif), ID]
-    rv$newContID <- id
-    rv$updateBeforeAfter <- rv$updateBeforeAfter + 1
+
+    tryCatch({
+      printLog(paste('input$shiftsList1 was changed to:', '\t',input$shiftsList1))
+      if(input$siteName=='') return()
+      
+      if(input$shiftsList1=='') return()
+      rv$slideShow <- 0
+      dummy <- 1
+      tmpDT <- dayYearIDTable()
+      print(paste0(input$shiftsList1)) # TODO remove once done debugging 
+      convertTest <- input$shiftsList1*60*60*24
+      print(paste0('convert time: ', convertTest)) # TODO remove once done debugging 
+      
+      
+      tmpDT[, dif:=abs(Date- as.Date(input$shiftsList1))]
+      
+      
+      id <- tmpDT[dif==min(dif), ID]
+      rv$newContID <- id
+      rv$updateBeforeAfter <- rv$updateBeforeAfter + 1
+    }, error = function(err) {
+      print(paste0("There was an error in drawROI."))
+    }, warning = function(wrn){
+      print(paste0("There was a warning in drawROI."))
+    })
   })
   
   observeEvent(rv$newContID,{
@@ -841,6 +854,8 @@ shinyServer(function(input, output, session) {
   
   
   clTable <- reactive({
+    tryCatch({
+
     printLog(paste('clTable reactive experssion was called.\t'))
     if(input$siteName=='') return()
     
@@ -880,6 +895,12 @@ shinyServer(function(input, output, session) {
     removeModal()
     
     as.data.frame(clt)
+    
+    }, error = function(err){
+      print(paste0('Error in clTable.'))
+    }, warning = function(wrn) {
+      print(paste0('Warning in clTable'))
+    })
   }  )
   
   
