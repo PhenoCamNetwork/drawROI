@@ -312,30 +312,41 @@ shinyServer(function(input, output, session) {
   })
   
   observe({
-    printLog(paste('shiftsList2 reactive experssion was called.\t'))
-    if(input$siteName=='') return()
-    
-    clt <- as.data.table(clTable())
-    clt <- clt[blackness<=.8&Haze<=input$hazeThreshold]
-    
-    shiftsList2 <- as.Date(clt[R < ( as.numeric(input$shiftsList2.Threshold)), Date])
-    rv$shiftsList2 <- shiftsList2
-    
-    updateSelectInput(session, 'shiftsList2', choices = c(Choose='', as.list(shiftsList2)))
-    
+    tryCatch({
+      printLog(paste('shiftsList2 reactive experssion was called.\t'))
+      if(input$siteName=='') return()
+      
+      clt <- as.data.table(clTable())
+      clt <- clt[blackness<=.8&Haze<=input$hazeThreshold]
+      
+      shiftsList2 <- as.Date(clt[R < ( as.numeric(input$shiftsList2.Threshold)), Date])
+      rv$shiftsList2 <- shiftsList2
+      
+      updateSelectInput(session, 'shiftsList2', choices = c(Choose='', as.list(shiftsList2)))
+    }, error = function(err){
+      print(paste0('Error in drawROI'))
+    }, warning = function(wrn){
+      print(paste0('Warning in drawROI'))
+    })
   })
   
   observeEvent(input$shiftsList2,{
-    printLog(paste('input$shiftsList2 was changed to:', '\t',input$shiftsList2))
-    if(input$siteName=='') return()
-    if(input$shiftsList2=='') return()
-    rv$slideShow <- 0
-    dummy <- 1
-    tmpDT <- dayYearIDTable()
-    tmpDT[, dif:=abs(Date- as.Date(input$shiftsList2))]
-    id <- tmpDT[dif==min(dif), ID]
-    rv$newContID <- id
-    rv$updateBeforeAfter <- rv$updateBeforeAfter + 1
+    tryCatch({
+      printLog(paste('input$shiftsList2 was changed to:', '\t',input$shiftsList2))
+      if(input$siteName=='') return()
+      if(input$shiftsList2=='') return()
+      rv$slideShow <- 0
+      dummy <- 1
+      tmpDT <- dayYearIDTable()
+      tmpDT[, dif:=abs(Date- as.Date(input$shiftsList2))]
+      id <- tmpDT[dif==min(dif), ID]
+      rv$newContID <- id
+      rv$updateBeforeAfter <- rv$updateBeforeAfter + 1
+    }, error = function(err){
+      print(paste0('Error in drawROI'))
+    }, warning = function(wrn){
+      print(paste0('Warning in drawROI'))
+    })
   })
   
   
