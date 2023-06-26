@@ -243,6 +243,27 @@ shinyServer(function(input, output, session) {
     rv$shiftsList1 <- shiftsList1
     
     updateSelectInput(session, 'shiftsList1', choices = c(Choose='', as.list(shiftsList1)))
+    
+    # tryCatch({
+    #   printLog(paste('shiftsList1 reactive experssion was called.\t'))
+    #   if(input$siteName=='') return()
+    #   
+    #   clt <- as.data.table(clTable())
+    #   dummy <- 0
+    #   clt <- clt[blackness<=.8&Haze<=input$hazeThreshold]
+    #   # clt[,Group:=rep(1:.N, each=3, length.out=.N)]
+    #   # clt[,HzMed:=median(as.double(na.omit(Horizon))),Group]
+    #   clt[, dHz := c(diff(Horizon), 0)]
+    #   shiftsList1 <- as.Date(clt[abs(dHz)>as.numeric(input$shiftsList1.Threshold), Date])
+    #   rv$shiftsList1 <- shiftsList1
+    #   
+    #   updateSelectInput(session, 'shiftsList1', choices = c(Choose='', as.list(shiftsList1)))
+    # }, error = function(err){
+    #   print(paste0('Error in server.R observe.'))
+    # }, warning = function(wrn){
+    #   print(paste0('Warning in server.R observe.'))
+    # })
+
   })
   
   
@@ -258,11 +279,17 @@ shinyServer(function(input, output, session) {
       dummy <- 1
       tmpDT <- dayYearIDTable()
       print(paste0(input$shiftsList1)) # TODO remove once done debugging 
-      convertTest <- input$shiftsList1*60*60*24
-      print(paste0('convert time: ', convertTest)) # TODO remove once done debugging 
+      print(paste0(length(input$shiftsList1))) # TODO remove once done debugging 
+      print(paste0(length(numeric(input$shiftsList1)))) # TODO remove once done debugging 
+      print(paste0('structure: ', str(input$shiftsList1)))
+      # convertTest <- input$shiftsList1*60*60*24
+      # print(paste0('convert time: ', convertTest)) # TODO remove once done debugging 
       
-      
-      tmpDT[, dif:=abs(Date- as.Date(input$shiftsList1))]
+      # The code commented out relies on R interpreting a list as a number
+      # which does not occur in newer versions. This may have been true in older
+      # versions of R
+      # tmpDT[, dif:=abs(Date- as.Date(input$shiftsList1))]
+      tmpDT[, dif:=abs(Date- as.Date(length(numeric(input$shiftsList1))))]
       
       
       id <- tmpDT[dif==min(dif), ID]
@@ -854,7 +881,7 @@ shinyServer(function(input, output, session) {
   
   
   clTable <- reactive({
-    tryCatch({
+    # tryCatch({
 
     printLog(paste('clTable reactive experssion was called.\t'))
     if(input$siteName=='') return()
@@ -896,11 +923,11 @@ shinyServer(function(input, output, session) {
     
     as.data.frame(clt)
     
-    }, error = function(err){
-      print(paste0('Error in clTable.'))
-    }, warning = function(wrn) {
-      print(paste0('Warning in clTable'))
-    })
+    # }, error = function(err){
+    #   print(paste0('Error in clTable.'))
+    # }, warning = function(wrn) {
+    #   print(paste0('Warning in clTable'))
+    # })
   }  )
   
   
@@ -1087,6 +1114,7 @@ shinyServer(function(input, output, session) {
       clt <- as.data.table(clTable()[input$clRange[1]:input$clRange[2],])
       
       tmp <- clImage()
+      # print(paste0('clImage load: ', tmp)) #TODO remove after testing
       tmp <- tryDownload(tmp, downloadDir = rv$downloadDir, Update = T)
       clrgb <- readJPEG(tmp)
       
@@ -1284,16 +1312,21 @@ shinyServer(function(input, output, session) {
   
   
   mergedTable <- reactive({
-    printLog(paste('mergedTable reactive experssion was called.\t'))
-    if(input$siteName=='') return()
-    
-    clt <- as.data.table(clTable())[,.(Date, Horizon, Haze, R, blackness, CLID)]
-    dyt <- as.data.table(dayYearIDTable())[, .(Date, ID)]
-    ipt <- imgDT()[,.(Date, path)]
-    mrgt <- merge(clt, dyt, by='Date')
-    mrgt <- merge(mrgt, ipt, by='Date')
-    mrgt
-    
+    # tryCatch({
+      printLog(paste('mergedTable reactive experssion was called.\t'))
+      if(input$siteName=='') return()
+      
+      clt <- as.data.table(clTable())[,.(Date, Horizon, Haze, R, blackness, CLID)]
+      dyt <- as.data.table(dayYearIDTable())[, .(Date, ID)]
+      ipt <- imgDT()[,.(Date, path)]
+      mrgt <- merge(clt, dyt, by='Date')
+      mrgt <- merge(mrgt, ipt, by='Date')
+      mrgt
+    # }, error = function(err){
+    #   print(paste0('Error in mergedTable.'))
+    # }, warning = function(wrn){
+    #   print(paste0('Wrning in mergedTable.'))
+    # })
   })
   
   

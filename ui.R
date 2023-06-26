@@ -82,7 +82,6 @@ fluidPage(
                           )
                           }),
                           br(),
-                          
                           conditionalPanel('input.siteName!=""', {fluidRow(
                             column(1, strong('from', style='font-size:70%;font-weight: bold;')),
                             column(5, dateInput('maskStartDate', label = NULL, value =  '2001-01-01', startview = 'day')),
