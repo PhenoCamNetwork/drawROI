@@ -82,19 +82,21 @@ fluidPage(
                           )
                           }),
                           br(),
+                          # TODO this section fails due to date selection.
                           conditionalPanel('input.siteName!=""', {fluidRow(
                             column(1, strong('from', style='font-size:70%;font-weight: bold;')),
-                            column(5, dateInput('maskStartDate', label = NULL, value =  '2001-01-01', startview = 'day')),
+                            # column(5, dateInput('maskStartDate', label = NULL, value =  '2001-01-01', startview = 'day')),
+                            column(5, airDatepickerInput('maskStartDate', label = NULL, value = '2001-01-01', view = c("days", "months", "years"))),
                             column(4, textInput('maskStartTime', label = NULL, value = '00:08:00')),
                             column(1, '')
                           )}),
-                          conditionalPanel('input.siteName!=""', {
-                            fluidRow(
-                              column(1, strong('to', style='font-size:70%')),
-                              column(5, dateInput('maskEndDate', label = NULL, value =  '9999-12-31', startview = 'day')),
-                              column(4, textInput('maskEndTime', label = NULL, value = '00:00:00')),
-                              column(1, checkboxInput('openEnd', label = '', value = F))
-                            )}),
+                          conditionalPanel('input.siteName!=""', {fluidRow(
+                            column(1, strong('to', style='font-size:70%')),
+                            # column(5, dateInput('maskEndDate', label = NULL, value =  '9999-12-31', startview = 'day')),
+                            column(5, airDatepickerInput('maskEndDate', label = NULL, value = '2024-12-31', view = c("days", "months", "years"))),
+                            column(4, textInput('maskEndTime', label = NULL, value = '00:00:00')),
+                            column(1, checkboxInput('openEnd', label = '', value = F))
+                          )}),
                           
                           
                           br(),

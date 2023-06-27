@@ -31,7 +31,8 @@ list.of.packages <- c(
   'data.table',
   'lubridate',
   'plotly',
-  'RCurl'
+  'RCurl', 
+  'shinyWidgets'
 )
 
 new.packages <- list.of.packages[!(list.of.packages %in% installed.packages()[,"Package"])]
