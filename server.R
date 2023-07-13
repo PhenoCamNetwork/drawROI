@@ -278,10 +278,10 @@ shinyServer(function(input, output, session) {
       rv$slideShow <- 0
       dummy <- 1
       tmpDT <- dayYearIDTable()
-      print(paste0(input$shiftsList1)) # TODO remove once done debugging 
-      print(paste0(length(input$shiftsList1))) # TODO remove once done debugging 
-      print(paste0(length(numeric(input$shiftsList1)))) # TODO remove once done debugging 
-      print(paste0('structure: ', str(input$shiftsList1)))
+      # print(paste0(input$shiftsList1)) # TODO remove once done debugging 
+      # print(paste0(length(input$shiftsList1))) # TODO remove once done debugging 
+      # print(paste0(length(numeric(input$shiftsList1)))) # TODO remove once done debugging 
+      # print(paste0('structure: ', str(input$shiftsList1)))
       # convertTest <- input$shiftsList1*60*60*24
       # print(paste0('convert time: ', convertTest)) # TODO remove once done debugging 
       
@@ -323,6 +323,7 @@ shinyServer(function(input, output, session) {
       rv$shiftsList2 <- shiftsList2
       
       updateSelectInput(session, 'shiftsList2', choices = c(Choose='', as.list(shiftsList2)))
+      
     }, error = function(err){
       print(paste0('Error in drawROI'))
     }, warning = function(wrn){
@@ -338,12 +339,12 @@ shinyServer(function(input, output, session) {
       rv$slideShow <- 0
       dummy <- 1
       tmpDT <- dayYearIDTable()
-      tmpDT[, dif:=abs(Date- as.Date(input$shiftsList2))]
+      tmpDT[, dif:=abs(Date- as.Date(length(numeric(input$shiftsList2))))] # Orig code.
       id <- tmpDT[dif==min(dif), ID]
       rv$newContID <- id
       rv$updateBeforeAfter <- rv$updateBeforeAfter + 1
     }, error = function(err){
-      print(paste0('Error in drawROI'))
+      print(paste0('Error in drawROI Correlation Shifts'))
     }, warning = function(wrn){
       print(paste0('Warning in drawROI'))
     })

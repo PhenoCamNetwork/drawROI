@@ -23,7 +23,7 @@ plotJPEG <- function(path, add=FALSE, xlim = NULL, ylim = NULL, downloadDir, sho
   res <-  dim(jpgNative)[2:1] # get the resolution
   if(is.null(xlim)) xlim <- c(1,res[1])
   if(is.null(ylim)) ylim <- c(1,res[2])
-  if (!add) # initialize an empty plot area if add==FALSE
+  if(!add) # initialize an empty plot area if add==FALSE
     plot(NA, xlim = xlim, ylim = ylim, type='n',
          xaxs='i',yaxs='i',xaxt='n',yaxt='n',xlab='',ylab='',bty='o')
   rasterImage(jpgNative,1,1,res[1],res[2])
@@ -391,11 +391,11 @@ getIMG.DT <- function(sites){
     # TODO probably should move the URL to the global.R script.
     tmp = paste0('https://phenocam.nau.edu/api/middayimages/', site, '/')
     mdiJSON = fromJSON(file = tmp)
-    print(paste0('mdiJSON new: ', mdiJSON))
+    # print(paste0('mdiJSON new: ', mdiJSON))
     tbl = data.table( DateJSON = as.Date(sapply(mdiJSON, function(x){x$imgdate })),
                              path = as.character(sapply(mdiJSON, function(x){x$imgpath})))
     # tbl_newAPI = fromJSON(file = tmp_newAPI)
-    print(paste0('tbl_newAPI:    ', tbl))
+    # print(paste0('tbl_newAPI:    ', tbl))
     
     imgDT.tmp <- as.data.table(tbl)
     imgDT.tmp$path <- paste0(mainDataPath, imgDT.tmp$path)

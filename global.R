@@ -7,6 +7,7 @@
 # Most recent release: https://github.com/bnasr/drawROI
 #######################################################################
 
+library(shiny, lib="/home/mkf58/Documents/Development/Phoenocam/shiny_1_4_0_2")
 
 source('funcs.R')
 
@@ -31,8 +32,8 @@ list.of.packages <- c(
   'data.table',
   'lubridate',
   'plotly',
-  'RCurl', 
-  'shinyWidgets'
+  # 'shinyWidgets',
+  'RCurl'
 )
 
 new.packages <- list.of.packages[!(list.of.packages %in% installed.packages()[,"Package"])]
@@ -52,6 +53,9 @@ SHINY_SERVER <- FALSE
 SHINY_SERVER_FQDN = Sys.getenv("HOSTNAME")
 # For Testing on local system
 SHINY_SERVER_FQDN = 'phenocam.nau.edu'
+
+maskStartDate = '2001-01-01'
+maskEndDate = '9999-12-31'
 
 sitesInfoURL <- paste0('https://', SHINY_SERVER_FQDN, '/webcam/network/siteinfo/')
 print(paste0('sitesInfoURL: ', sitesInfoURL))
