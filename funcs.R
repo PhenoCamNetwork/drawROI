@@ -15,21 +15,29 @@ is.url <-function(x) {
 # plot jpeg image using as raster given image path.
 plotJPEG <- function(path, add=FALSE, xlim = NULL, ylim = NULL, downloadDir, showLoad = F, Update = F)
 {
-  jpgNonNative <- NULL
-  print(paste0('path fail: ', path))
-  path <- tryDownload(path, downloadDir = downloadDir, showLoad = showLoad, Update = Update)
-  # print(paste0('path fail: ', path))
-  jpgNative <-  readJPEG(path, native=T) # read the file
-  res <-  dim(jpgNative)[2:1] # get the resolution
-  if(is.null(xlim)) xlim <- c(1,res[1])
-  if(is.null(ylim)) ylim <- c(1,res[2])
-  if(!add) # initialize an empty plot area if add==FALSE
-    plot(NA, xlim = xlim, ylim = ylim, type='n',
-         xaxs='i',yaxs='i',xaxt='n',yaxt='n',xlab='',ylab='',bty='o')
-  rasterImage(jpgNative,1,1,res[1],res[2])
-  invisible(list(res=res, 
-                 jpgNonNative=jpgNonNative, 
-                 jpgNative=jpgNative ))
+  
+  tryCatch({
+    jpgNonNative <- NULL
+    print(paste0('path fail: ', path))
+    path <- tryDownload(path, downloadDir = downloadDir, showLoad = showLoad, Update = Update)
+    # print(paste0('path fail: ', path))
+    jpgNative <-  readJPEG(path, native=T) # read the file
+    res <-  dim(jpgNative)[2:1] # get the resolution
+    if(is.null(xlim)) xlim <- c(1,res[1])
+    if(is.null(ylim)) ylim <- c(1,res[2])
+    if(!add) # initialize an empty plot area if add==FALSE
+      plot(NA, xlim = xlim, ylim = ylim, type='n',
+           xaxs='i',yaxs='i',xaxt='n',yaxt='n',xlab='',ylab='',bty='o')
+    rasterImage(jpgNative,1,1,res[1],res[2])
+    invisible(list(res=res, 
+                   jpgNonNative=jpgNonNative, 
+                   jpgNative=jpgNative ))
+  }, error = function(err){
+    print(paste0('Error in plotJPEG'))
+  }, warning = function(wrn){
+    print(paste0('Warning in plotJPEG'))
+  })
+  
 }
 
 
@@ -258,71 +266,78 @@ fixFormatTime <- function(asText){
 
 #parsing ROIList file into a list in R
 parseROI <- function(roifilename, roipath, downloadDir){
-  fname <- paste0(roipath, roifilename)
-  #if(!file.exists(fname)) return(NULL)
   
-  roilines <- readLines(fname)
-  
-  wEmptyLine <- roilines%in%c('', ' ',  '  ')
-  wCommented <- as.vector(sapply(roilines, grepl,  pattern = '^#'))
-  wNotSkip <- !(wEmptyLine|wCommented)
-  
-  
-  parseroiline <- function(roilines, property){
-    wProp <- grepl(roilines, pattern = property)
-    gsub(roilines[wProp], pattern = paste0('# ', property, ': '), replacement = '')
-  }
-  
-  ROIList <- list(siteName = parseroiline(roilines[wCommented], 'Site'), 
-                  vegType = parseroiline(roilines[wCommented], 'Veg Type'), 
-                  ID = as.numeric(parseroiline(roilines[wCommented], 'ROI ID Number')), 
-                  Owner = parseroiline(roilines[wCommented], 'Owner'), 
-                  createDate = parseroiline(roilines[wCommented], 'Creation Date'), 
-                  createTime = parseroiline(roilines[wCommented], 'Creation Time'), 
-                  updateDate = parseroiline(roilines[wCommented], 'Update Date'), 
-                  updateTime = parseroiline(roilines[wCommented], 'Update Time'), 
-                  Description = parseroiline(roilines[wCommented], 'Description'), 
-                  masks = NULL)
-  
-  
-  parsedMasks <- read.table(textConnection(roilines[which(wNotSkip)]), sep = ',', header = T)
-  
-  masksList <- list()
-  for(i in 1:nrow(parsedMasks)){
-    maskpath <- paste0(roipath, parsedMasks$maskfile[i])
-    maskpointspath <- gsub(maskpath, pattern = '.tif', replacement = '_vector.csv')
-    if(file.exists(maskpointspath)|url.exists(maskpointspath)) {
-      dummy=0
-      maskpoints <- as.matrix(read.csv(maskpointspath, header = F, skip = 1))
-    }else{
-      maskpoints <- NULL
+  tryCatch({
+    fname <- paste0(roipath, roifilename)
+    #if(!file.exists(fname)) return(NULL)
+    
+    roilines <- readLines(fname)
+    
+    wEmptyLine <- roilines%in%c('', ' ',  '  ')
+    wCommented <- as.vector(sapply(roilines, grepl,  pattern = '^#'))
+    wNotSkip <- !(wEmptyLine|wCommented)
+    
+    
+    parseroiline <- function(roilines, property){
+      wProp <- grepl(roilines, pattern = property)
+      gsub(roilines[wProp], pattern = paste0('# ', property, ': '), replacement = '')
     }
     
-    maskpath <- tryDownload(maskpath, downloadDir = downloadDir, showLoad = F, Update = T)
-    
-    tmpMask <- list(maskpoints = maskpoints, 
-                    startdate = as.character(parsedMasks$start_date[i]), 
-                    enddate = as.character(parsedMasks$end_date[i]), 
-                    starttime = as.character(parsedMasks$start_time[i]), 
-                    endtime = as.character(parsedMasks$end_time[i]), 
-                    sampleyear = NULL, 
-                    sampleday = NULL,
-                    sampleImage = as.character(parsedMasks$sample_image[i]),
-                    rasteredMask = as.matrix(raster(maskpath)))
-    
-    tmpMask$rasteredMask[(!is.na(tmpMask$rasteredMask))&tmpMask$rasteredMask!=0] <- 1
+    ROIList <- list(siteName = parseroiline(roilines[wCommented], 'Site'), 
+                    vegType = parseroiline(roilines[wCommented], 'Veg Type'), 
+                    ID = as.numeric(parseroiline(roilines[wCommented], 'ROI ID Number')), 
+                    Owner = parseroiline(roilines[wCommented], 'Owner'), 
+                    createDate = parseroiline(roilines[wCommented], 'Creation Date'), 
+                    createTime = parseroiline(roilines[wCommented], 'Creation Time'), 
+                    updateDate = parseroiline(roilines[wCommented], 'Update Date'), 
+                    updateTime = parseroiline(roilines[wCommented], 'Update Time'), 
+                    Description = parseroiline(roilines[wCommented], 'Description'), 
+                    masks = NULL)
     
     
-    sampleYMD <- strsplit(tmpMask$sampleImage, split = '_')[[1]][2:4]
-    tmpMask$sampleyear <- as.numeric(sampleYMD)[1]
-    tmpMask$sampleday <- yday(paste(sampleYMD, collapse = '-'))
+    parsedMasks <- read.table(textConnection(roilines[which(wNotSkip)]), sep = ',', header = T)
     
-    masksList[[length(masksList)+1]] <- tmpMask
-    
-  }
-  names(masksList) <- gsub(parsedMasks$maskfile, pattern = '.tif', replacement = '')
-  ROIList$masks <- masksList
-  ROIList
+    masksList <- list()
+    for(i in 1:nrow(parsedMasks)){
+      maskpath <- paste0(roipath, parsedMasks$maskfile[i])
+      maskpointspath <- gsub(maskpath, pattern = '.tif', replacement = '_vector.csv')
+      if(file.exists(maskpointspath)|url.exists(maskpointspath)) {
+        dummy=0
+        maskpoints <- as.matrix(read.csv(maskpointspath, header = F, skip = 1))
+      }else{
+        maskpoints <- NULL
+      }
+      
+      maskpath <- tryDownload(maskpath, downloadDir = downloadDir, showLoad = F, Update = T)
+      
+      tmpMask <- list(maskpoints = maskpoints, 
+                      startdate = as.character(parsedMasks$start_date[i]), 
+                      enddate = as.character(parsedMasks$end_date[i]), 
+                      starttime = as.character(parsedMasks$start_time[i]), 
+                      endtime = as.character(parsedMasks$end_time[i]), 
+                      sampleyear = NULL, 
+                      sampleday = NULL,
+                      sampleImage = as.character(parsedMasks$sample_image[i]),
+                      rasteredMask = as.matrix(raster(maskpath)))
+      
+      tmpMask$rasteredMask[(!is.na(tmpMask$rasteredMask))&tmpMask$rasteredMask!=0] <- 1
+      
+      
+      sampleYMD <- strsplit(tmpMask$sampleImage, split = '_')[[1]][2:4]
+      tmpMask$sampleyear <- as.numeric(sampleYMD)[1]
+      tmpMask$sampleday <- yday(paste(sampleYMD, collapse = '-'))
+      
+      masksList[[length(masksList)+1]] <- tmpMask
+      
+    }
+    names(masksList) <- gsub(parsedMasks$maskfile, pattern = '.tif', replacement = '')
+    ROIList$masks <- masksList
+    ROIList
+  }, error = function(err){
+    print(paste0('Error in parseROI'))
+  }, warning = function(wrn){
+    print(paste0('Warning in parseROI'))
+  })
 }
 
 

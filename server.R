@@ -146,6 +146,7 @@ shinyServer(function(input, output, session) {
   # Site
   # ----------------------------------------------------------------------
   observe({
+ 
     printLog(paste('phenoSitesList observed experssion was called.\t'))
     
     sitesName <- sapply(rv$phenoSites, function(x){x$site})
@@ -170,6 +171,7 @@ shinyServer(function(input, output, session) {
   })
   
   observeEvent(input$siteName, {
+    tryCatch({
     printLog(paste('input$siteName was changed to:', '\t',input$siteName))
     if(input$siteName=='') return()
     
@@ -187,7 +189,13 @@ shinyServer(function(input, output, session) {
                       value = 1,
                       min= min(dayYearIDTable()$ID),
                       max= max(dayYearIDTable()$ID)  )
+    
+    testcli <- paste0(mainDataPath, '/data/archive/', input$siteName, '/ROI/', input$siteName, '-cli.txt')
+    #TODO Figure out why clTable won't load and kill code if it doesn't
+    print(paste0('clipath test: ', testcli, '\n exists: ', file.exists(testcli)))
     clt <- clTable()
+    
+
     updateSliderInput(session,
                       inputId = 'clRange',
                       value = c(1, nrow(clt)),
@@ -225,6 +233,12 @@ shinyServer(function(input, output, session) {
     updateSelectInput(session, inputId = 'maskName', choices = 'New mask')
     rv$centers <- matrix(numeric(), 0, 2)
     rv$curDate <- dayYearIDTable()[ID==1, Date]
+    
+    }, error = function(err){
+      print(paste0('Error in clTable'))
+    }, warning = function(wrn){
+      print(paste0('Warning in clTable'))
+    })
   })
   
   
@@ -893,7 +907,7 @@ shinyServer(function(input, output, session) {
   
   
   clTable <- reactive({
-    # tryCatch({
+    tryCatch({
 
     printLog(paste('clTable reactive experssion was called.\t'))
     if(input$siteName=='') return()
@@ -913,6 +927,7 @@ shinyServer(function(input, output, session) {
     cltpath <- tryDownload(cltpath, downloadDir = rv$downloadDir, Update = T)
 
     printLog(paste('cltpath: ', cltpath))
+    print(paste0('cltpath: ', cltpath))
     
     clt <- read.csv(cltpath)
     
@@ -935,11 +950,11 @@ shinyServer(function(input, output, session) {
     
     as.data.frame(clt)
     
-    # }, error = function(err){
-    #   print(paste0('Error in clTable.'))
-    # }, warning = function(wrn) {
-    #   print(paste0('Warning in clTable'))
-    # })
+    }, error = function(err){
+      print(paste0('Error in clTable.'))
+    }, warning = function(wrn) {
+      print(paste0('Warning in clTable'))
+    })
   }  )
   
   
@@ -1158,37 +1173,44 @@ shinyServer(function(input, output, session) {
     })
   
   output$clPlot <- renderPlot(
-    res=36,
-    height = 100,
-    # height = function(){floor(session$clientData$output_clPlot_width/2)},
-    {
-      printLog(paste('clPlot renderPlot experssion was called.\t'))
-      
-      if(input$siteName=='') return()
-      
-      dt <- as.Date(dayYearIDTable()[ID==input$contID, Date])
-      clt <- as.data.table(clTable()[input$clRange[1]:input$clRange[2],])
-      par(mar=c(3,0,0,0))
-      par(cex.axis = 2)
-      clt[,plot(Date, Haze*0, xaxs='i',yaxs='i', yaxt='n', type='n', ylab = '', ylim = c(0, 1))]
-      par(new=T)
-      
-      jp <- plotJPEG(clImage(), xlim = input$clRange, downloadDir = rv$downloadDir, Update = T)
-      
-      abline(v= clt[Date==dt,CLID], col= 'red', lwd=5)
-      
-      if(!is.null(rv$shiftsList1))abline(v= clt[Date%in%as.Date(rv$shiftsList1),CLID], col= 'white', lwd=3, lty=2)
-      if(!is.null(rv$shiftsList2))abline(v= clt[Date%in%as.Date(rv$shiftsList2),CLID], col= 'green', lwd=3, lty=2)
-      
-      if(input$hrzShow)lines(clt[,.(CLID, Horizon)], col='yellow', lwd=3)
-      if(input$corShow)lines(clt[,.(CLID, R*par()$usr[4])], col='orange', lwd=3)
-      
-      legend('right',
-             bty = 'n', cex = 2, text.font = 2, lwd = 4,
-             legend = c('Horizon', 'Correlation'), 
-             col = c('yellow', 'orange'), 
-             text.col = c('yellow', 'orange'))
-    }
+      res=36,
+      height = 100,
+      # height = function(){floor(session$clientData$output_clPlot_width/2)},
+      {
+        tryCatch({
+        printLog(paste('clPlot renderPlot experssion was called.\t'))
+        
+        if(input$siteName=='') return()
+        
+        dt <- as.Date(dayYearIDTable()[ID==input$contID, Date])
+        clt <- as.data.table(clTable()[input$clRange[1]:input$clRange[2],])
+        par(mar=c(3,0,0,0))
+        par(cex.axis = 2)
+        clt[,plot(Date, Haze*0, xaxs='i',yaxs='i', yaxt='n', type='n', ylab = '', ylim = c(0, 1))]
+        par(new=T)
+        
+        jp <- plotJPEG(clImage(), xlim = input$clRange, downloadDir = rv$downloadDir, Update = T)
+        
+        abline(v= clt[Date==dt,CLID], col= 'red', lwd=5)
+        
+        if(!is.null(rv$shiftsList1))abline(v= clt[Date%in%as.Date(rv$shiftsList1),CLID], col= 'white', lwd=3, lty=2)
+        if(!is.null(rv$shiftsList2))abline(v= clt[Date%in%as.Date(rv$shiftsList2),CLID], col= 'green', lwd=3, lty=2)
+        
+        if(input$hrzShow)lines(clt[,.(CLID, Horizon)], col='yellow', lwd=3)
+        if(input$corShow)lines(clt[,.(CLID, R*par()$usr[4])], col='orange', lwd=3)
+        
+        legend('right',
+               bty = 'n', cex = 2, text.font = 2, lwd = 4,
+               legend = c('Horizon', 'Correlation'), 
+               col = c('yellow', 'orange'), 
+               text.col = c('yellow', 'orange'))
+        
+        }, error = function(err){
+          print(paste0('Error in clPlot renderPlot'))
+        }, warning = function(wrn){
+          print(paste0('Warning in clPlot renderPlot'))
+        })
+      }
   )
   
   
@@ -1204,64 +1226,77 @@ shinyServer(function(input, output, session) {
       
       if(input$siteName=='') return()
       
-      par(mar=c(0,0,0,0))
-      if(is.na(sampleImage())|(!is.url(sampleImage())&!file.exists(sampleImage()))){
-        plot(NA, xlim=c(0,1), ylim=c(0,1), xaxs='i',yaxs='i', xaxt='n', yaxt='n', bty='o', xlab='',ylab='')
-        text(mean(par()$usr[1:2]), mean(par()$usr[3:4]), 'No image for this date was found!', font=2, adj=.5, cex=2)
-      }else{
-        dummy <- 0
-        jp <- plotJPEG(sampleImage(),  downloadDir = rv$downloadDir)
-        putImageFooter(id = input$contID, mrgDT = mergedTable(), footer = 'sample image', grid = input$showGrid)
-        
-        dummy <- 0
-        if(is.null(rv$centers)) 
-          absPoints <- matrix(numeric(), 0, 2)
-        else if(nrow(rv$centers)==0) 
-          absPoints <- matrix(numeric(), 0, 2)
-        else if(nrow(rv$centers)==1) 
-          absPoints <- rv$centers*sampleImageSize()
-        else 
-          absPoints <- t(apply(rv$centers, 1, '*', sampleImageSize()))
-        dummy <- 0
-        # polygon(absPoints, col = input$roiColors, pch = 9, lwd=1)
-        polygon(absPoints, pch = 9, lwd=3, border=input$roiColors)
-        mm <- curMask()
-        if(!is.null(mm)&input$showMask)addMaskPlot(mm, col = input$roiColors)
-      }
+      
+      tryCatch({
+        par(mar=c(0,0,0,0))
+        if(is.na(sampleImage())|(!is.url(sampleImage())&!file.exists(sampleImage()))){
+          plot(NA, xlim=c(0,1), ylim=c(0,1), xaxs='i',yaxs='i', xaxt='n', yaxt='n', bty='o', xlab='',ylab='')
+          text(mean(par()$usr[1:2]), mean(par()$usr[3:4]), 'No image for this date was found!', font=2, adj=.5, cex=2)
+        }else{
+          dummy <- 0
+          jp <- plotJPEG(sampleImage(),  downloadDir = rv$downloadDir)
+          putImageFooter(id = input$contID, mrgDT = mergedTable(), footer = 'sample image', grid = input$showGrid)
+          
+          dummy <- 0
+          if(is.null(rv$centers)) 
+            absPoints <- matrix(numeric(), 0, 2)
+          else if(nrow(rv$centers)==0) 
+            absPoints <- matrix(numeric(), 0, 2)
+          else if(nrow(rv$centers)==1) 
+            absPoints <- rv$centers*sampleImageSize()
+          else 
+            absPoints <- t(apply(rv$centers, 1, '*', sampleImageSize()))
+          dummy <- 0
+          # polygon(absPoints, col = input$roiColors, pch = 9, lwd=1)
+          polygon(absPoints, pch = 9, lwd=3, border=input$roiColors)
+          mm <- curMask()
+          if(!is.null(mm)&input$showMask)addMaskPlot(mm, col = input$roiColors)
+          }
+      }, error = function(err){
+        print(paste0('Error in imagePlotBig'))
+      }, warning = function(wrn){
+        print(paste0('Warning in imagePlotBig'))
+      })
     })
   
   output$imagePlot <- renderPlot(
     res=36,
     height = function(){floor(session$clientData$output_imagePlot_width/1.35)},
     {
-      printLog(paste('imagePlot renderPlot experssion was called.\t'))
-      
-      if(input$siteName=='') return()
-      
-      par(mar=c(0,0,0,0))
-      if(is.na(sampleImage())|(!is.url(sampleImage())&!file.exists(sampleImage()))){
-        plot(NA, xlim=c(0,1), ylim=c(0,1), xaxs='i',yaxs='i', xaxt='n', yaxt='n', bty='o', xlab='',ylab='')
-        text(mean(par()$usr[1:2]), mean(par()$usr[3:4]), 'No image for this date was found!', font=2, adj=.5, cex=2)
-      }else{
-        dummy <- 0
-        jp <- plotJPEG(sampleImage(),  downloadDir = rv$downloadDir)
-        putImageFooter(id = input$contID, mrgDT = mergedTable(), footer = 'sample image', grid = input$showGrid)
+      tryCatch({
+        printLog(paste('imagePlot renderPlot experssion was called.\t'))
         
-        dummy <- 0
-        if(is.null(rv$centers)) 
-          absPoints <- matrix(numeric(), 0, 2)
-        else if(nrow(rv$centers)==0) 
-          absPoints <- matrix(numeric(), 0, 2)
-        else if(nrow(rv$centers)==1) 
-          absPoints <- rv$centers*sampleImageSize()
-        else 
-          absPoints <- t(apply(rv$centers, 1, '*', sampleImageSize()))
-        dummy <- 0
-        # polygon(absPoints, col = input$roiColors, pch = 9, lwd=1)
-        polygon(absPoints, pch = 9, lwd=3, border=input$roiColors)
-        mm <- curMask()
-        if(!is.null(mm)&input$showMask)addMaskPlot(mm, col = input$roiColors)
-      }
+        if(input$siteName=='') return()
+        
+        par(mar=c(0,0,0,0))
+        if(is.na(sampleImage())|(!is.url(sampleImage())&!file.exists(sampleImage()))){
+          plot(NA, xlim=c(0,1), ylim=c(0,1), xaxs='i',yaxs='i', xaxt='n', yaxt='n', bty='o', xlab='',ylab='')
+          text(mean(par()$usr[1:2]), mean(par()$usr[3:4]), 'No image for this date was found!', font=2, adj=.5, cex=2)
+        }else{
+          dummy <- 0
+          jp <- plotJPEG(sampleImage(),  downloadDir = rv$downloadDir)
+          putImageFooter(id = input$contID, mrgDT = mergedTable(), footer = 'sample image', grid = input$showGrid)
+          
+          dummy <- 0
+          if(is.null(rv$centers)) 
+            absPoints <- matrix(numeric(), 0, 2)
+          else if(nrow(rv$centers)==0) 
+            absPoints <- matrix(numeric(), 0, 2)
+          else if(nrow(rv$centers)==1) 
+            absPoints <- rv$centers*sampleImageSize()
+          else 
+            absPoints <- t(apply(rv$centers, 1, '*', sampleImageSize()))
+          dummy <- 0
+          # polygon(absPoints, col = input$roiColors, pch = 9, lwd=1)
+          polygon(absPoints, pch = 9, lwd=3, border=input$roiColors)
+          mm <- curMask()
+          if(!is.null(mm)&input$showMask)addMaskPlot(mm, col = input$roiColors)
+        }
+      }, error = function(err){
+        print(paste0('Error in imagePlot renderPlot'))
+      }, warning = function(wrn){
+        print(paste0('Warning in imagePlot renderPlot'))
+      })
     })
   
   
