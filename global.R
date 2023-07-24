@@ -73,4 +73,3 @@ if(HTTP_LOAD){
 
 print('Global Page Bottom')
 
-

@@ -267,7 +267,7 @@ fixFormatTime <- function(asText){
 #parsing ROIList file into a list in R
 parseROI <- function(roifilename, roipath, downloadDir){
   
-  tryCatch({
+  # tryCatch({
     fname <- paste0(roipath, roifilename)
     #if(!file.exists(fname)) return(NULL)
     
@@ -333,11 +333,11 @@ parseROI <- function(roifilename, roipath, downloadDir){
     names(masksList) <- gsub(parsedMasks$maskfile, pattern = '.tif', replacement = '')
     ROIList$masks <- masksList
     ROIList
-  }, error = function(err){
-    print(paste0('Error in parseROI'))
-  }, warning = function(wrn){
-    print(paste0('Warning in parseROI'))
-  })
+  # }, error = function(err){
+  #   print(paste0('Error in parseROI'))
+  # }, warning = function(wrn){
+  #   print(paste0('Warning in parseROI'))
+  # })
 }
 
 

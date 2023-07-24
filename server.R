@@ -190,7 +190,6 @@ shinyServer(function(input, output, session) {
                       min= min(dayYearIDTable()$ID),
                       max= max(dayYearIDTable()$ID)  )
     
-    testcli <- paste0(mainDataPath, '/data/archive/', input$siteName, '/ROI/', input$siteName, '-cli.txt')
     #TODO Figure out why clTable won't load and kill code if it doesn't
     print(paste0('clipath test: ', testcli, '\n exists: ', file.exists(testcli)))
     clt <- clTable()
@@ -244,19 +243,26 @@ shinyServer(function(input, output, session) {
   
   
   observe({
-    printLog(paste('shiftsList1 reactive experssion was called.\t'))
-    if(input$siteName=='') return()
-    
-    clt <- as.data.table(clTable())
-    dummy <- 0
-    clt <- clt[blackness<=.8&Haze<=input$hazeThreshold]
-    # clt[,Group:=rep(1:.N, each=3, length.out=.N)]
-    # clt[,HzMed:=median(as.double(na.omit(Horizon))),Group]
-    clt[, dHz := c(diff(Horizon), 0)]
-    shiftsList1 <- as.Date(clt[abs(dHz)>as.numeric(input$shiftsList1.Threshold), Date])
-    rv$shiftsList1 <- shiftsList1
-    
-    updateSelectInput(session, 'shiftsList1', choices = c(Choose='', as.list(shiftsList1)))
+    tryCatch({
+      printLog(paste('shiftsList1 reactive experssion was called.\t'))
+      if(input$siteName=='') return()
+      
+      clt <- as.data.table(clTable())
+      dummy <- 0
+      clt <- clt[blackness<=.8&Haze<=input$hazeThreshold]
+      # clt[,Group:=rep(1:.N, each=3, length.out=.N)]
+      # clt[,HzMed:=median(as.double(na.omit(Horizon))),Group]
+      clt[, dHz := c(diff(Horizon), 0)]
+      shiftsList1 <- as.Date(clt[abs(dHz)>as.numeric(input$shiftsList1.Threshold), Date])
+      rv$shiftsList1 <- shiftsList1
+      
+      updateSelectInput(session, 'shiftsList1', choices = c(Choose='', as.list(shiftsList1)))
+    }, error = function(err){
+      print(paste0('Error in observe shiftList1'))
+    }, warning = function(wrn){
+      print(paste0('Warning in observe shiftList1'))
+    })
+
     
     # tryCatch({
     #   printLog(paste('shiftsList1 reactive experssion was called.\t'))
@@ -919,17 +925,15 @@ shinyServer(function(input, output, session) {
                   style='background-color:#3b3a35; color:#fce319; ',
                   footer = NULL
       )))
-    
+  
     cltpath <- paste0(mainDataPath, '/data/archive/', input$siteName, '/ROI/', input$siteName, '-cli.txt')
-
-    printLog(paste('cltpath: ', cltpath))
+    # cltpath <- 'bad.txt'
+    # printLog(paste('cltpath: ', cltpath))
     
     cltpath <- tryDownload(cltpath, downloadDir = rv$downloadDir, Update = T)
-
-    printLog(paste('cltpath: ', cltpath))
-    print(paste0('cltpath: ', cltpath))
-    
     clt <- read.csv(cltpath)
+    printLog(paste('cltpath: ', cltpath))
+
     
     clt <- as.data.table(clt)
     clt[,CLID:=1:.N]
@@ -1157,20 +1161,27 @@ shinyServer(function(input, output, session) {
   )
   
   output$timePlot <- renderPlot(
+    
     res=36,
     height = 25,
     {
+      tryCatch(
+        {
+          if(input$siteName=='') return()
+          dt <- as.Date(dayYearIDTable()[ID==input$contID, Date])
+          clt <- as.data.table(clTable())
+          par(mar=c(3,0,0,0))
+          par(cex.axis = 2)
+          clt[,plot(Date, Haze*0, xaxs='i',yaxs='i', yaxt='n', xaxt='s', type='n', ylab = '', ylim = c(0, .1))]
+        }, error = function(err){
+          print(paste0('Error in clPlot renderPlot timeplot'))
+        }, warning = function(wrn){
+          print(paste0('Warning in clPlot renderPlot timeplot'))
+        }
+      )
       printLog(paste('timePlot renderPlot experssion was called.\t'))
-      
-      if(input$siteName=='') return()
-      
-      dt <- as.Date(dayYearIDTable()[ID==input$contID, Date])
-      clt <- as.data.table(clTable())
-      
-      par(mar=c(3,0,0,0))
-      par(cex.axis = 2)
-      clt[,plot(Date, Haze*0, xaxs='i',yaxs='i', yaxt='n', xaxt='s', type='n', ylab = '', ylim = c(0, .1))]
-    })
+    }
+  )
   
   output$clPlot <- renderPlot(
       res=36,
