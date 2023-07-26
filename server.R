@@ -1175,6 +1175,13 @@ shinyServer(function(input, output, session) {
           clt[,plot(Date, Haze*0, xaxs='i',yaxs='i', yaxt='n', xaxt='s', type='n', ylab = '', ylim = c(0, .1))]
         }, error = function(err){
           print(paste0('Error in clPlot renderPlot timeplot'))
+          
+          showNotification('There was an error loading date data, missing cli.txt', '', duration = NULL, type="error")
+          par(mar=c(0,0,0,0))
+          plot.new()
+          plot.window(xlim = c(0,1), ylim = c(0, 1), xaxs='i',yaxs='i')
+          text(0.5, 0.5, 'Error loading date data.', cex=2, col='red')
+          
         }, warning = function(wrn){
           print(paste0('Warning in clPlot renderPlot timeplot'))
         }
@@ -1265,6 +1272,7 @@ shinyServer(function(input, output, session) {
           }
       }, error = function(err){
         print(paste0('Error in imagePlotBig'))
+        
       }, warning = function(wrn){
         print(paste0('Warning in imagePlotBig'))
       })
