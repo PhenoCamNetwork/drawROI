@@ -191,7 +191,7 @@ shinyServer(function(input, output, session) {
                       max= max(dayYearIDTable()$ID)  )
     
     #TODO Figure out why clTable won't load and kill code if it doesn't
-    print(paste0('clipath test: ', testcli, '\n exists: ', file.exists(testcli)))
+    # print(paste0('clipath test: ', testcli, '\n exists: ', file.exists(testcli)))
     clt <- clTable()
     
 
