@@ -18,7 +18,7 @@ plotJPEG <- function(path, add=FALSE, xlim = NULL, ylim = NULL, downloadDir, sho
   
   tryCatch({
     jpgNonNative <- NULL
-    print(paste0('path fail: ', path))
+    # print(paste0('path fail: ', path))
     path <- tryDownload(path, downloadDir = downloadDir, showLoad = showLoad, Update = Update)
     # print(paste0('path fail: ', path))
     jpgNative <-  readJPEG(path, native=T) # read the file
@@ -411,6 +411,8 @@ getIMG.DT <- function(sites){
                              path = as.character(sapply(mdiJSON, function(x){x$imgpath})))
     # tbl_newAPI = fromJSON(file = tmp_newAPI)
     # print(paste0('tbl_newAPI:    ', tbl))
+    # print(paste0('Headers: ', head(tbl)))
+    # print(paste0('Headers: ', tbl$head(tbl)[1]))
     
     imgDT.tmp <- as.data.table(tbl)
     imgDT.tmp$path <- paste0(mainDataPath, imgDT.tmp$path)

@@ -1268,13 +1268,20 @@ shinyServer(function(input, output, session) {
           # polygon(absPoints, col = input$roiColors, pch = 9, lwd=1)
           polygon(absPoints, pch = 9, lwd=3, border=input$roiColors)
           mm <- curMask()
-          if(!is.null(mm)&input$showMask)addMaskPlot(mm, col = input$roiColors)
+  
+          if(!is.null(mm)&input$showMask){
+            # The warning here is not an issue. 
+            suppressWarnings(
+              addMaskPlot(mm, col = input$roiColors)
+            )
+          }
           }
       }, error = function(err){
-        print(paste0('Error in imagePlotBig'))
-        
+        print(paste0('Error in imagePlotBig: ', err))
+
       }, warning = function(wrn){
-        print(paste0('Warning in imagePlotBig'))
+        print(paste0('Warning in imagePlotBig: ', wrn))
+        # print(paste0('Warning in imagePlotBig'))
       })
     })
   
@@ -1309,7 +1316,10 @@ shinyServer(function(input, output, session) {
           # polygon(absPoints, col = input$roiColors, pch = 9, lwd=1)
           polygon(absPoints, pch = 9, lwd=3, border=input$roiColors)
           mm <- curMask()
-          if(!is.null(mm)&input$showMask)addMaskPlot(mm, col = input$roiColors)
+          if(!is.null(mm)&input$showMask){
+            # The warning here is not an issue
+            suppressWarnings(addMaskPlot(mm, col = input$roiColors))
+          }
         }
       }, error = function(err){
         print(paste0('Error in imagePlot renderPlot'))
