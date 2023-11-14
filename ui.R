@@ -6,6 +6,8 @@
 #
 # Most recent release: https://github.com/bnasr/drawROI
 #######################################################################
+print('UI Page Top')
+
 fluidPage(
   theme= shinytheme('darkly'),
   shinyjs::useShinyjs(),
@@ -80,20 +82,39 @@ fluidPage(
                           )
                           }),
                           br(),
-                          
+                          # TODO this section fails due to date selection.
                           conditionalPanel('input.siteName!=""', {fluidRow(
                             column(1, strong('from', style='font-size:70%;font-weight: bold;')),
-                            column(5, dateInput('maskStartDate', label = NULL, value =  '2001-01-01', startview = 'day')),
+
+                            tryCatch({
+                              column(5, dateInput('maskStartDate', label = NULL, value =  '2001-01-01', startview = 'day'))
+                              # column(5, airDatepickerInput('maskStartDate', label = NULL, value = as.Date('2001-01-01', format = "%Y-%m-%d"), view = c("days", "months", "years")))
+                            }, error = function(err){
+                              print(paste0('Error in StartDate'))
+                            }, warning = function(wrn){
+                              print(paste0('Warning in StartDate'))
+                            }),
+                            
                             column(4, textInput('maskStartTime', label = NULL, value = '00:08:00')),
                             column(1, '')
                           )}),
-                          conditionalPanel('input.siteName!=""', {
-                            fluidRow(
-                              column(1, strong('to', style='font-size:70%')),
-                              column(5, dateInput('maskEndDate', label = NULL, value =  '9999-12-31', startview = 'day')),
-                              column(4, textInput('maskEndTime', label = NULL, value = '00:00:00')),
-                              column(1, checkboxInput('openEnd', label = '', value = F))
-                            )}),
+                          conditionalPanel('input.siteName!=""', {fluidRow(
+                            column(1, strong('to', style='font-size:70%')),
+                            # print(paste0('input.siteName: ')),
+                            # column(5, dateInput('maskEndDate', label = NULL, value =  '9999-12-31', startview = 'day')),
+                            
+                            tryCatch({
+                              column(5, dateInput('maskEndDate', label = NULL, value =  '9999-12-31', startview = 'day'))
+                              # column(5, airDatepickerInput('maskEndDate', label = NULL, value = as.Date('2024-12-31', format = "%Y-%m-%d"), view = c("days", "months", "years")))
+                            }, error = function(err){
+                              print(paste0('Error in EndDate'))
+                            }, warning = function(wrn){
+                              print(paste0('Warning in EndDate'))
+                            }),
+                            
+                            column(4, textInput('maskEndTime', label = NULL, value = '00:00:00')),
+                            column(1, checkboxInput('openEnd', label = '', value = F))
+                          )}),
                           
                           
                           br(),
@@ -121,7 +142,7 @@ fluidPage(
                           strong(dateInput('gotoDate', label = 'Goto Date'), style='font-size:100%;font-weight: bold;')
                           # fluidRow(
                           #   column(9, strong(dateInput('gotoDate', label = ''), style='font-size:20%;font-weight: bold;')),
-                          #   column(3, actionButton('gotoDateButton', label = NULL, icon = icon('sync'), width = '100%', 
+                          #   column(3, actionButton('gotoDateButton', label = NULL, icon = icon('refresh'), width = '100%', 
                           #                          style="background-color: #222222; border-color: #222222; align:center; font-size: 100%;font-weight: bold;"))
                           # )
                    ),

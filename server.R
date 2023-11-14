@@ -6,7 +6,7 @@
 #
 # Most recent release: https://github.com/bnasr/drawROI
 #######################################################################
-
+print('Server Page top.')
 shinyServer(function(input, output, session) {
   printLog(init=T)
   
@@ -41,10 +41,6 @@ shinyServer(function(input, output, session) {
                        downloadDir = paste0(gettmpdir(), '/drawROI-',system('whoami', intern=T)),
                        phenoSites = fromJSON(file = sitesInfoURL)
   )
-  
-  # observeEvent(input$showClearCache,
-  #      if(SHINY_SERVER)updateCheckboxInput(session, inputId = 'showClearCache', value = F)
-  # )
   output$showClearCache <- reactive({
     printLog(paste('showClearCache reactive experssion was called.\t'))
     
@@ -70,7 +66,7 @@ shinyServer(function(input, output, session) {
     
   })
   
-  autoInvalidate <- reactiveTimer(360000)
+  autoInvalidate <- reactiveTimer(360000) # was 1000
   
   observe({
     printLog(paste('vegTypes initial observed experssion was called.\t'))
@@ -118,6 +114,10 @@ shinyServer(function(input, output, session) {
   # ----------------------------------------------------------------------
   # imgDT
   # ----------------------------------------------------------------------
+  #TODO see if the siteName runs and what its value is since it causes a
+  # crash given the conditional panel is based on it. 
+  # print(paste0('Server site name panel: ', input$siteName))
+  
   imgDT <- reactive({
     printLog(paste('imgDT reactive experssion was called.\t'))
     if(input$siteName=='') return()
@@ -142,6 +142,7 @@ shinyServer(function(input, output, session) {
   # Site
   # ----------------------------------------------------------------------
   observe({
+ 
     printLog(paste('phenoSitesList observed experssion was called.\t'))
     
     sitesName <- sapply(rv$phenoSites, function(x){x$site})
@@ -166,6 +167,7 @@ shinyServer(function(input, output, session) {
   })
   
   observeEvent(input$siteName, {
+    tryCatch({
     printLog(paste('input$siteName was changed to:', '\t',input$siteName))
     if(input$siteName=='') return()
     
@@ -183,7 +185,12 @@ shinyServer(function(input, output, session) {
                       value = 1,
                       min= min(dayYearIDTable()$ID),
                       max= max(dayYearIDTable()$ID)  )
+    
+    #TODO Figure out why clTable won't load and kill code if it doesn't
+    # print(paste0('clipath test: ', testcli, '\n exists: ', file.exists(testcli)))
     clt <- clTable()
+    
+
     updateSliderInput(session,
                       inputId = 'clRange',
                       value = c(1, nrow(clt)),
@@ -202,6 +209,8 @@ shinyServer(function(input, output, session) {
     
     dmin <- imgDT()[Site==input$siteName, min(Date)]
     dmax <- imgDT()[Site==input$siteName, max(Date)]
+    
+    print(paste0('gotoDate, dmin, dmax: ', dmin, ', ', dmax))
     updateDateInput(session, 'gotoDate', value = dmin, min = dmin, max = dmax)
     
     
@@ -219,40 +228,66 @@ shinyServer(function(input, output, session) {
     updateSelectInput(session, inputId = 'maskName', choices = 'New mask')
     rv$centers <- matrix(numeric(), 0, 2)
     rv$curDate <- dayYearIDTable()[ID==1, Date]
+    
+    }, error = function(err){
+      print(paste0('Error in clTable'))
+    }, warning = function(wrn){
+      print(paste0('Warning in clTable'))
+    })
   })
   
   
   
   observe({
-    printLog(paste('shiftsList1 reactive experssion was called.\t'))
-    if(input$siteName=='') return()
-    
-    clt <- as.data.table(clTable())
-    dummy <- 0
-    clt <- clt[blackness<=.8&Haze<=input$hazeThreshold]
-    # clt[,Group:=rep(1:.N, each=3, length.out=.N)]
-    # clt[,HzMed:=median(as.double(na.omit(Horizon))),Group]
-    clt[, dHz := c(diff(Horizon), 0)]
-    shiftsList1 <- as.Date(clt[abs(dHz)>as.numeric(input$shiftsList1.Threshold), Date])
-    rv$shiftsList1 <- shiftsList1
-    
-    updateSelectInput(session, 'shiftsList1', choices = c(Choose='', as.list(shiftsList1)))
+    tryCatch({
+      printLog(paste('shiftsList1 reactive experssion was called.\t'))
+      if(input$siteName=='') return()
+      
+      clt <- as.data.table(clTable())
+      dummy <- 0
+      clt <- clt[blackness<=.8&Haze<=input$hazeThreshold]
+      # clt[,Group:=rep(1:.N, each=3, length.out=.N)]
+      # clt[,HzMed:=median(as.double(na.omit(Horizon))),Group]
+      clt[, dHz := c(diff(Horizon), 0)]
+      shiftsList1 <- as.Date(clt[abs(dHz)>as.numeric(input$shiftsList1.Threshold), Date])
+      rv$shiftsList1 <- shiftsList1
+      
+      updateSelectInput(session, 'shiftsList1', choices = c(Choose='', as.list(shiftsList1)))
+    }, error = function(err){
+      print(paste0('Error in observe shiftList1'))
+    }, warning = function(wrn){
+      print(paste0('Warning in observe shiftList1'))
+    })
   })
   
   
   
   observeEvent(input$shiftsList1,{
-    printLog(paste('input$shiftsList1 was changed to:', '\t',input$shiftsList1))
-    if(input$siteName=='') return()
-    
-    if(input$shiftsList1=='') return()
-    rv$slideShow <- 0
-    dummy <- 1
-    tmpDT <- dayYearIDTable()
-    tmpDT[, dif:=abs(Date- as.Date(input$shiftsList1))]
-    id <- tmpDT[dif==min(dif), ID]
-    rv$newContID <- id
-    rv$updateBeforeAfter <- rv$updateBeforeAfter + 1
+
+    tryCatch({
+      printLog(paste('input$shiftsList1 was changed to:', '\t',input$shiftsList1))
+      if(input$siteName=='') return()
+      
+      if(input$shiftsList1=='') return()
+      rv$slideShow <- 0
+      dummy <- 1
+      tmpDT <- dayYearIDTable()
+      
+      # The code commented out relies on R interpreting a list as a number
+      # which does not occur in newer versions. This may have been true in older
+      # versions of R
+      # tmpDT[, dif:=abs(Date- as.Date(input$shiftsList1))]
+      tmpDT[, dif:=abs(Date- as.Date(length(numeric(input$shiftsList1))))]
+      
+      
+      id <- tmpDT[dif==min(dif), ID]
+      rv$newContID <- id
+      rv$updateBeforeAfter <- rv$updateBeforeAfter + 1
+    }, error = function(err) {
+      print(paste0("There was an error in drawROI."))
+    }, warning = function(wrn){
+      print(paste0("There was a warning in drawROI."))
+    })
   })
   
   observeEvent(rv$newContID,{
@@ -265,30 +300,42 @@ shinyServer(function(input, output, session) {
   })
   
   observe({
-    printLog(paste('shiftsList2 reactive experssion was called.\t'))
-    if(input$siteName=='') return()
-    
-    clt <- as.data.table(clTable())
-    clt <- clt[blackness<=.8&Haze<=input$hazeThreshold]
-    
-    shiftsList2 <- as.Date(clt[R < ( as.numeric(input$shiftsList2.Threshold)), Date])
-    rv$shiftsList2 <- shiftsList2
-    
-    updateSelectInput(session, 'shiftsList2', choices = c(Choose='', as.list(shiftsList2)))
-    
+    tryCatch({
+      printLog(paste('shiftsList2 reactive experssion was called.\t'))
+      if(input$siteName=='') return()
+      
+      clt <- as.data.table(clTable())
+      clt <- clt[blackness<=.8&Haze<=input$hazeThreshold]
+      
+      shiftsList2 <- as.Date(clt[R < ( as.numeric(input$shiftsList2.Threshold)), Date])
+      rv$shiftsList2 <- shiftsList2
+      
+      updateSelectInput(session, 'shiftsList2', choices = c(Choose='', as.list(shiftsList2)))
+      
+    }, error = function(err){
+      print(paste0('Error in drawROI'))
+    }, warning = function(wrn){
+      print(paste0('Warning in drawROI'))
+    })
   })
   
   observeEvent(input$shiftsList2,{
-    printLog(paste('input$shiftsList2 was changed to:', '\t',input$shiftsList2))
-    if(input$siteName=='') return()
-    if(input$shiftsList2=='') return()
-    rv$slideShow <- 0
-    dummy <- 1
-    tmpDT <- dayYearIDTable()
-    tmpDT[, dif:=abs(Date- as.Date(input$shiftsList2))]
-    id <- tmpDT[dif==min(dif), ID]
-    rv$newContID <- id
-    rv$updateBeforeAfter <- rv$updateBeforeAfter + 1
+    tryCatch({
+      printLog(paste('input$shiftsList2 was changed to:', '\t',input$shiftsList2))
+      if(input$siteName=='') return()
+      if(input$shiftsList2=='') return()
+      rv$slideShow <- 0
+      dummy <- 1
+      tmpDT <- dayYearIDTable()
+      tmpDT[, dif:=abs(Date- as.Date(length(numeric(input$shiftsList2))))] # Orig code.
+      id <- tmpDT[dif==min(dif), ID]
+      rv$newContID <- id
+      rv$updateBeforeAfter <- rv$updateBeforeAfter + 1
+    }, error = function(err){
+      print(paste0('Error in drawROI Correlation Shifts'))
+    }, warning = function(wrn){
+      print(paste0('Warning in drawROI'))
+    })
   })
   
   
@@ -396,8 +443,6 @@ shinyServer(function(input, output, session) {
     printLog(paste('dirroipath observed experssion was called.\t'))
     if(input$siteName=='') return()
     
-    # ROIsJSON <- jsonlite::fromJSON(txt = paste0('https://phenocam.nau.edu/webcam/roi/roilistinfo/', input$siteName))
-    
     if(is.url(roipath())){
       dirHTML(url = roipath(), sitename = input$siteName, pattern = 'roi.csv$')
     }
@@ -407,8 +452,6 @@ shinyServer(function(input, output, session) {
   })
   
   observe({
-    # return()
-    # autoInvalidate()
     if(input$siteName=='') return()
     
     tmp.rv.ROIs <- c(dirroipath(), "New ROI")
@@ -420,8 +463,7 @@ shinyServer(function(input, output, session) {
       rv$ROIs <- tmp.rv.ROIs
       
       printLog(paste('rv$ROIs observed experssion was called.\t'))
-      roiNameSel <- 'New ROI'
-      # if(length(rv$ROIs)>1) roiNameSel <- rv$ROIs[length(rv$ROIs)-1]
+      roiNameSel <- 'New ROI']
       dummy <- 0
       
       updateSelectInput(session, 'roiName', choices = rv$ROIs)
@@ -562,9 +604,6 @@ shinyServer(function(input, output, session) {
   })
   
   observe({
-    # printLog(paste('x12 observe experssion was called.\t'))
-    
-    # autoInvalidate()
     if(input$siteName=='') return()
     
     dummy <- 0
@@ -610,7 +649,6 @@ shinyServer(function(input, output, session) {
     rv$MASKs <- list()
     rv$centers <- matrix(numeric(), 0, 2)
     updateSelectInput(session, inputId = 'maskName', choices = 'New mask')
-    # updateSelectInput(session, inputId = 'vegType', selected = list('Agriculture (AG)'='AG'))
     updateTextInput(session, 'roiDescription', value = '')
     updateTextInput(session, inputId = 'roiOwner', value = '') 
   })
@@ -834,6 +872,8 @@ shinyServer(function(input, output, session) {
   
   
   clTable <- reactive({
+    tryCatch({
+
     printLog(paste('clTable reactive experssion was called.\t'))
     if(input$siteName=='') return()
     
@@ -844,16 +884,15 @@ shinyServer(function(input, output, session) {
                   style='background-color:#3b3a35; color:#fce319; ',
                   footer = NULL
       )))
-    
+  
     cltpath <- paste0(mainDataPath, '/data/archive/', input$siteName, '/ROI/', input$siteName, '-cli.txt')
-
-    printLog(paste('cltpath: ', cltpath))
+    # cltpath <- 'bad.txt'
+    # printLog(paste('cltpath: ', cltpath))
     
     cltpath <- tryDownload(cltpath, downloadDir = rv$downloadDir, Update = T)
-
-    printLog(paste('cltpath: ', cltpath))
-    
     clt <- read.csv(cltpath)
+    printLog(paste('cltpath: ', cltpath))
+
     
     clt <- as.data.table(clt)
     clt[,CLID:=1:.N]
@@ -873,6 +912,12 @@ shinyServer(function(input, output, session) {
     removeModal()
     
     as.data.frame(clt)
+    
+    }, error = function(err){
+      print(paste0('Error in clTable.'))
+    }, warning = function(wrn) {
+      print(paste0('Warning in clTable'))
+    })
   }  )
   
   
@@ -998,6 +1043,7 @@ shinyServer(function(input, output, session) {
   })
   
   observeEvent(input$gotoDate,{
+    print(paste0('input$gotoDate: ', input$gotoDate, ' test: ', is.null(input$gotoDate)))
     printLog(paste('input$gotoDate was changed to:', '\t',input$gotoDate))
     if(input$siteName=='') return()
     
@@ -1007,19 +1053,6 @@ shinyServer(function(input, output, session) {
     id <- tmpDT[dif==min(dif), ID]
     updateSliderInput(session, inputId = 'contID', value = id)
   })
-  
-  
-  # observeEvent(input$gotoDateButton,{
-  #   printLog(paste('input$gotoDateButton was changed to:', '\t',input$gotoDateButton))
-  #   if(input$siteName=='') return()
-  #   
-  #   dummy <- 1
-  #   tmpDT <- dayYearIDTable()
-  #   tmpDT[, dif:=abs(Date-input$gotoDate)]
-  #   id <- tmpDT[dif==min(dif), ID]
-  #   updateSliderInput(session, inputId = 'contID', value = id)
-  # })
-  
   
   observeEvent(input$contID,{
     printLog(paste('input$contID was changed to:', '\t',input$contID))
@@ -1058,6 +1091,7 @@ shinyServer(function(input, output, session) {
       clt <- as.data.table(clTable()[input$clRange[1]:input$clRange[2],])
       
       tmp <- clImage()
+      # print(paste0('clImage load: ', tmp)) #TODO remove after testing
       tmp <- tryDownload(tmp, downloadDir = rv$downloadDir, Update = T)
       clrgb <- readJPEG(tmp)
       
@@ -1073,53 +1107,74 @@ shinyServer(function(input, output, session) {
   )
   
   output$timePlot <- renderPlot(
+    
     res=36,
     height = 25,
     {
+      tryCatch(
+        {
+          if(input$siteName=='') return()
+          dt <- as.Date(dayYearIDTable()[ID==input$contID, Date])
+          clt <- as.data.table(clTable())
+          par(mar=c(3,0,0,0))
+          par(cex.axis = 2)
+          clt[,plot(Date, Haze*0, xaxs='i',yaxs='i', yaxt='n', xaxt='s', type='n', ylab = '', ylim = c(0, .1))]
+        }, error = function(err){
+          print(paste0('Error in clPlot renderPlot timeplot'))
+          
+          showNotification('There was an error loading date data, missing cli.txt', '', duration = NULL, type="error")
+          par(mar=c(0,0,0,0))
+          plot.new()
+          plot.window(xlim = c(0,1), ylim = c(0, 1), xaxs='i',yaxs='i')
+          text(0.5, 0.5, 'Error loading date data.', cex=2, col='red')
+          
+        }, warning = function(wrn){
+          print(paste0('Warning in clPlot renderPlot timeplot'))
+        }
+      )
       printLog(paste('timePlot renderPlot experssion was called.\t'))
-      
-      if(input$siteName=='') return()
-      
-      dt <- as.Date(dayYearIDTable()[ID==input$contID, Date])
-      clt <- as.data.table(clTable())
-      
-      par(mar=c(3,0,0,0))
-      par(cex.axis = 2)
-      clt[,plot(Date, Haze*0, xaxs='i',yaxs='i', yaxt='n', xaxt='s', type='n', ylab = '', ylim = c(0, .1))]
-    })
+    }
+  )
   
   output$clPlot <- renderPlot(
-    res=36,
-    height = 100,
-    # height = function(){floor(session$clientData$output_clPlot_width/2)},
-    {
-      printLog(paste('clPlot renderPlot experssion was called.\t'))
-      
-      if(input$siteName=='') return()
-      
-      dt <- as.Date(dayYearIDTable()[ID==input$contID, Date])
-      clt <- as.data.table(clTable()[input$clRange[1]:input$clRange[2],])
-      par(mar=c(3,0,0,0))
-      par(cex.axis = 2)
-      clt[,plot(Date, Haze*0, xaxs='i',yaxs='i', yaxt='n', type='n', ylab = '', ylim = c(0, 1))]
-      par(new=T)
-      
-      jp <- plotJPEG(clImage(), xlim = input$clRange, downloadDir = rv$downloadDir, Update = T)
-      
-      abline(v= clt[Date==dt,CLID], col= 'red', lwd=5)
-      
-      if(!is.null(rv$shiftsList1))abline(v= clt[Date%in%as.Date(rv$shiftsList1),CLID], col= 'white', lwd=3, lty=2)
-      if(!is.null(rv$shiftsList2))abline(v= clt[Date%in%as.Date(rv$shiftsList2),CLID], col= 'green', lwd=3, lty=2)
-      
-      if(input$hrzShow)lines(clt[,.(CLID, Horizon)], col='yellow', lwd=3)
-      if(input$corShow)lines(clt[,.(CLID, R*par()$usr[4])], col='orange', lwd=3)
-      
-      legend('right',
-             bty = 'n', cex = 2, text.font = 2, lwd = 4,
-             legend = c('Horizon', 'Correlation'), 
-             col = c('yellow', 'orange'), 
-             text.col = c('yellow', 'orange'))
-    }
+      res=36,
+      height = 100,
+      # height = function(){floor(session$clientData$output_clPlot_width/2)},
+      {
+        tryCatch({
+        printLog(paste('clPlot renderPlot experssion was called.\t'))
+        
+        if(input$siteName=='') return()
+        
+        dt <- as.Date(dayYearIDTable()[ID==input$contID, Date])
+        clt <- as.data.table(clTable()[input$clRange[1]:input$clRange[2],])
+        par(mar=c(3,0,0,0))
+        par(cex.axis = 2)
+        clt[,plot(Date, Haze*0, xaxs='i',yaxs='i', yaxt='n', type='n', ylab = '', ylim = c(0, 1))]
+        par(new=T)
+        
+        jp <- plotJPEG(clImage(), xlim = input$clRange, downloadDir = rv$downloadDir, Update = T)
+        
+        abline(v= clt[Date==dt,CLID], col= 'red', lwd=5)
+        
+        if(!is.null(rv$shiftsList1))abline(v= clt[Date%in%as.Date(rv$shiftsList1),CLID], col= 'white', lwd=3, lty=2)
+        if(!is.null(rv$shiftsList2))abline(v= clt[Date%in%as.Date(rv$shiftsList2),CLID], col= 'green', lwd=3, lty=2)
+        
+        if(input$hrzShow)lines(clt[,.(CLID, Horizon)], col='yellow', lwd=3)
+        if(input$corShow)lines(clt[,.(CLID, R*par()$usr[4])], col='orange', lwd=3)
+        
+        legend('right',
+               bty = 'n', cex = 2, text.font = 2, lwd = 4,
+               legend = c('Horizon', 'Correlation'), 
+               col = c('yellow', 'orange'), 
+               text.col = c('yellow', 'orange'))
+        
+        }, error = function(err){
+          print(paste0('Error in clPlot renderPlot'))
+        }, warning = function(wrn){
+          print(paste0('Warning in clPlot renderPlot'))
+        })
+      }
   )
   
   
@@ -1135,64 +1190,88 @@ shinyServer(function(input, output, session) {
       
       if(input$siteName=='') return()
       
-      par(mar=c(0,0,0,0))
-      if(is.na(sampleImage())|(!is.url(sampleImage())&!file.exists(sampleImage()))){
-        plot(NA, xlim=c(0,1), ylim=c(0,1), xaxs='i',yaxs='i', xaxt='n', yaxt='n', bty='o', xlab='',ylab='')
-        text(mean(par()$usr[1:2]), mean(par()$usr[3:4]), 'No image for this date was found!', font=2, adj=.5, cex=2)
-      }else{
-        dummy <- 0
-        jp <- plotJPEG(sampleImage(),  downloadDir = rv$downloadDir)
-        putImageFooter(id = input$contID, mrgDT = mergedTable(), footer = 'sample image', grid = input$showGrid)
-        
-        dummy <- 0
-        if(is.null(rv$centers)) 
-          absPoints <- matrix(numeric(), 0, 2)
-        else if(nrow(rv$centers)==0) 
-          absPoints <- matrix(numeric(), 0, 2)
-        else if(nrow(rv$centers)==1) 
-          absPoints <- rv$centers*sampleImageSize()
-        else 
-          absPoints <- t(apply(rv$centers, 1, '*', sampleImageSize()))
-        dummy <- 0
-        # polygon(absPoints, col = input$roiColors, pch = 9, lwd=1)
-        polygon(absPoints, pch = 9, lwd=3, border=input$roiColors)
-        mm <- curMask()
-        if(!is.null(mm)&input$showMask)addMaskPlot(mm, col = input$roiColors)
-      }
+      
+      tryCatch({
+        par(mar=c(0,0,0,0))
+        if(is.na(sampleImage())|(!is.url(sampleImage())&!file.exists(sampleImage()))){
+          plot(NA, xlim=c(0,1), ylim=c(0,1), xaxs='i',yaxs='i', xaxt='n', yaxt='n', bty='o', xlab='',ylab='')
+          text(mean(par()$usr[1:2]), mean(par()$usr[3:4]), 'No image for this date was found!', font=2, adj=.5, cex=2)
+        }else{
+          dummy <- 0
+          jp <- plotJPEG(sampleImage(),  downloadDir = rv$downloadDir)
+          putImageFooter(id = input$contID, mrgDT = mergedTable(), footer = 'sample image', grid = input$showGrid)
+          
+          dummy <- 0
+          if(is.null(rv$centers)) 
+            absPoints <- matrix(numeric(), 0, 2)
+          else if(nrow(rv$centers)==0) 
+            absPoints <- matrix(numeric(), 0, 2)
+          else if(nrow(rv$centers)==1) 
+            absPoints <- rv$centers*sampleImageSize()
+          else 
+            absPoints <- t(apply(rv$centers, 1, '*', sampleImageSize()))
+          dummy <- 0
+          # polygon(absPoints, col = input$roiColors, pch = 9, lwd=1)
+          polygon(absPoints, pch = 9, lwd=3, border=input$roiColors)
+          mm <- curMask()
+  
+          if(!is.null(mm)&input$showMask){
+            # The warning here is not an issue. 
+            suppressWarnings(
+              addMaskPlot(mm, col = input$roiColors)
+            )
+          }
+          }
+      }, error = function(err){
+        print(paste0('Error in imagePlotBig: ', err))
+
+      }, warning = function(wrn){
+        print(paste0('Warning in imagePlotBig: ', wrn))
+        # print(paste0('Warning in imagePlotBig'))
+      })
     })
   
   output$imagePlot <- renderPlot(
     res=36,
     height = function(){floor(session$clientData$output_imagePlot_width/1.35)},
     {
-      printLog(paste('imagePlot renderPlot experssion was called.\t'))
-      
-      if(input$siteName=='') return()
-      
-      par(mar=c(0,0,0,0))
-      if(is.na(sampleImage())|(!is.url(sampleImage())&!file.exists(sampleImage()))){
-        plot(NA, xlim=c(0,1), ylim=c(0,1), xaxs='i',yaxs='i', xaxt='n', yaxt='n', bty='o', xlab='',ylab='')
-        text(mean(par()$usr[1:2]), mean(par()$usr[3:4]), 'No image for this date was found!', font=2, adj=.5, cex=2)
-      }else{
-        dummy <- 0
-        jp <- plotJPEG(sampleImage(),  downloadDir = rv$downloadDir)
-        putImageFooter(id = input$contID, mrgDT = mergedTable(), footer = 'sample image', grid = input$showGrid)
+      tryCatch({
+        printLog(paste('imagePlot renderPlot experssion was called.\t'))
         
-        dummy <- 0
-        if(is.null(rv$centers)) 
-          absPoints <- matrix(numeric(), 0, 2)
-        else if(nrow(rv$centers)==0) 
-          absPoints <- matrix(numeric(), 0, 2)
-        else if(nrow(rv$centers)==1) 
-          absPoints <- rv$centers*sampleImageSize()
-        else 
-          absPoints <- t(apply(rv$centers, 1, '*', sampleImageSize()))
-        dummy <- 0
-        # polygon(absPoints, col = input$roiColors, pch = 9, lwd=1)
-        polygon(absPoints, pch = 9, lwd=3, border=input$roiColors)
-        mm <- curMask()
-        if(!is.null(mm)&input$showMask)addMaskPlot(mm, col = input$roiColors)
-      }
+        if(input$siteName=='') return()
+        
+        par(mar=c(0,0,0,0))
+        if(is.na(sampleImage())|(!is.url(sampleImage())&!file.exists(sampleImage()))){
+          plot(NA, xlim=c(0,1), ylim=c(0,1), xaxs='i',yaxs='i', xaxt='n', yaxt='n', bty='o', xlab='',ylab='')
+          text(mean(par()$usr[1:2]), mean(par()$usr[3:4]), 'No image for this date was found!', font=2, adj=.5, cex=2)
+        }else{
+          dummy <- 0
+          jp <- plotJPEG(sampleImage(),  downloadDir = rv$downloadDir)
+          putImageFooter(id = input$contID, mrgDT = mergedTable(), footer = 'sample image', grid = input$showGrid)
+          
+          dummy <- 0
+          if(is.null(rv$centers)) 
+            absPoints <- matrix(numeric(), 0, 2)
+          else if(nrow(rv$centers)==0) 
+            absPoints <- matrix(numeric(), 0, 2)
+          else if(nrow(rv$centers)==1) 
+            absPoints <- rv$centers*sampleImageSize()
+          else 
+            absPoints <- t(apply(rv$centers, 1, '*', sampleImageSize()))
+          dummy <- 0
+          # polygon(absPoints, col = input$roiColors, pch = 9, lwd=1)
+          polygon(absPoints, pch = 9, lwd=3, border=input$roiColors)
+          mm <- curMask()
+          if(!is.null(mm)&input$showMask){
+            # The warning here is not an issue
+            suppressWarnings(addMaskPlot(mm, col = input$roiColors))
+          }
+        }
+      }, error = function(err){
+        print(paste0('Error in imagePlot renderPlot'))
+      }, warning = function(wrn){
+        print(paste0('Warning in imagePlot renderPlot'))
+      })
     })
   
   
@@ -1255,16 +1334,21 @@ shinyServer(function(input, output, session) {
   
   
   mergedTable <- reactive({
-    printLog(paste('mergedTable reactive experssion was called.\t'))
-    if(input$siteName=='') return()
-    
-    clt <- as.data.table(clTable())[,.(Date, Horizon, Haze, R, blackness, CLID)]
-    dyt <- as.data.table(dayYearIDTable())[, .(Date, ID)]
-    ipt <- imgDT()[,.(Date, path)]
-    mrgt <- merge(clt, dyt, by='Date')
-    mrgt <- merge(mrgt, ipt, by='Date')
-    mrgt
-    
+    # tryCatch({
+      printLog(paste('mergedTable reactive experssion was called.\t'))
+      if(input$siteName=='') return()
+      
+      clt <- as.data.table(clTable())[,.(Date, Horizon, Haze, R, blackness, CLID)]
+      dyt <- as.data.table(dayYearIDTable())[, .(Date, ID)]
+      ipt <- imgDT()[,.(Date, path)]
+      mrgt <- merge(clt, dyt, by='Date')
+      mrgt <- merge(mrgt, ipt, by='Date')
+      mrgt
+    # }, error = function(err){
+    #   print(paste0('Error in mergedTable.'))
+    # }, warning = function(wrn){
+    #   print(paste0('Wrning in mergedTable.'))
+    # })
   })
   
   
@@ -2050,18 +2134,7 @@ shinyServer(function(input, output, session) {
   shinyjs::disable("gotoShiftFOV")
   
   removeModal()
-  
-  # showModal(strong(
-  #   modalDialog(HTML('This is the beta version of PhenoCam ROI app. Thanks for helping us to improve it. <br>
-  #               Please do not share with others.'),
-  #               easyClose = T,
-  #               fade = T,
-  #               size = 'm',
-  #               style='background-color:#3b3a35; color:#fce319; ',
-  #               footer = NULL
-  #   )))
-  
-  
+
   observe(printLog(finit = T))
   
 })

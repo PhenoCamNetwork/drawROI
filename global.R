@@ -7,6 +7,7 @@
 # Most recent release: https://github.com/bnasr/drawROI
 #######################################################################
 
+library(shiny, lib="/home/mkf58/Documents/Development/Phoenocam/shiny_1_4_0_2")
 
 source('funcs.R')
 
@@ -45,17 +46,25 @@ CACHE_LIMIT <- 5000
 PRINT_LOGS <- TRUE
 if(system('hostname', intern=T)%in%c('phenocam')) PRINT_LOGS <- T
    
-HTTP_LOAD <- FALSE
-SHINY_SERVER <- TRUE
-SHINY_SERVER_FQDN = Sys.getenv("HOSTNAME")
-sitesInfoURL <- paste0('https://', SHINY_SERVER_FQDN, '/webcam/network/siteinfo/')
+HTTP_LOAD <- TRUE
+SHINY_SERVER <- FALSE
 
+SHINY_SERVER_FQDN = Sys.getenv("HOSTNAME")
+# For Testing on local system
+SHINY_SERVER_FQDN = 'phenocam.nau.edu'
+
+maskStartDate = '2001-01-01'
+maskEndDate = '9999-12-31'
+
+sitesInfoURL <- paste0('https://', SHINY_SERVER_FQDN, '/webcam/network/siteinfo/')
+print(paste0('sitesInfoURL: ', sitesInfoURL))
+
+middayListPath <- 'https://phenocam.nau.edu/api/middayimages/'
 if(HTTP_LOAD){
-  middayListPath <- paste0('https://', SHINY_SERVER_FQDN,  '/webcam/network/middayimglist/')
-  mainDataPath <- paste0('https://', SHINY_SERVER_FQDN)
-  }else{
+  mainDataPath <- 'https://phenocam.nau.edu'
+}else{
   middayListPath <- '/data/archive/'
   mainDataPath <- ''
 }
 
-
+print('Global Page Bottom')

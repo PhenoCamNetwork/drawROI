@@ -15,21 +15,26 @@ is.url <-function(x) {
 # plot jpeg image using as raster given image path.
 plotJPEG <- function(path, add=FALSE, xlim = NULL, ylim = NULL, downloadDir, showLoad = F, Update = F)
 {
-  jpgNonNative <- NULL
-  path <- tryDownload(path, downloadDir = downloadDir, showLoad = showLoad, Update = Update)
-  jpgNative <-  readJPEG(path, native=T) # read the file
-  res <-  dim(jpgNative)[2:1] # get the resolution
-  if(is.null(xlim)) xlim <- c(1,res[1])
-  if(is.null(ylim)) ylim <- c(1,res[2])
-  if (!add) # initialize an empty plot area if add==FALSE
-    plot(NA, xlim = xlim, ylim = ylim, type='n',
-         xaxs='i',yaxs='i',xaxt='n',yaxt='n',xlab='',ylab='',bty='o')
-  rasterImage(jpgNative,1,1,res[1],res[2])
-  invisible(list(res=res, 
-                 jpgNonNative=jpgNonNative, 
-                 jpgNative=jpgNative ))
-}
-
+  
+  tryCatch({
+    jpgNonNative <- NULL
+    path <- tryDownload(path, downloadDir = downloadDir, showLoad = showLoad, Update = Update)
+    jpgNative <-  readJPEG(path, native=T)
+    res <-  dim(jpgNative)[2:1] # get the resolution
+    if(is.null(xlim)) xlim <- c(1,res[1])
+    if(is.null(ylim)) ylim <- c(1,res[2])
+    if(!add) # initialize an empty plot area if add==FALSE
+      plot(NA, xlim = xlim, ylim = ylim, type='n',
+           xaxs='i',yaxs='i',xaxt='n',yaxt='n',xlab='',ylab='',bty='o')
+    rasterImage(jpgNative,1,1,res[1],res[2])
+    invisible(list(res=res, 
+                   jpgNonNative=jpgNonNative, 
+                   jpgNative=jpgNative ))
+  }, error = function(err){
+    print(paste0('Error in plotJPEG'))
+  }, warning = function(wrn){
+    print(paste0('Warning in plotJPEG'))
+  })
 
 # interactive drawing of polygons by user clicks on the plot
 draw.polygon <-
@@ -49,7 +54,6 @@ draw.polygon <-
     
     invisible(xy)
   }
-
 
 # extract chromatic colors of RGB channels for given jpeg file and mask matrix
 extractCCC <- function(path, m, downloadDir){
@@ -92,7 +96,6 @@ createRasteredROI <- function(pnts, imgSize){
   pnts <- t(apply(pnts, 1, '*', imgSize))
   ext <- extent(1, imgSize[1], 1, imgSize[2])
   poly <- as(ext  ,"SpatialPolygons")
-  # poly@polygons[[1]]@Polygons[[1]]@coords <- as.matrix(pnts)
   
   tbl <- as.data.table(na.omit(cbind(pnts,cumsum(is.na(pnts[,1]))+1 )))
   colnames(tbl) <- c('x', 'y', 'g')
@@ -139,8 +142,6 @@ extractCCCTimeSeries <- function(rmsk, paths, PLUS=F, session=shiny::getDefaultR
   n <- length(paths)
   CCCT <- matrix(NA, nrow=n, ncol=3)
   
-  
-  # if(exists('session'))
   withProgress(value = 0, message = 'Extracting CCs',
                for(i in 1:n){
                  if(isTRUE(session$input$stopThis))break
@@ -148,7 +149,6 @@ extractCCCTimeSeries <- function(rmsk, paths, PLUS=F, session=shiny::getDefaultR
                  if(!is.null(ccc))
                    CCCT[i,] <- as.numeric((ccc[c("rcc", "gcc", "bcc")]))
                  incProgress(1/n)
-                 # Sys.sleep(1)
                  if(i%%20==0)httpuv:::service()
                }
   )
@@ -174,7 +174,6 @@ writeROIListFile <- function(ROIList, path, roifilename){
                     '\n# Update Time: ', strftime(updateTime, format = '%H:%M:%S'),
                     '\n# Description: ', ROIList$Description,
                     '\n#\n')
-  
   
   bdyText <- 'start_date,start_time,end_date,end_time,maskfile,sample_image\n'
   
@@ -256,75 +255,71 @@ fixFormatTime <- function(asText){
 
 #parsing ROIList file into a list in R
 parseROI <- function(roifilename, roipath, downloadDir){
-  fname <- paste0(roipath, roifilename)
-  #if(!file.exists(fname)) return(NULL)
-  
-  roilines <- readLines(fname)
-  
-  wEmptyLine <- roilines%in%c('', ' ',  '  ')
-  wCommented <- as.vector(sapply(roilines, grepl,  pattern = '^#'))
-  wNotSkip <- !(wEmptyLine|wCommented)
-  
-  
-  parseroiline <- function(roilines, property){
-    wProp <- grepl(roilines, pattern = property)
-    gsub(roilines[wProp], pattern = paste0('# ', property, ': '), replacement = '')
-  }
-  
-  ROIList <- list(siteName = parseroiline(roilines[wCommented], 'Site'), 
-                  vegType = parseroiline(roilines[wCommented], 'Veg Type'), 
-                  ID = as.numeric(parseroiline(roilines[wCommented], 'ROI ID Number')), 
-                  Owner = parseroiline(roilines[wCommented], 'Owner'), 
-                  createDate = parseroiline(roilines[wCommented], 'Creation Date'), 
-                  createTime = parseroiline(roilines[wCommented], 'Creation Time'), 
-                  updateDate = parseroiline(roilines[wCommented], 'Update Date'), 
-                  updateTime = parseroiline(roilines[wCommented], 'Update Time'), 
-                  Description = parseroiline(roilines[wCommented], 'Description'), 
-                  masks = NULL)
-  
-  
-  parsedMasks <- read.table(textConnection(roilines[which(wNotSkip)]), sep = ',', header = T)
-  
-  masksList <- list()
-  for(i in 1:nrow(parsedMasks)){
-    maskpath <- paste0(roipath, parsedMasks$maskfile[i])
-    maskpointspath <- gsub(maskpath, pattern = '.tif', replacement = '_vector.csv')
-    if(file.exists(maskpointspath)|url.exists(maskpointspath)) {
-      dummy=0
-      maskpoints <- as.matrix(read.csv(maskpointspath, header = F, skip = 1))
-    }else{
-      maskpoints <- NULL
+    fname <- paste0(roipath, roifilename)
+    
+    roilines <- readLines(fname)
+    
+    wEmptyLine <- roilines%in%c('', ' ',  '  ')
+    wCommented <- as.vector(sapply(roilines, grepl,  pattern = '^#'))
+    wNotSkip <- !(wEmptyLine|wCommented)
+    
+    
+    parseroiline <- function(roilines, property){
+      wProp <- grepl(roilines, pattern = property)
+      gsub(roilines[wProp], pattern = paste0('# ', property, ': '), replacement = '')
     }
     
-    maskpath <- tryDownload(maskpath, downloadDir = downloadDir, showLoad = F, Update = T)
-    
-    tmpMask <- list(maskpoints = maskpoints, 
-                    startdate = as.character(parsedMasks$start_date[i]), 
-                    enddate = as.character(parsedMasks$end_date[i]), 
-                    starttime = as.character(parsedMasks$start_time[i]), 
-                    endtime = as.character(parsedMasks$end_time[i]), 
-                    sampleyear = NULL, 
-                    sampleday = NULL,
-                    sampleImage = as.character(parsedMasks$sample_image[i]),
-                    rasteredMask = as.matrix(raster(maskpath)))
-    
-    tmpMask$rasteredMask[(!is.na(tmpMask$rasteredMask))&tmpMask$rasteredMask!=0] <- 1
+    ROIList <- list(siteName = parseroiline(roilines[wCommented], 'Site'), 
+                    vegType = parseroiline(roilines[wCommented], 'Veg Type'), 
+                    ID = as.numeric(parseroiline(roilines[wCommented], 'ROI ID Number')), 
+                    Owner = parseroiline(roilines[wCommented], 'Owner'), 
+                    createDate = parseroiline(roilines[wCommented], 'Creation Date'), 
+                    createTime = parseroiline(roilines[wCommented], 'Creation Time'), 
+                    updateDate = parseroiline(roilines[wCommented], 'Update Date'), 
+                    updateTime = parseroiline(roilines[wCommented], 'Update Time'), 
+                    Description = parseroiline(roilines[wCommented], 'Description'), 
+                    masks = NULL)
     
     
-    sampleYMD <- strsplit(tmpMask$sampleImage, split = '_')[[1]][2:4]
-    tmpMask$sampleyear <- as.numeric(sampleYMD)[1]
-    tmpMask$sampleday <- yday(paste(sampleYMD, collapse = '-'))
+    parsedMasks <- read.table(textConnection(roilines[which(wNotSkip)]), sep = ',', header = T)
     
-    masksList[[length(masksList)+1]] <- tmpMask
-    
-  }
-  names(masksList) <- gsub(parsedMasks$maskfile, pattern = '.tif', replacement = '')
-  ROIList$masks <- masksList
-  ROIList
+    masksList <- list()
+    for(i in 1:nrow(parsedMasks)){
+      maskpath <- paste0(roipath, parsedMasks$maskfile[i])
+      maskpointspath <- gsub(maskpath, pattern = '.tif', replacement = '_vector.csv')
+      if(file.exists(maskpointspath)|url.exists(maskpointspath)) {
+        dummy=0
+        maskpoints <- as.matrix(read.csv(maskpointspath, header = F, skip = 1))
+      }else{
+        maskpoints <- NULL
+      }
+      
+      maskpath <- tryDownload(maskpath, downloadDir = downloadDir, showLoad = F, Update = T)
+      
+      tmpMask <- list(maskpoints = maskpoints, 
+                      startdate = as.character(parsedMasks$start_date[i]), 
+                      enddate = as.character(parsedMasks$end_date[i]), 
+                      starttime = as.character(parsedMasks$start_time[i]), 
+                      endtime = as.character(parsedMasks$end_time[i]), 
+                      sampleyear = NULL, 
+                      sampleday = NULL,
+                      sampleImage = as.character(parsedMasks$sample_image[i]),
+                      rasteredMask = as.matrix(raster(maskpath)))
+      
+      tmpMask$rasteredMask[(!is.na(tmpMask$rasteredMask))&tmpMask$rasteredMask!=0] <- 1
+      
+      
+      sampleYMD <- strsplit(tmpMask$sampleImage, split = '_')[[1]][2:4]
+      tmpMask$sampleyear <- as.numeric(sampleYMD)[1]
+      tmpMask$sampleday <- yday(paste(sampleYMD, collapse = '-'))
+      
+      masksList[[length(masksList)+1]] <- tmpMask
+      
+    }
+    names(masksList) <- gsub(parsedMasks$maskfile, pattern = '.tif', replacement = '')
+    ROIList$masks <- masksList
+    ROIList
 }
-
-
-
 
 # an effort to convert rasterized mask to vectorized shape
 maskRaster2Vector <- function(r){
@@ -335,7 +330,6 @@ maskRaster2Vector <- function(r){
   c <- p@polygons[[1]]@Polygons[[1]]@coords
   c
 }
-
 
 #parse image data table to site, date and time, probably redundant function
 parseIMG.DT <- function(imgDT){
@@ -358,27 +352,17 @@ parseIMG.DT <- function(imgDT){
   imgDT
 }
 
-
 # gettng image data table given site and midday list path 
 getIMG.DT <- function(sites){
   imgDT <- data.table()
   
   for(site in sites){
-    tmp <- paste0(middayListPath, site, '/ROI/',site,'-midday.txt')
-    
-    if(is.url(middayListPath)){
-      mdiJSON = fromJSON(file = paste0(middayListPath, site,'/'))
-      tbl <- data.table( DateJSON = as.Date(sapply(mdiJSON$images, function(x){x$date })),
-                         path = as.character(sapply(mdiJSON$images, function(x){x$midimg})))
-    }else if(file.exists(tmp)){
-      tbl <- read.table(tmp, header = F, colClasses = 'character', col.names = 'path')
-    }else{
-      tmp <- paste0('https://',SHINY_SERVER_FQDN, '/webcam/network/middayimglist/', site,'/')
-      mdiJSON = fromJSON(file = tmp)
-      tbl <- data.table( DateJSON = as.Date(sapply(mdiJSON$images, function(x){x$date })),
-                         path = as.character(sapply(mdiJSON$images, function(x){x$midimg})))
-    }
-    
+    # Tom's new API implementation MKF 6/6/2023
+    # TODO probably should move the URL to the global.R script.
+    tmp = paste0('https://phenocam.nau.edu/api/middayimages/', site, '/')
+    mdiJSON = fromJSON(file = tmp)
+    tbl = data.table( DateJSON = as.Date(sapply(mdiJSON, function(x){x$imgdate })),
+                             path = as.character(sapply(mdiJSON, function(x){x$imgpath})))))
     imgDT.tmp <- as.data.table(tbl)
     imgDT.tmp$path <- paste0(mainDataPath, imgDT.tmp$path)
     imgDT <- rbind(imgDT, imgDT.tmp)
@@ -521,11 +505,6 @@ putImageFooter <- function(id, mrgDT, footer='', grid = T, cex = NULL){
 
 
 gettmpdir <- function() {
-  # tm <- Sys.getenv(c('TMPDIR', 'TMP', 'TEMP'))
-  # d <- which(file.info(tm)$isdir & file.access(tm, 2) == 0)
-  # if (length(d) > 0)
-  #   tm[[d[1]]]
-  # else 
   if (.Platform$OS.type == 'windows')
     Sys.getenv('R_USER')
   else
@@ -548,6 +527,7 @@ addMaskPlot <- function(mask, add = T, col='black'){
 }
 
 nextROIID <- function(site, vegType){
+  # url <- paste0('https://phenocam.nau.edu/webcam/roi/roilistinfo/', site, '/?unlinked=yes')
   url <- paste0('https://',SHINY_SERVER_FQDN, '/webcam/roi/roilistinfo/', site, '/?unlinked=yes')
   if(!url.exists(url)) return(c(1, 1000))
   
