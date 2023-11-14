@@ -41,6 +41,10 @@ shinyServer(function(input, output, session) {
                        downloadDir = paste0(gettmpdir(), '/drawROI-',system('whoami', intern=T)),
                        phenoSites = fromJSON(file = sitesInfoURL)
   )
+  
+  # observeEvent(input$showClearCache,
+  #      if(SHINY_SERVER)updateCheckboxInput(session, inputId = 'showClearCache', value = F)
+  # )
   output$showClearCache <- reactive({
     printLog(paste('showClearCache reactive experssion was called.\t'))
     
@@ -142,7 +146,7 @@ shinyServer(function(input, output, session) {
   # Site
   # ----------------------------------------------------------------------
   observe({
- 
+    
     printLog(paste('phenoSitesList observed experssion was called.\t'))
     
     sitesName <- sapply(rv$phenoSites, function(x){x$site})
@@ -168,67 +172,67 @@ shinyServer(function(input, output, session) {
   
   observeEvent(input$siteName, {
     tryCatch({
-    printLog(paste('input$siteName was changed to:', '\t',input$siteName))
-    if(input$siteName=='') return()
-    
-    rv$LinkedID <- 1
-    rv$updateBeforeAfter <- 0
-    rv$PreviousDayID <- NULL
-    rv$NextDayID <- NULL
-    
-    dummy = 0
-    updateSelectInput(session, inputId = 'errorSite', selected = input$siteName)
-    rv$slideShow <- 0
-    
-    updateSliderInput(session,
-                      inputId = 'contID',
-                      value = 1,
-                      min= min(dayYearIDTable()$ID),
-                      max= max(dayYearIDTable()$ID)  )
-    
-    #TODO Figure out why clTable won't load and kill code if it doesn't
-    # print(paste0('clipath test: ', testcli, '\n exists: ', file.exists(testcli)))
-    clt <- clTable()
-    
-
-    updateSliderInput(session,
-                      inputId = 'clRange',
-                      value = c(1, nrow(clt)),
-                      min= 1,
-                      max= nrow(clt) )
-    
-    tmp <- unlist(strsplit(sampleImageName(), '_'))
-    startDate <- as.Date(paste(tmp[2:4], collapse = '-'))
-    HHMMSS <- gsub(tmp[5], pattern = '.jpg',replacement = '')
-    startTime <- paste(substring(HHMMSS, c(1,3,5), c(2,4,6)), collapse = ':')
-    updateDateInput(session, 'maskStartDate', value = startDate)
-    updateTextInput(session, inputId = 'maskStartTime', value = startTime)
-    
-    updateCheckboxInput(session, 'openEnd', value = F)
-    
-    
-    dmin <- imgDT()[Site==input$siteName, min(Date)]
-    dmax <- imgDT()[Site==input$siteName, max(Date)]
-    
-    print(paste0('gotoDate, dmin, dmax: ', dmin, ', ', dmax))
-    updateDateInput(session, 'gotoDate', value = dmin, min = dmin, max = dmax)
-    
-    
-    x <- imgDT()[Site==input$siteName, unique(Year)]
-    if (is.null(x)) x <- character(0)
-    
-    updateSelectInput(session, "year", choices = x)
-    updateSelectInput(session, 'roiName', choices = rv$ROIs, selected = 'New ROI')
-    updateSelectInput(session, 'roiName', selected = 'New ROI')
-    updateSelectInput(session, 'vegType', selected = 'AG')
-    updateTextInput(session, 'roiDescription', value = '')
-    updateTextInput(session, 'roiOwner', value = '')
-    dummy <- 0
-    rv$MASKs <- list()
-    updateSelectInput(session, inputId = 'maskName', choices = 'New mask')
-    rv$centers <- matrix(numeric(), 0, 2)
-    rv$curDate <- dayYearIDTable()[ID==1, Date]
-    
+      printLog(paste('input$siteName was changed to:', '\t',input$siteName))
+      if(input$siteName=='') return()
+      
+      rv$LinkedID <- 1
+      rv$updateBeforeAfter <- 0
+      rv$PreviousDayID <- NULL
+      rv$NextDayID <- NULL
+      
+      dummy = 0
+      updateSelectInput(session, inputId = 'errorSite', selected = input$siteName)
+      rv$slideShow <- 0
+      
+      updateSliderInput(session,
+                        inputId = 'contID',
+                        value = 1,
+                        min= min(dayYearIDTable()$ID),
+                        max= max(dayYearIDTable()$ID)  )
+      
+      #TODO Figure out why clTable won't load and kill code if it doesn't
+      # print(paste0('clipath test: ', testcli, '\n exists: ', file.exists(testcli)))
+      clt <- clTable()
+      
+      
+      updateSliderInput(session,
+                        inputId = 'clRange',
+                        value = c(1, nrow(clt)),
+                        min= 1,
+                        max= nrow(clt) )
+      
+      tmp <- unlist(strsplit(sampleImageName(), '_'))
+      startDate <- as.Date(paste(tmp[2:4], collapse = '-'))
+      HHMMSS <- gsub(tmp[5], pattern = '.jpg',replacement = '')
+      startTime <- paste(substring(HHMMSS, c(1,3,5), c(2,4,6)), collapse = ':')
+      updateDateInput(session, 'maskStartDate', value = startDate)
+      updateTextInput(session, inputId = 'maskStartTime', value = startTime)
+      
+      updateCheckboxInput(session, 'openEnd', value = F)
+      
+      
+      dmin <- imgDT()[Site==input$siteName, min(Date)]
+      dmax <- imgDT()[Site==input$siteName, max(Date)]
+      
+      print(paste0('gotoDate, dmin, dmax: ', dmin, ', ', dmax))
+      updateDateInput(session, 'gotoDate', value = dmin, min = dmin, max = dmax)
+      
+      
+      x <- imgDT()[Site==input$siteName, unique(Year)]
+      if (is.null(x)) x <- character(0)
+      
+      updateSelectInput(session, "year", choices = x)
+      updateSelectInput(session, 'roiName', choices = rv$ROIs, selected = 'New ROI')
+      updateSelectInput(session, 'roiName', selected = 'New ROI')
+      updateSelectInput(session, 'vegType', selected = 'AG')
+      updateTextInput(session, 'roiDescription', value = '')
+      updateTextInput(session, 'roiOwner', value = '')
+      dummy <- 0
+      rv$MASKs <- list()
+      updateSelectInput(session, inputId = 'maskName', choices = 'New mask')
+      rv$centers <- matrix(numeric(), 0, 2)
+      rv$curDate <- dayYearIDTable()[ID==1, Date]
+      
     }, error = function(err){
       print(paste0('Error in clTable'))
     }, warning = function(wrn){
@@ -258,12 +262,34 @@ shinyServer(function(input, output, session) {
     }, warning = function(wrn){
       print(paste0('Warning in observe shiftList1'))
     })
+    
+    
+    # tryCatch({
+    #   printLog(paste('shiftsList1 reactive experssion was called.\t'))
+    #   if(input$siteName=='') return()
+    #   
+    #   clt <- as.data.table(clTable())
+    #   dummy <- 0
+    #   clt <- clt[blackness<=.8&Haze<=input$hazeThreshold]
+    #   # clt[,Group:=rep(1:.N, each=3, length.out=.N)]
+    #   # clt[,HzMed:=median(as.double(na.omit(Horizon))),Group]
+    #   clt[, dHz := c(diff(Horizon), 0)]
+    #   shiftsList1 <- as.Date(clt[abs(dHz)>as.numeric(input$shiftsList1.Threshold), Date])
+    #   rv$shiftsList1 <- shiftsList1
+    #   
+    #   updateSelectInput(session, 'shiftsList1', choices = c(Choose='', as.list(shiftsList1)))
+    # }, error = function(err){
+    #   print(paste0('Error in server.R observe.'))
+    # }, warning = function(wrn){
+    #   print(paste0('Warning in server.R observe.'))
+    # })
+    
   })
   
   
   
   observeEvent(input$shiftsList1,{
-
+    
     tryCatch({
       printLog(paste('input$shiftsList1 was changed to:', '\t',input$shiftsList1))
       if(input$siteName=='') return()
@@ -272,6 +298,12 @@ shinyServer(function(input, output, session) {
       rv$slideShow <- 0
       dummy <- 1
       tmpDT <- dayYearIDTable()
+      # print(paste0(input$shiftsList1)) # TODO remove once done debugging 
+      # print(paste0(length(input$shiftsList1))) # TODO remove once done debugging 
+      # print(paste0(length(numeric(input$shiftsList1)))) # TODO remove once done debugging 
+      # print(paste0('structure: ', str(input$shiftsList1)))
+      # convertTest <- input$shiftsList1*60*60*24
+      # print(paste0('convert time: ', convertTest)) # TODO remove once done debugging 
       
       # The code commented out relies on R interpreting a list as a number
       # which does not occur in newer versions. This may have been true in older
@@ -443,6 +475,8 @@ shinyServer(function(input, output, session) {
     printLog(paste('dirroipath observed experssion was called.\t'))
     if(input$siteName=='') return()
     
+    # ROIsJSON <- jsonlite::fromJSON(txt = paste0('https://phenocam.sr.unh.edu/webcam/roi/roilistinfo/', input$siteName))
+    
     if(is.url(roipath())){
       dirHTML(url = roipath(), sitename = input$siteName, pattern = 'roi.csv$')
     }
@@ -452,6 +486,8 @@ shinyServer(function(input, output, session) {
   })
   
   observe({
+    # return()
+    # autoInvalidate()
     if(input$siteName=='') return()
     
     tmp.rv.ROIs <- c(dirroipath(), "New ROI")
@@ -463,7 +499,8 @@ shinyServer(function(input, output, session) {
       rv$ROIs <- tmp.rv.ROIs
       
       printLog(paste('rv$ROIs observed experssion was called.\t'))
-      roiNameSel <- 'New ROI']
+      roiNameSel <- 'New ROI'
+      # if(length(rv$ROIs)>1) roiNameSel <- rv$ROIs[length(rv$ROIs)-1]
       dummy <- 0
       
       updateSelectInput(session, 'roiName', choices = rv$ROIs)
@@ -604,6 +641,9 @@ shinyServer(function(input, output, session) {
   })
   
   observe({
+    # printLog(paste('x12 observe experssion was called.\t'))
+    
+    # autoInvalidate()
     if(input$siteName=='') return()
     
     dummy <- 0
@@ -649,6 +689,7 @@ shinyServer(function(input, output, session) {
     rv$MASKs <- list()
     rv$centers <- matrix(numeric(), 0, 2)
     updateSelectInput(session, inputId = 'maskName', choices = 'New mask')
+    # updateSelectInput(session, inputId = 'vegType', selected = list('Agriculture (AG)'='AG'))
     updateTextInput(session, 'roiDescription', value = '')
     updateTextInput(session, inputId = 'roiOwner', value = '') 
   })
@@ -670,7 +711,7 @@ shinyServer(function(input, output, session) {
   observeEvent(input$nextROIID,{
     printLog(paste('input$nextROIID was changed to:', '\t',input$nextROIID))
     if(input$siteName=='') return()
-   dummy <- 0 
+    dummy <- 0 
     rv$slideShow <- 0 
     if(length(rv$MASKs)==0) return()
     
@@ -873,46 +914,46 @@ shinyServer(function(input, output, session) {
   
   clTable <- reactive({
     tryCatch({
-
-    printLog(paste('clTable reactive experssion was called.\t'))
-    if(input$siteName=='') return()
-    
-    showModal(strong(
-      modalDialog(HTML('Loading CenterLine table ...'),
-                  easyClose = F,
-                  size = 's',
-                  style='background-color:#3b3a35; color:#fce319; ',
-                  footer = NULL
-      )))
-  
-    cltpath <- paste0(mainDataPath, '/data/archive/', input$siteName, '/ROI/', input$siteName, '-cli.txt')
-    # cltpath <- 'bad.txt'
-    # printLog(paste('cltpath: ', cltpath))
-    
-    cltpath <- tryDownload(cltpath, downloadDir = rv$downloadDir, Update = T)
-    clt <- read.csv(cltpath)
-    printLog(paste('cltpath: ', cltpath))
-
-    
-    clt <- as.data.table(clt)
-    clt[,CLID:=1:.N]
-    clt[,Date:= as.Date(Date)]
-    
-    # okay <- which(clt$Haze<=input$hazeThreshold|clt$blackness<=.8)
-    # clt$Horizon[-okay] <- NA
-    # clt$R[-okay] <- NA
-    
-    clt$Horizon <- getNAfromLast(clt$Horizon)
-    clt$R <- getNAfromLast(clt$R)
-    
-    # clt$HorizonD5 <- c(clt$Horizon[-(1:5)], rep(NA, 5)) - clt$Horizon 
-    clt[Haze>1,Haze:=1]
-    clt[Haze<0,Haze:=0]
-    
-    removeModal()
-    
-    as.data.frame(clt)
-    
+      
+      printLog(paste('clTable reactive experssion was called.\t'))
+      if(input$siteName=='') return()
+      
+      showModal(strong(
+        modalDialog(HTML('Loading CenterLine table ...'),
+                    easyClose = F,
+                    size = 's',
+                    style='background-color:#3b3a35; color:#fce319; ',
+                    footer = NULL
+        )))
+      
+      cltpath <- paste0(mainDataPath, '/data/archive/', input$siteName, '/ROI/', input$siteName, '-cli.txt')
+      # cltpath <- 'bad.txt'
+      # printLog(paste('cltpath: ', cltpath))
+      
+      cltpath <- tryDownload(cltpath, downloadDir = rv$downloadDir, Update = T)
+      clt <- read.csv(cltpath)
+      printLog(paste('cltpath: ', cltpath))
+      
+      
+      clt <- as.data.table(clt)
+      clt[,CLID:=1:.N]
+      clt[,Date:= as.Date(Date)]
+      
+      # okay <- which(clt$Haze<=input$hazeThreshold|clt$blackness<=.8)
+      # clt$Horizon[-okay] <- NA
+      # clt$R[-okay] <- NA
+      
+      clt$Horizon <- getNAfromLast(clt$Horizon)
+      clt$R <- getNAfromLast(clt$R)
+      
+      # clt$HorizonD5 <- c(clt$Horizon[-(1:5)], rep(NA, 5)) - clt$Horizon 
+      clt[Haze>1,Haze:=1]
+      clt[Haze<0,Haze:=0]
+      
+      removeModal()
+      
+      as.data.frame(clt)
+      
     }, error = function(err){
       print(paste0('Error in clTable.'))
     }, warning = function(wrn) {
@@ -1054,6 +1095,19 @@ shinyServer(function(input, output, session) {
     updateSliderInput(session, inputId = 'contID', value = id)
   })
   
+  
+  # observeEvent(input$gotoDateButton,{
+  #   printLog(paste('input$gotoDateButton was changed to:', '\t',input$gotoDateButton))
+  #   if(input$siteName=='') return()
+  #   
+  #   dummy <- 1
+  #   tmpDT <- dayYearIDTable()
+  #   tmpDT[, dif:=abs(Date-input$gotoDate)]
+  #   id <- tmpDT[dif==min(dif), ID]
+  #   updateSliderInput(session, inputId = 'contID', value = id)
+  # })
+  
+  
   observeEvent(input$contID,{
     printLog(paste('input$contID was changed to:', '\t',input$contID))
     if(input$siteName=='') return()
@@ -1137,11 +1191,11 @@ shinyServer(function(input, output, session) {
   )
   
   output$clPlot <- renderPlot(
-      res=36,
-      height = 100,
-      # height = function(){floor(session$clientData$output_clPlot_width/2)},
-      {
-        tryCatch({
+    res=36,
+    height = 100,
+    # height = function(){floor(session$clientData$output_clPlot_width/2)},
+    {
+      tryCatch({
         printLog(paste('clPlot renderPlot experssion was called.\t'))
         
         if(input$siteName=='') return()
@@ -1169,12 +1223,12 @@ shinyServer(function(input, output, session) {
                col = c('yellow', 'orange'), 
                text.col = c('yellow', 'orange'))
         
-        }, error = function(err){
-          print(paste0('Error in clPlot renderPlot'))
-        }, warning = function(wrn){
-          print(paste0('Warning in clPlot renderPlot'))
-        })
-      }
+      }, error = function(err){
+        print(paste0('Error in clPlot renderPlot'))
+      }, warning = function(wrn){
+        print(paste0('Warning in clPlot renderPlot'))
+      })
+    }
   )
   
   
@@ -1214,17 +1268,17 @@ shinyServer(function(input, output, session) {
           # polygon(absPoints, col = input$roiColors, pch = 9, lwd=1)
           polygon(absPoints, pch = 9, lwd=3, border=input$roiColors)
           mm <- curMask()
-  
+          
           if(!is.null(mm)&input$showMask){
             # The warning here is not an issue. 
             suppressWarnings(
               addMaskPlot(mm, col = input$roiColors)
             )
           }
-          }
+        }
       }, error = function(err){
         print(paste0('Error in imagePlotBig: ', err))
-
+        
       }, warning = function(wrn){
         print(paste0('Warning in imagePlotBig: ', wrn))
         # print(paste0('Warning in imagePlotBig'))
@@ -1288,8 +1342,8 @@ shinyServer(function(input, output, session) {
         plot(NA, xlim=c(0,1), ylim=c(0,1), xaxs='i',yaxs='i', xaxt='n', yaxt='n', bty='o', xlab='',ylab='')
         text(mean(par()$usr[1:2]), mean(par()$usr[3:4]), 'No image for this date was found!', font=2, adj=.5, cex=2)
       }else{
-      jp <- plotJPEG(copiedImage,  downloadDir = rv$downloadDir)
-      putImageFooter(id = rv$LinkedID, mrgDT = mergedTable(), footer = 'copied image', grid = input$showGrid)
+        jp <- plotJPEG(copiedImage,  downloadDir = rv$downloadDir)
+        putImageFooter(id = rv$LinkedID, mrgDT = mergedTable(), footer = 'copied image', grid = input$showGrid)
       }
     })
   
@@ -1335,15 +1389,15 @@ shinyServer(function(input, output, session) {
   
   mergedTable <- reactive({
     # tryCatch({
-      printLog(paste('mergedTable reactive experssion was called.\t'))
-      if(input$siteName=='') return()
-      
-      clt <- as.data.table(clTable())[,.(Date, Horizon, Haze, R, blackness, CLID)]
-      dyt <- as.data.table(dayYearIDTable())[, .(Date, ID)]
-      ipt <- imgDT()[,.(Date, path)]
-      mrgt <- merge(clt, dyt, by='Date')
-      mrgt <- merge(mrgt, ipt, by='Date')
-      mrgt
+    printLog(paste('mergedTable reactive experssion was called.\t'))
+    if(input$siteName=='') return()
+    
+    clt <- as.data.table(clTable())[,.(Date, Horizon, Haze, R, blackness, CLID)]
+    dyt <- as.data.table(dayYearIDTable())[, .(Date, ID)]
+    ipt <- imgDT()[,.(Date, path)]
+    mrgt <- merge(clt, dyt, by='Date')
+    mrgt <- merge(mrgt, ipt, by='Date')
+    mrgt
     # }, error = function(err){
     #   print(paste0('Error in mergedTable.'))
     # }, warning = function(wrn){
@@ -1556,7 +1610,7 @@ shinyServer(function(input, output, session) {
                    ' to ', 
                    max(sapply(rv$MASKs, function(x)as.character(x$enddate)))
                    # input$maskEndDate
-                   )
+      )
       
       showModal(strong(modalDialog(tmp,
                                    style='background-color:#3b3a35; color:#fce319; ',
@@ -2134,8 +2188,18 @@ shinyServer(function(input, output, session) {
   shinyjs::disable("gotoShiftFOV")
   
   removeModal()
-
+  
+  # showModal(strong(
+  #   modalDialog(HTML('This is the beta version of PhenoCam ROI app. Thanks for helping us to improve it. <br>
+  #               Please do not share with others.'),
+  #               easyClose = T,
+  #               fade = T,
+  #               size = 'm',
+  #               style='background-color:#3b3a35; color:#fce319; ',
+  #               footer = NULL
+  #   )))
+  
+  
   observe(printLog(finit = T))
   
 })
-
