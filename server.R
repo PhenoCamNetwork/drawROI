@@ -262,28 +262,6 @@ shinyServer(function(input, output, session) {
     }, warning = function(wrn){
       print(paste0('Warning in observe shiftList1'))
     })
-    
-    
-    # tryCatch({
-    #   printLog(paste('shiftsList1 reactive experssion was called.\t'))
-    #   if(input$siteName=='') return()
-    #   
-    #   clt <- as.data.table(clTable())
-    #   dummy <- 0
-    #   clt <- clt[blackness<=.8&Haze<=input$hazeThreshold]
-    #   # clt[,Group:=rep(1:.N, each=3, length.out=.N)]
-    #   # clt[,HzMed:=median(as.double(na.omit(Horizon))),Group]
-    #   clt[, dHz := c(diff(Horizon), 0)]
-    #   shiftsList1 <- as.Date(clt[abs(dHz)>as.numeric(input$shiftsList1.Threshold), Date])
-    #   rv$shiftsList1 <- shiftsList1
-    #   
-    #   updateSelectInput(session, 'shiftsList1', choices = c(Choose='', as.list(shiftsList1)))
-    # }, error = function(err){
-    #   print(paste0('Error in server.R observe.'))
-    # }, warning = function(wrn){
-    #   print(paste0('Warning in server.R observe.'))
-    # })
-    
   })
   
   
@@ -298,17 +276,6 @@ shinyServer(function(input, output, session) {
       rv$slideShow <- 0
       dummy <- 1
       tmpDT <- dayYearIDTable()
-      # print(paste0(input$shiftsList1)) # TODO remove once done debugging 
-      # print(paste0(length(input$shiftsList1))) # TODO remove once done debugging 
-      # print(paste0(length(numeric(input$shiftsList1)))) # TODO remove once done debugging 
-      # print(paste0('structure: ', str(input$shiftsList1)))
-      # convertTest <- input$shiftsList1*60*60*24
-      # print(paste0('convert time: ', convertTest)) # TODO remove once done debugging 
-      
-      # The code commented out relies on R interpreting a list as a number
-      # which does not occur in newer versions. This may have been true in older
-      # versions of R
-      # tmpDT[, dif:=abs(Date- as.Date(input$shiftsList1))]
       tmpDT[, dif:=abs(Date- as.Date(length(numeric(input$shiftsList1))))]
       
       
@@ -1094,18 +1061,6 @@ shinyServer(function(input, output, session) {
     id <- tmpDT[dif==min(dif), ID]
     updateSliderInput(session, inputId = 'contID', value = id)
   })
-  
-  
-  # observeEvent(input$gotoDateButton,{
-  #   printLog(paste('input$gotoDateButton was changed to:', '\t',input$gotoDateButton))
-  #   if(input$siteName=='') return()
-  #   
-  #   dummy <- 1
-  #   tmpDT <- dayYearIDTable()
-  #   tmpDT[, dif:=abs(Date-input$gotoDate)]
-  #   id <- tmpDT[dif==min(dif), ID]
-  #   updateSliderInput(session, inputId = 'contID', value = id)
-  # })
   
   
   observeEvent(input$contID,{
@@ -2188,18 +2143,7 @@ shinyServer(function(input, output, session) {
   shinyjs::disable("gotoShiftFOV")
   
   removeModal()
-  
-  # showModal(strong(
-  #   modalDialog(HTML('This is the beta version of PhenoCam ROI app. Thanks for helping us to improve it. <br>
-  #               Please do not share with others.'),
-  #               easyClose = T,
-  #               fade = T,
-  #               size = 'm',
-  #               style='background-color:#3b3a35; color:#fce319; ',
-  #               footer = NULL
-  #   )))
-  
-  
+
   observe(printLog(finit = T))
   
 })
