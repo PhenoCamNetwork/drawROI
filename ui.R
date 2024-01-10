@@ -76,45 +76,47 @@ fluidPage(
                             strong('Sample Image:')}),
                           textOutput('sampleImagePath'),
                           br(),
-                          conditionalPanel('input.siteName!=""', { fluidRow(
+                          conditionalPanel("input.siteName!=''", { fluidRow(
                             column(6, actionButton( 'matchStart', 'Match start', width = '100%', style='background-color:#666; color:#fff;font-weight: bold;')),
                             column(6, actionButton( 'matchEnd', 'Match end', width = '100%', style='background-color:#666; color:#fff;font-weight: bold;'))
                           )
                           }),
                           br(),
-                          # TODO this section fails due to date selection.
-                          conditionalPanel('input.siteName!=""', {fluidRow(
-                            column(1, strong('from', style='font-size:70%;font-weight: bold;')),
-
-                            tryCatch({
-                              column(5, dateInput('maskStartDate', label = NULL, value =  '2001-01-01', startview = 'day'))
-                              # column(5, airDatepickerInput('maskStartDate', label = NULL, value = as.Date('2001-01-01', format = "%Y-%m-%d"), view = c("days", "months", "years")))
-                            }, error = function(err){
-                              print(paste0('Error in StartDate'))
-                            }, warning = function(wrn){
-                              print(paste0('Warning in StartDate'))
-                            }),
-                            
-                            column(4, textInput('maskStartTime', label = NULL, value = '00:08:00')),
-                            column(1, '')
+                          conditionalPanel(condition = 'input.siteName!=""', 
+                            {
+                              fluidRow(
+                                column(1, strong('from', style='font-size:70%;font-weight: bold;')),
+                                tryCatch({
+                                  # column(5, dateInput('maskStartDate', label = NULL, value =  '2001-01-01', startview = 'day'))
+                                  column(5, dateInput('maskStartDate', label = NULL, value =  '2001-01-01', startview = 'month'))
+                                }, error = function(err){
+                                  print(paste0('Error in StartDate'))
+                                }, warning = function(wrn){
+                                  print(paste0('Warning in StartDate'))
+                                }),
+    
+                                column(4, textInput('maskStartTime', label = NULL, value = '00:08:00')),
+                                column(1, '')
                           )}),
-                          conditionalPanel('input.siteName!=""', {fluidRow(
-                            column(1, strong('to', style='font-size:70%')),
-                            # print(paste0('input.siteName: ')),
-                            # column(5, dateInput('maskEndDate', label = NULL, value =  '9999-12-31', startview = 'day')),
-                            
-                            tryCatch({
-                              column(5, dateInput('maskEndDate', label = NULL, value =  '9999-12-31', startview = 'day'))
-                              # column(5, airDatepickerInput('maskEndDate', label = NULL, value = as.Date('2024-12-31', format = "%Y-%m-%d"), view = c("days", "months", "years")))
-                            }, error = function(err){
-                              print(paste0('Error in EndDate'))
-                            }, warning = function(wrn){
-                              print(paste0('Warning in EndDate'))
-                            }),
-                            
-                            column(4, textInput('maskEndTime', label = NULL, value = '00:00:00')),
-                            column(1, checkboxInput('openEnd', label = '', value = F))
-                          )}),
+                          
+                          conditionalPanel('input.siteName!=""', 
+                            {
+                              fluidRow(
+                                column(1, strong('to', style='font-size:70%')),
+                                # column(5, dateInput('maskEndDate', label = NULL, value =  '9999-12-31', startview = 'day')),
+                                tryCatch({
+                                  column(5, dateInput('maskEndDate', label = NULL, value =  '9999-12-31', startview = 'month'))
+                                }, error = function(err){
+                                  print(paste0('Error in EndDate'))
+                                }, warning = function(wrn){
+                                  print(paste0('Warning in EndDate'))
+                                }),
+    
+                                column(4, textInput('maskEndTime', label = NULL, value = '00:00:00')),
+                                column(1, checkboxInput('openEnd', label = '', value = F))
+                              )
+                            }
+                          ),
                           
                           
                           br(),

@@ -7,7 +7,7 @@
 # Most recent release: https://github.com/bnasr/drawROI
 #######################################################################
 
-library(shiny, lib="/home/mkf58/Documents/Development/Phoenocam/shiny_1_4_0_2")
+# library(shiny, lib="/home/mkf58/Documents/Development/Phoenocam/shiny_1_4_0_2")
 
 source('funcs.R')
 
