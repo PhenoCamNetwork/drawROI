@@ -12,14 +12,14 @@
 source('funcs.R')
 
 list.of.packages <- c(
-  'rgdal',
+  # 'rgdal',
   'shiny',
   'shinyjs',
   'shinyBS',
-  'shinyAce',
-  'shinyTime',
-  'shinyFiles',
-  'shinydashboard',
+  # 'shinyAce',
+  # 'shinyTime',
+  # 'shinyFiles',
+  # 'shinydashboard',
   'shinythemes',
   'colourpicker',
   'rjson',
