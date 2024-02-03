@@ -1820,7 +1820,7 @@ shinyServer(function(input, output, session) {
         yAxis$range <- c(0,1)
         xAxis$range <- c(0,1)
         dummy=0
-        cc <- melt(data.frame(red= cvals$rcc, green = cvals$gcc, blue= cvals$bcc), 
+        cc <- melt(as.data.table(data.frame(red= cvals$rcc, green = cvals$gcc, blue= cvals$bcc)), 
                    variable.name='band', value.name='cc', id.vars=NULL)
         d <- data.table(time=tvals, cc)
         dummy=0
@@ -1848,7 +1848,7 @@ shinyServer(function(input, output, session) {
       clt <- as.data.table(clTable())[,.(Date,Haze)]
       haze <- clt[Date%in%tvals, Haze]
       
-      cc <- melt(data.frame(red= cvals$rcc, green = cvals$gcc, blue= cvals$bcc, haze=haze), 
+      cc <- melt(as.data.table(data.frame(red= cvals$rcc, green = cvals$gcc, blue= cvals$bcc, haze=haze)), 
                  variable.name='band', value.name='cc', id.vars=NULL)
       d <- data.table(time=tvals, cc, Foggy = (haze>input$hazeThreshold)*1)
       d <- d[,pch:=Foggy*15+1]
