@@ -15,14 +15,14 @@ git clone https://github.com/PhenoCamNetwork/drawROI.git
 Once the repository is cloned navigate into the directory using `cd` or a file manager/browser. To use drawROI with RStudio open `drawROI.Rproj`. For this to work RStudio must be installed locally. For drawROI to work internet access is necessary because the Shiny code references several drawROI APIs. 
 
 ### Notes for Development
-The drawROI code can be used on a server or a local machine. In order to run the code on a local machine the version of Shiny must match the version on the PhenoCam server. As of this writting that was version 1.4.0.2. The R package can be downloaded as a zip file and unpacked and the location can be manually specified in the code. 
+The drawROI code can be used on a server or a local machine. If trying to debug issues in the production version of drawROI the version of Shiny should match the version on the PhenoCam server. As of this writting version 1.8.0 was used for development. The R package can be downloaded as a zip file, unpacked, and the location can be manually specified in the code. In the code below replace <version> with the correct value being used for development.
 
 ```R
-library(shiny, lib="/pathToLibrary/shiny_1_4_0_2")
+# library(shiny, lib="/pathToLibrary/shiny<version>")
 ```
 if R studio is running in the drawROI directory run the code using.
 ```R
-library(shiny, lib="/pathToLibrary/shiny_1_4_0_2")
+# library(shiny, lib="/pathToLibrary/shiny<version>")
 runApp()
 ```
 
